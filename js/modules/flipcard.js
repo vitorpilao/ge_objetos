@@ -122,8 +122,8 @@ html,body{
     transition:opacity .6s ease-out,transform .6s ease-out;
     padding: 20px; /* Este é o padding que causava o scroll */
     box-sizing:border-box;
-    width: 270px; /* Largura fixa (250px + 2*10px padding) */
-    height: 200px; /* Altura fixa (180px + 2*10px padding) */
+    width: 250px; /* Largura fixa (250px + 2*10px padding) */
+    height: 180px; /* Altura fixa (180px + 2*10px padding) */
 }
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}

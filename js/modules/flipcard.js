@@ -1,5 +1,5 @@
 // js/modules/flipcard.js
-// Módulo Flipcard (v5.9.5 - Correção definitiva de layout/scroll)
+// Módulo Flipcard (v5.9.6 - Layout Fixo Corrigido)
 
 GeneratorCore.registerModule('flipcard', {
     iconMap: {
@@ -15,32 +15,62 @@ GeneratorCore.registerModule('flipcard', {
 
     // 1. Setup: (Função para "Adicionar Linha")
     setup(core) {
+        // ... (código do setup permanece o mesmo) ...
         const addButton = document.getElementById('flipcard-add-item');
         const container = document.getElementById('flipcard-itens-container');
-        const updateItemLabels = () => { /* ... (código inalterado) ... */ };
-        addButton.addEventListener('click', () => { /* ... (código inalterado) ... */ });
+        const updateItemLabels = () => {
+            const allBlocks = container.querySelectorAll('.flipcard-item-bloco');
+            allBlocks.forEach((bloco, index) => {
+                const itemNum = index + 1;
+                const label = bloco.querySelector('label');
+                const textarea = bloco.querySelector('textarea');
+                if (label && textarea) {
+                    label.innerText = `Linha ${itemNum}`;
+                    label.htmlFor = `input-flipcard-item-${index}`;
+                    textarea.id = `input-flipcard-item-${index}`;
+                }
+            });
+        };
+        addButton.addEventListener('click', () => {
+            const newIndex = container.querySelectorAll('.flipcard-item-bloco').length;
+            const newItemBlock = document.createElement('div');
+            newItemBlock.className = 'flipcard-item-bloco';
+            newItemBlock.innerHTML = `
+                <button type="button" class="flipcard-remove-item" title="Remover esta linha">X</button>
+                <div class="form-group">
+                    <label for="input-flipcard-item-${newIndex}">Linha ${newIndex + 1}</label>
+                    <textarea id="input-flipcard-item-${newIndex}" class="rich-text-enabled flipcard-item-input" placeholder="Digite o texto da linha ${newIndex + 1}..." required></textarea>
+                </div>
+            `;
+            container.appendChild(newItemBlock);
+            const newItemTextarea = newItemBlock.querySelector(`#input-flipcard-item-${newIndex}`);
+            if (newItemTextarea) core.utils.enableRichText(newItemTextarea);
+            const removeButton = newItemBlock.querySelector('.flipcard-remove-item');
+            removeButton.addEventListener('click', () => {
+                container.removeChild(newItemBlock);
+                updateItemLabels();
+            });
+        });
         updateItemLabels();
     },
 
     // 2. getFormData: (Lê os itens dinâmicos)
     getFormData(core) {
+        // ... (código do getFormData permanece o mesmo) ...
         const tituloFrenteRaw = document.getElementById('input-titulo-frente-flipcard').value;
         const iconeSelect = document.getElementById('input-icone-flipcard');
         const iconeKey = iconeSelect.value;
         const corFundo = document.getElementById('input-flipcard-bg').value;
-
         const stripHTML = (html) => {
             const tmp = document.createElement("DIV");
             tmp.innerHTML = html;
             return tmp.textContent || tmp.innerText || "";
         };
-
         const itemInputs = document.querySelectorAll('.flipcard-item-input');
         const listaItensHTML = Array.from(itemInputs)
             .map(input => (input.value.trim() !== '') ? `<li>${input.value}</li>` : null)
             .filter(item => item !== null)
             .join('\n');
-
         return {
             uniqueId: `card-flipper-${Date.now().toString().slice(-6)}`,
             corTema: document.getElementById('input-cor-tema-flipcard').value,
@@ -57,7 +87,7 @@ GeneratorCore.registerModule('flipcard', {
         };
     },
 
-    // 3. createTemplate: (CSS Corrigido)
+    // 3. createTemplate: (CSS Corrigido - Retorno ao v5.9.2)
     createTemplate(data) {
         const { uniqueId, corTema, corFundo, corTexto, tituloFrente, descricaoFrente, tituloVerso, listaItensHTML, iconePath, iconeAriaLabel, ariaLabelRegiao, ariaLabelBotao } = data;
 
@@ -77,31 +107,31 @@ html,body{
 }
 *, *:before, *:after { box-sizing: inherit; }
 
-/* --- CORREÇÃO 2: Wrapper ainda é 100% --- */
+/* --- CORREÇÃO 2: Wrapper com padding de 10px --- */
 .interactive-card-wrapper{
     opacity:0;
     transform:translateY(20px);
     transition:opacity .6s ease-out,transform .6s ease-out;
-    padding:0;
+    padding: 10px; /* Adiciona o "respiro" aqui */
     box-sizing:border-box;
-    width: 100%;
+    width: 100%; /* Ocupa 100% do iframe */
 }
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
 
-/* --- CORREÇÃO 3: Card tem padding e altura definida --- */
+/* --- CORREÇÃO 3: Card com 100% de largura e altura fixa --- */
 .interactive-card{
-    width: 100%;
-    height: 190px; /* Altura de 190px (180 + 10 de "respiro") */
+    width: 100%;    /* Ocupa 100% do wrapper (que tem 100% - 20px de padding) */
+    height: 180px;  /* Altura fixa (você pode mudar isso) */
     cursor:pointer;
     position:relative;
     display:block;
     perspective:1000px;
-    padding: 10px; /* Adiciona o "respiro" AQUI */
+    border-radius:8px;
 }
 .card-inner{
     width: 100%;
-    height: 100%; /* Ocupa a altura do pai (180px) */
+    height: 100%;
     transition:transform .6s,box-shadow .3s ease,border-left-color .3s ease;
     transform-style:preserve-3d;
     border:1px solid rgba(0,0,0,0.1);
@@ -114,7 +144,8 @@ html,body{
 .interactive-card:focus-visible{outline:3px solid ${corTema};outline-offset:4px;border-radius:8px}
 .interactive-card.is-flipped .card-inner{transform:rotateY(180deg)}
 .interactive-card.is-flipped:hover .card-inner{transform:rotateY(180deg) translateY(-5px)}
-.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:20px;box-sizing:border-box; overflow: auto;} /* Overflow auto para conteúdo interno */
+/* --- CORREÇÃO 4: overflow: auto para o conteúdo --- */
+.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:20px;box-sizing:border-box; overflow: auto;}
 .card-back{transform:rotateY(180deg);text-align:left}
 .icon{color:${corTema};margin-bottom:12px}
 .card-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 8px;overflow-wrap:break-word;word-break:break-word}

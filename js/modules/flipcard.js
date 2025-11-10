@@ -97,7 +97,7 @@ html,body{
     position:relative;
     display:block;
     perspective:1000px;
-    padding: 10px; /* Adiciona o "respiro" AQUI */
+    /*padding: 10px; *//* Adiciona o "respiro" AQUI */
 }
 .card-inner{
     width: 100%;

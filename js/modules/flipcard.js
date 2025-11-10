@@ -120,7 +120,7 @@ html,body{
     opacity:0;
     transform:translateY(20px);
     transition:opacity .6s ease-out,transform .6s ease-out;
-    padding: 10px; /* Este é o padding que causava o scroll */
+    padding: 5px; /* Este é o padding que causava o scroll */
     box-sizing:border-box;
     width: 270px; /* Largura fixa (250px + 2*10px padding) */
     height: 200px; /* Altura fixa (180px + 2*10px padding) */

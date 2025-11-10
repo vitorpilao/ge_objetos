@@ -1,5 +1,5 @@
 // js/modules/flipcard.js
-// Módulo Flipcard (v5.9.1 - Renomeado para "Linha")
+// Módulo Flipcard (v5.9.2 - Correção de overflow horizontal)
 
 GeneratorCore.registerModule('flipcard', {
     iconMap: {
@@ -13,12 +13,11 @@ GeneratorCore.registerModule('flipcard', {
         'question-circle': { label: "Ícone de interrogação", path: "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" }
     },
 
-    // 1. (ATUALIZADO) Setup: Ativa "+ Adicionar Linha"
+    // 1. Setup: (Atualizado para "Linha")
     setup(core) {
         const addButton = document.getElementById('flipcard-add-item');
         const container = document.getElementById('flipcard-itens-container');
-
-        // Renumera as labels
+        
         const updateItemLabels = () => {
             const allBlocks = container.querySelectorAll('.flipcard-item-bloco');
             allBlocks.forEach((bloco, index) => {
@@ -27,20 +26,18 @@ GeneratorCore.registerModule('flipcard', {
                 const textarea = bloco.querySelector('textarea');
                 
                 if (label && textarea) {
-                    label.innerText = `Linha ${itemNum}`; // <-- MUDANÇA
+                    label.innerText = `Linha ${itemNum}`;
                     label.htmlFor = `input-flipcard-item-${index}`;
                     textarea.id = `input-flipcard-item-${index}`;
                 }
             });
         };
 
-        // Evento de ADICIONAR Linha
         addButton.addEventListener('click', () => {
             const newIndex = container.querySelectorAll('.flipcard-item-bloco').length;
             const newItemBlock = document.createElement('div');
             newItemBlock.className = 'flipcard-item-bloco';
-
-            // MUDANÇAS AQUI (label, title, placeholder)
+            
             newItemBlock.innerHTML = `
                 <button type="button" class="flipcard-remove-item" title="Remover esta linha">X</button>
                 <div class="form-group">
@@ -49,23 +46,21 @@ GeneratorCore.registerModule('flipcard', {
                 </div>
             `;
             container.appendChild(newItemBlock);
-
-            // Ativa o Rich Text no novo item
+            
             const newItemTextarea = newItemBlock.querySelector(`#input-flipcard-item-${newIndex}`);
             if (newItemTextarea) core.utils.enableRichText(newItemTextarea);
-
-            // Adiciona evento de REMOVER ao novo botão
+            
             const removeButton = newItemBlock.querySelector('.flipcard-remove-item');
             removeButton.addEventListener('click', () => {
                 container.removeChild(newItemBlock);
-                updateItemLabels(); // Renumera tudo
+                updateItemLabels();
             });
         });
         
-        updateItemLabels(); // Garante que o "Item 1" vire "Linha 1" no carregamento
+        updateItemLabels();
     },
 
-    // 2. (ATUALIZADO) getFormData: Lê os itens dinâmicos
+    // 2. getFormData: (Lê os itens dinâmicos)
     getFormData(core) {
         const tituloFrenteRaw = document.getElementById('input-titulo-frente-flipcard').value;
         const iconeSelect = document.getElementById('input-icone-flipcard');
@@ -78,13 +73,10 @@ GeneratorCore.registerModule('flipcard', {
             return tmp.textContent || tmp.innerText || "";
         };
 
-        // Constrói a lista de <li> a partir dos campos dinâmicos
         const itemInputs = document.querySelectorAll('.flipcard-item-input');
         const listaItensHTML = Array.from(itemInputs)
             .map(input => {
                 if (input.value.trim() !== '') {
-                    // O .value já tem o HTML formatado
-                    // O `<li>` envolve o conteúdo do editor, que pode ter seus próprios <p> ou <div>
                     return `          <li>${input.value}</li>`; 
                 }
                 return null;
@@ -108,10 +100,31 @@ GeneratorCore.registerModule('flipcard', {
         };
     },
 
-    // 3. createTemplate: (Sem mudanças, já usa as variáveis)
+    // 3. createTemplate: (Adicionado 'overflow-wrap' para corrigir scroll horizontal)
     createTemplate(data) {
         const { uniqueId, corTema, corFundo, corTexto, tituloFrente, descricaoFrente, tituloVerso, listaItensHTML, iconePath, iconeAriaLabel, ariaLabelRegiao, ariaLabelBotao } = data;
 
-        return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');html,body{margin:0;padding:0;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;height:100%;display:flex;justify-content:center;align-items:center;perspective:1000px;background-color:transparent;box-sizing:border-box}.interactive-card-wrapper{opacity:0;transform:translateY(20px);transition:opacity .6s ease-out,transform .6s ease-out;padding:10px;box-sizing:border-box}.interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}@media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}.interactive-card{width:250px;height:180px;cursor:pointer;position:relative;display:block;perspective:1000px;border-radius:8px}.card-inner{width:100%;height:100%;transition:transform .6s,box-shadow .3s ease,border-left-color .3s ease;transform-style:preserve-3d;border:1px solid #e0e0e0;border-radius:8px;box-sizing:border-box;border-left:4px solid #e0e0e0;background-color:${corFundo}}.interactive-card:hover .card-inner{transform:translateY(-5px);box-shadow:0 10px 20px rgba(0,0,0,.15);border-left-color:${corTema}}.interactive-card:focus-visible{outline:3px solid ${corTema};outline-offset:4px;border-radius:8px}.interactive-card.is-flipped .card-inner{transform:rotateY(180deg)}.interactive-card.is-flipped:hover .card-inner{transform:rotateY(180deg) translateY(-5px)}.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:24px;box-sizing:border-box}.card-back{transform:rotateY(180deg);text-align:left}.icon{color:${corTema};margin-bottom:12px}.card-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 8px}.card-description{font-size:.9rem;font-weight:400;color:${corTexto};line-height:1.4;opacity:.9}.back-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 10px;border-bottom:2px solid ${corTema};padding-bottom:5px}.objectives-list{font-size:.85rem;font-weight:400;color:${corTexto};margin:0;padding-left:20px;opacity:.9}.objectives-list li{margin-bottom:5px}</style><div class="interactive-card-wrapper" role="region" aria-label="${ariaLabelRegiao}"><div id="${uniqueId}" class="interactive-card" role="button" tabindex="0" aria-pressed="false" aria-label="${ariaLabelBotao}"><div class="card-inner"><div class="card-front" aria-hidden="false"><div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi" viewBox="0 0 16 16" role="img" aria-label="${iconeAriaLabel}"><path d="${iconePath}"/></svg></div><h3 class="card-title">${tituloFrente}</h3><p class="card-description">${descricaoFrente}</p></div><div class="card-back" aria-hidden="true"><h4 class="back-title">${tituloVerso}</h4><ul class="objectives-list">${listaItensHTML}</ul></div></div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t=document.querySelector(\`#${uniqueId}\`).closest(".interactive-card-wrapper");if(t){const e=new IntersectionObserver((t,o)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");o.unobserve(t.target)}})},{threshold:.25});e.observe(t)}const e=document.getElementById("${uniqueId}");if(!e)return;const o=e.querySelector(".card-front"),n=e.querySelector(".card-back"),r=()=>{const t="true"===e.getAttribute("aria-pressed");e.setAttribute("aria-pressed",!t),e.classList.toggle("is-flipped",!t),o.setAttribute("aria-hidden",!t),n.setAttribute("aria-hidden",t),t?e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para fechar","Pressione para ver")):e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para ver","Pressione para fechar"))};e.addEventListener("click",r),e.addEventListener("keydown",t=>{if("Enter"===t.key||" "===t.key){t.preventDefault();r()}})});<\/script>`;
+        return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+html,body{margin:0;padding:0;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;height:100%;display:flex;justify-content:center;align-items:center;perspective:1000px;background-color:transparent;box-sizing:border-box}
+.interactive-card-wrapper{opacity:0;transform:translateY(20px);transition:opacity .6s ease-out,transform .6s ease-out;padding:10px;box-sizing:border-box}
+.interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
+@media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
+.interactive-card{width:250px;height:180px;cursor:pointer;position:relative;display:block;perspective:1000px;border-radius:8px}
+.card-inner{width:100%;height:100%;transition:transform .6s,box-shadow .3s ease,border-left-color .3s ease;transform-style:preserve-3d;border:1px solid #e0e0e0;border-radius:8px;box-sizing:border-box;border-left:4px solid #e0e0e0;background-color:${corFundo}}
+.interactive-card:hover .card-inner{transform:translateY(-5px);box-shadow:0 10px 20px rgba(0,0,0,.15);border-left-color:${corTema}}
+.interactive-card:focus-visible{outline:3px solid ${corTema};outline-offset:4px;border-radius:8px}
+.interactive-card.is-flipped .card-inner{transform:rotateY(180deg)}
+.interactive-card.is-flipped:hover .card-inner{transform:rotateY(180deg) translateY(-5px)}
+.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:24px;box-sizing:border-box}
+.card-back{transform:rotateY(180deg);text-align:left}
+.icon{color:${corTema};margin-bottom:12px}
+/* --- CORREÇÃO AQUI --- */
+.card-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 8px;overflow-wrap:break-word;word-break:break-word}
+.card-description{font-size:.9rem;font-weight:400;color:${corTexto};line-height:1.4;opacity:.9;overflow-wrap:break-word;word-break:break-word}
+.back-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 10px;border-bottom:2px solid ${corTema};padding-bottom:5px;overflow-wrap:break-word;word-break:break-word}
+.objectives-list{font-size:.85rem;font-weight:400;color:${corTexto};margin:0;padding-left:20px;opacity:.9}
+.objectives-list li{margin-bottom:5px;overflow-wrap:break-word;word-break:break-word}
+/* --- FIM DA CORREÇÃO --- */
+</style><div class="interactive-card-wrapper" role="region" aria-label="${ariaLabelRegiao}"><div id="${uniqueId}" class="interactive-card" role="button" tabindex="0" aria-pressed="false" aria-label="${ariaLabelBotao}"><div class="card-inner"><div class="card-front" aria-hidden="false"><div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi" viewBox="0 0 16 16" role="img" aria-label="${iconeAriaLabel}"><path d="${iconePath}"/></svg></div><h3 class="card-title">${tituloFrente}</h3><p class="card-description">${descricaoFrente}</p></div><div class="card-back" aria-hidden="true"><h4 class="back-title">${tituloVerso}</h4><ul class="objectives-list">${listaItensHTML}</ul></div></div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t=document.querySelector(\`#${uniqueId}\`).closest(".interactive-card-wrapper");if(t){const e=new IntersectionObserver((t,o)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");o.unobserve(t.target)}})},{threshold:.25});e.observe(t)}const e=document.getElementById("${uniqueId}");if(!e)return;const o=e.querySelector(".card-front"),n=e.querySelector(".card-back"),r=()=>{const t="true"===e.getAttribute("aria-pressed");e.setAttribute("aria-pressed",!t),e.classList.toggle("is-flipped",!t),o.setAttribute("aria-hidden",!t),n.setAttribute("aria-hidden",t),t?e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para fechar","Pressione para ver")):e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para ver","Pressione para fechar"))};e.addEventListener("click",r),e.addEventListener("keydown",t=>{if("Enter"===t.key||" "===t.key){t.preventDefault();r()}})});<\/script>`;
     }
 });

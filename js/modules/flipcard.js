@@ -128,6 +128,7 @@ html,body{
     display:block;
     perspective:1000px;
     border-radius:8px;
+    padding: 10px;
 }
 .card-inner{
     width: 100%;

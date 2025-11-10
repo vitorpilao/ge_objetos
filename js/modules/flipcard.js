@@ -91,13 +91,13 @@ html,body{
 
 /* --- CORREÇÃO 3: Card tem padding e altura definida --- */
 .interactive-card{
-    width: 100%;
+    width: 95%;
     height: 190px; /* Altura de 190px (180 + 10 de "respiro") */
     cursor:pointer;
     position:relative;
     display:block;
     perspective:1000px;
-    /*padding: 10px; *//* Adiciona o "respiro" AQUI */
+    padding: 10px; /* Adiciona o "respiro" AQUI */
 }
 .card-inner{
     width: 100%;

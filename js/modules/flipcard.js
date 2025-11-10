@@ -1,5 +1,5 @@
 // js/modules/flipcard.js
-// Módulo Flipcard (v5.9.2 - Restaurado para layout original de 250px)
+// Módulo Flipcard (v5.9.1 - Renomeado para "Linha")
 
 GeneratorCore.registerModule('flipcard', {
     iconMap: {
@@ -17,6 +17,7 @@ GeneratorCore.registerModule('flipcard', {
     setup(core) {
         const addButton = document.getElementById('flipcard-add-item');
         const container = document.getElementById('flipcard-itens-container');
+        
         const updateItemLabels = () => {
             const allBlocks = container.querySelectorAll('.flipcard-item-bloco');
             allBlocks.forEach((bloco, index) => {
@@ -94,15 +95,15 @@ GeneratorCore.registerModule('flipcard', {
         };
     },
 
-    // 3. createTemplate: (CSS Corrigido - Retorno ao v5.9.2)
+    // 3. createTemplate: (CSS da v5.9.2 - sem overflow-wrap)
     createTemplate(data) {
         const { uniqueId, corTema, corFundo, corTexto, tituloFrente, descricaoFrente, tituloVerso, listaItensHTML, iconePath, iconeAriaLabel, ariaLabelRegiao, ariaLabelBotao } = data;
 
+        // Este é o CSS original da v5.9.1 / v5.9.2
         return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-/* --- CORREÇÃO 1: Reset Global --- */
 html,body{
     margin:0;
-    padding:0; /* Remove o padding do body */
+    padding:0;
     font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     height:100%;
     display:flex;
@@ -110,41 +111,35 @@ html,body{
     align-items:center;
     perspective:1000px;
     background-color:transparent;
-    box-sizing:border-box;
+    box-sizing:border-box
 }
 *, *:before, *:after { box-sizing: inherit; }
-
-/* --- CORREÇÃO 2: Wrapper com padding de 10px --- */
-/* (Este padding é o "respiro" que você vê no preview) */
 .interactive-card-wrapper{
     opacity:0;
     transform:translateY(20px);
     transition:opacity .6s ease-out,transform .6s ease-out;
-    padding: 10px; /* Este é o padding que causava o scroll */
+    padding:10px; /* Padding original */
     box-sizing:border-box;
-    width: 270px; /* Largura fixa (250px + 2*10px padding) */
-    height: 200px; /* Altura fixa (180px + 2*10px padding) */
+    /* (Sem width: 100%) */
 }
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
-
-/* --- CORREÇÃO 3: Card com 100% de largura e altura fixa --- */
-/* (Ele terá 100% da largura do wrapper, ou seja, 250px) */
 .interactive-card{
-    width: 100%;    
-    height: 100%;
+    width:250px; /* Largura fixa original */
+    height:180px; /* Altura fixa original */
     cursor:pointer;
     position:relative;
     display:block;
     perspective:1000px;
     border-radius:8px;
+    /* (Sem padding) */
 }
 .card-inner{
-    width: 100%;
-    height: 100%;
+    width:100%;
+    height:100%;
     transition:transform .6s,box-shadow .3s ease,border-left-color .3s ease;
     transform-style:preserve-3d;
-    border:1px solid rgba(0,0,0,0.1);
+    border:1px solid #e0e0e0;
     border-radius:8px;
     box-sizing:border-box;
     border-left:4px solid ${corTema};
@@ -154,15 +149,25 @@ html,body{
 .interactive-card:focus-visible{outline:3px solid ${corTema};outline-offset:4px;border-radius:8px}
 .interactive-card.is-flipped .card-inner{transform:rotateY(180deg)}
 .interactive-card.is-flipped:hover .card-inner{transform:rotateY(180deg) translateY(-5px)}
-/* --- CORREÇÃO 4: overflow: auto para o conteúdo --- */
-.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:20px;box-sizing:border-box; overflow: auto;}
+.card-front,.card-back{
+    position:absolute;
+    width:100%;
+    height:100%;
+    -webkit-backface-visibility:hidden;
+    backface-visibility:hidden;
+    border-radius:6px;
+    padding:24px;
+    box-sizing:border-box;
+    overflow: auto; /* overflow: auto original */
+}
 .card-back{transform:rotateY(180deg);text-align:left}
 .icon{color:${corTema};margin-bottom:12px}
-.card-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 8px;overflow-wrap:break-word;word-break:break-word}
-.card-description{font-size:.9rem;font-weight:400;color:${corTexto};line-height:1.4;opacity:.9;overflow-wrap:break-word;word-break:break-word}
-.back-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 10px;border-bottom:2px solid ${corTema};padding-bottom:5px;overflow-wrap:break-word;word-break:break-word}
-.objectives-list{font-size:.85rem;font-weight:400;color:${corTexto};margin:0;padding-left:20px;opacity:.9;overflow-wrap:break-word;word-break:break-word}
-.objectives-list li{margin-bottom:5px;overflow-wrap:break-word;word-break:break-word}
+.card-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 8px;}
+.card-description{font-size:.9rem;font-weight:400;color:${corTexto};line-height:1.4;opacity:.9;}
+.back-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 10px;border-bottom:2px solid ${corTema};padding-bottom:5px;}
+.objectives-list{font-size:.85rem;font-weight:400;color:${corTexto};margin:0;padding-left:20px;opacity:.9;}
+.objectives-list li{margin-bottom:5px;}
+/* Reset de margem do Rich Text */
 .card-title > *:first-child,.card-description > *:first-child,.back-title > *:first-child,.objectives-list li > *:first-child {margin-top: 0;}
 .card-title > *:last-child,.card-description > *:last-child,.back-title > *:last-child,.objectives-list li > *:last-child {margin-bottom: 0;}
 </style>

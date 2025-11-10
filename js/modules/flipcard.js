@@ -1,5 +1,5 @@
 // js/modules/flipcard.js
-// Módulo Flipcard (v5.9.2 - Correção de overflow horizontal)
+// Módulo Flipcard (v5.9.3 - Correção de Overflow/Scrollbar)
 
 GeneratorCore.registerModule('flipcard', {
     iconMap: {
@@ -13,7 +13,7 @@ GeneratorCore.registerModule('flipcard', {
         'question-circle': { label: "Ícone de interrogação", path: "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" }
     },
 
-    // 1. Setup: (Atualizado para "Linha")
+    // 1. Setup: (Função para "Adicionar Linha")
     setup(core) {
         const addButton = document.getElementById('flipcard-add-item');
         const container = document.getElementById('flipcard-itens-container');
@@ -100,12 +100,15 @@ GeneratorCore.registerModule('flipcard', {
         };
     },
 
-    // 3. createTemplate: (Adicionado 'overflow-wrap' para corrigir scroll horizontal)
+    // 3. createTemplate: (Correções de CSS para Overflow)
     createTemplate(data) {
         const { uniqueId, corTema, corFundo, corTexto, tituloFrente, descricaoFrente, tituloVerso, listaItensHTML, iconePath, iconeAriaLabel, ariaLabelRegiao, ariaLabelBotao } = data;
 
         return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+/* --- CORREÇÃO 1: Box Sizing --- */
 html,body{margin:0;padding:0;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;height:100%;display:flex;justify-content:center;align-items:center;perspective:1000px;background-color:transparent;box-sizing:border-box}
+*, *:before, *:after { box-sizing: inherit; }
+/* --- FIM DA CORREÇÃO 1 --- */
 .interactive-card-wrapper{opacity:0;transform:translateY(20px);transition:opacity .6s ease-out,transform .6s ease-out;padding:10px;box-sizing:border-box}
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
@@ -115,16 +118,44 @@ html,body{margin:0;padding:0;font-family:'Montserrat',-apple-system,BlinkMacSyst
 .interactive-card:focus-visible{outline:3px solid ${corTema};outline-offset:4px;border-radius:8px}
 .interactive-card.is-flipped .card-inner{transform:rotateY(180deg)}
 .interactive-card.is-flipped:hover .card-inner{transform:rotateY(180deg) translateY(-5px)}
-.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:24px;box-sizing:border-box}
+.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:24px;box-sizing:border-box; overflow: hidden;} /* Adicionado overflow: hidden */
 .card-back{transform:rotateY(180deg);text-align:left}
 .icon{color:${corTema};margin-bottom:12px}
-/* --- CORREÇÃO AQUI --- */
 .card-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 8px;overflow-wrap:break-word;word-break:break-word}
+/* --- CORREÇÃO 2: Mudar <p> para <div> --- */
 .card-description{font-size:.9rem;font-weight:400;color:${corTexto};line-height:1.4;opacity:.9;overflow-wrap:break-word;word-break:break-word}
 .back-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 10px;border-bottom:2px solid ${corTema};padding-bottom:5px;overflow-wrap:break-word;word-break:break-word}
 .objectives-list{font-size:.85rem;font-weight:400;color:${corTexto};margin:0;padding-left:20px;opacity:.9}
 .objectives-list li{margin-bottom:5px;overflow-wrap:break-word;word-break:break-word}
-/* --- FIM DA CORREÇÃO --- */
-</style><div class="interactive-card-wrapper" role="region" aria-label="${ariaLabelRegiao}"><div id="${uniqueId}" class="interactive-card" role="button" tabindex="0" aria-pressed="false" aria-label="${ariaLabelBotao}"><div class="card-inner"><div class="card-front" aria-hidden="false"><div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi" viewBox="0 0 16 16" role="img" aria-label="${iconeAriaLabel}"><path d="${iconePath}"/></svg></div><h3 class="card-title">${tituloFrente}</h3><p class="card-description">${descricaoFrente}</p></div><div class="card-back" aria-hidden="true"><h4 class="back-title">${tituloVerso}</h4><ul class="objectives-list">${listaItensHTML}</ul></div></div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t=document.querySelector(\`#${uniqueId}\`).closest(".interactive-card-wrapper");if(t){const e=new IntersectionObserver((t,o)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");o.unobserve(t.target)}})},{threshold:.25});e.observe(t)}const e=document.getElementById("${uniqueId}");if(!e)return;const o=e.querySelector(".card-front"),n=e.querySelector(".card-back"),r=()=>{const t="true"===e.getAttribute("aria-pressed");e.setAttribute("aria-pressed",!t),e.classList.toggle("is-flipped",!t),o.setAttribute("aria-hidden",!t),n.setAttribute("aria-hidden",t),t?e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para fechar","Pressione para ver")):e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para ver","Pressione para fechar"))};e.addEventListener("click",r),e.addEventListener("keydown",t=>{if("Enter"===t.key||" "===t.key){t.preventDefault();r()}})});<\/script>`;
+/* --- CORREÇÃO 3: Resetar margens do Rich Text --- */
+.card-title > *:first-child,
+.card-description > *:first-child,
+.back-title > *:first-child,
+.objectives-list li > *:first-child {
+    margin-top: 0;
+}
+.card-title > *:last-child,
+.card-description > *:last-child,
+.back-title > *:last-child,
+.objectives-list li > *:last-child {
+    margin-bottom: 0;
+}
+</style>
+<div class="interactive-card-wrapper" role="region" aria-label="${ariaLabelRegiao}">
+    <div id="${uniqueId}" class="interactive-card" role="button" tabindex="0" aria-pressed="false" aria-label="${ariaLabelBotao}">
+        <div class="card-inner">
+            <div class="card-front" aria-hidden="false">
+                <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi" viewBox="0 0 16 16" role="img" aria-label="${iconeAriaLabel}"><path d="${iconePath}"/></svg></div>
+                <h3 class="card-title">${tituloFrente}</h3>
+                <div class="card-description">${descricaoFrente}</div>
+            </div>
+            <div class="card-back" aria-hidden="true">
+                <h4 class="back-title">${tituloVerso}</h4>
+                <ul class="objectives-list">${listaItensHTML}</ul>
+            </div>
+        </div>
+    </div>
+</div>
+<script>document.addEventListener('DOMContentLoaded',()=>{const t=document.querySelector(\`#${uniqueId}\`).closest(".interactive-card-wrapper");if(t){const e=new IntersectionObserver((t,o)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");o.unobserve(t.target)}})},{threshold:.25});e.observe(t)}const e=document.getElementById("${uniqueId}");if(!e)return;const o=e.querySelector(".card-front"),n=e.querySelector(".card-back"),r=()=>{const t="true"===e.getAttribute("aria-pressed");e.setAttribute("aria-pressed",!t),e.classList.toggle("is-flipped",!t),o.setAttribute("aria-hidden",!t),n.setAttribute("aria-hidden",t),t?e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para fechar","Pressione para ver")):e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para ver","Pressione para fechar"))};e.addEventListener("click",r),e.addEventListener("keydown",t=>{if("Enter"===t.key||" "===t.key){t.preventDefault();r()}})});<\/script>`;
     }
 });

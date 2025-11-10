@@ -1,5 +1,5 @@
 // js/modules/flipcard.js
-// Módulo Flipcard (v5.9.7 - Correção de Layout Fixo)
+// Módulo Flipcard (v5.9.2 - Restaurado para layout original de 250px)
 
 GeneratorCore.registerModule('flipcard', {
     iconMap: {
@@ -15,27 +15,69 @@ GeneratorCore.registerModule('flipcard', {
 
     // 1. Setup: (Função para "Adicionar Linha")
     setup(core) {
-        // ... (código do setup permanece o mesmo) ...
         const addButton = document.getElementById('flipcard-add-item');
         const container = document.getElementById('flipcard-itens-container');
-        const updateItemLabels = () => { /* ... */ };
-        addButton.addEventListener('click', () => { /* ... */ });
+        const updateItemLabels = () => {
+            const allBlocks = container.querySelectorAll('.flipcard-item-bloco');
+            allBlocks.forEach((bloco, index) => {
+                const itemNum = index + 1;
+                const label = bloco.querySelector('label');
+                const textarea = bloco.querySelector('textarea');
+                
+                if (label && textarea) {
+                    label.innerText = `Linha ${itemNum}`;
+                    label.htmlFor = `input-flipcard-item-${index}`;
+                    textarea.id = `input-flipcard-item-${index}`;
+                }
+            });
+        };
+
+        addButton.addEventListener('click', () => {
+            const newIndex = container.querySelectorAll('.flipcard-item-bloco').length;
+            const newItemBlock = document.createElement('div');
+            newItemBlock.className = 'flipcard-item-bloco';
+            
+            newItemBlock.innerHTML = `
+                <button type="button" class="flipcard-remove-item" title="Remover esta linha">X</button>
+                <div class="form-group">
+                    <label for="input-flipcard-item-${newIndex}">Linha ${newIndex + 1}</label>
+                    <textarea id="input-flipcard-item-${newIndex}" class="rich-text-enabled flipcard-item-input" placeholder="Digite o texto da linha ${newIndex + 1}..." required></textarea>
+                </div>
+            `;
+            container.appendChild(newItemBlock);
+            
+            const newItemTextarea = newItemBlock.querySelector(`#input-flipcard-item-${newIndex}`);
+            if (newItemTextarea) core.utils.enableRichText(newItemTextarea);
+            
+            const removeButton = newItemBlock.querySelector('.flipcard-remove-item');
+            removeButton.addEventListener('click', () => {
+                container.removeChild(newItemBlock);
+                updateItemLabels();
+            });
+        });
+        
         updateItemLabels();
     },
 
     // 2. getFormData: (Lê os itens dinâmicos)
     getFormData(core) {
-        // ... (código do getFormData permanece o mesmo) ...
         const tituloFrenteRaw = document.getElementById('input-titulo-frente-flipcard').value;
         const iconeSelect = document.getElementById('input-icone-flipcard');
         const iconeKey = iconeSelect.value;
         const corFundo = document.getElementById('input-flipcard-bg').value;
-        const stripHTML = (html) => { /* ... */ };
+
+        const stripHTML = (html) => {
+            const tmp = document.createElement("DIV");
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || "";
+        };
+
         const itemInputs = document.querySelectorAll('.flipcard-item-input');
         const listaItensHTML = Array.from(itemInputs)
             .map(input => (input.value.trim() !== '') ? `<li>${input.value}</li>` : null)
             .filter(item => item !== null)
             .join('\n');
+
         return {
             uniqueId: `card-flipper-${Date.now().toString().slice(-6)}`,
             corTema: document.getElementById('input-cor-tema-flipcard').value,
@@ -60,7 +102,7 @@ GeneratorCore.registerModule('flipcard', {
 /* --- CORREÇÃO 1: Reset Global --- */
 html,body{
     margin:0;
-    padding:0; /* Remove o padding que causava o scroll */
+    padding:0; /* Remove o padding do body */
     font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     height:100%;
     display:flex;
@@ -78,18 +120,19 @@ html,body{
     opacity:0;
     transform:translateY(20px);
     transition:opacity .6s ease-out,transform .6s ease-out;
-    padding: 10px; 
+    padding: 10px; /* Este é o padding que causava o scroll */
     box-sizing:border-box;
-    width: 100%; 
+    width: 270px; /* Largura fixa (250px + 2*10px padding) */
+    height: 200px; /* Altura fixa (180px + 2*10px padding) */
 }
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
 
 /* --- CORREÇÃO 3: Card com 100% de largura e altura fixa --- */
-/* (Ele terá 100% da largura do wrapper, que é 100% - 20px de padding) */
+/* (Ele terá 100% da largura do wrapper, ou seja, 250px) */
 .interactive-card{
     width: 100%;    
-    height: 180px;  /* Altura fixa (você pode mudar isso) */
+    height: 100%;
     cursor:pointer;
     position:relative;
     display:block;

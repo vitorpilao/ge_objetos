@@ -120,10 +120,10 @@ html,body{
     opacity:0;
     transform:translateY(20px);
     transition:opacity .6s ease-out,transform .6s ease-out;
-    padding: 10px; /* Este é o padding que causava o scroll */
+    padding: 5px; /* Este é o padding que causava o scroll */
     box-sizing:border-box;
-    width: 270px; /* Largura fixa (250px + 2*10px padding) */
-    height: 200px; /* Altura fixa (180px + 2*10px padding) */
+    width: 260px; /* Largura fixa (250px + 2*10px padding) */
+    height: 190px; /* Altura fixa (180px + 2*10px padding) */
 }
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
@@ -131,8 +131,8 @@ html,body{
 /* --- CORREÇÃO 3: Card com 100% de largura e altura fixa --- */
 /* (Ele terá 100% da largura do wrapper, ou seja, 250px) */
 .interactive-card{
-    width: 100%;    
-    height: 100%;
+    width: 250;    
+    height: 250;
     cursor:pointer;
     position:relative;
     display:block;

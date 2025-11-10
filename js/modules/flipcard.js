@@ -1,5 +1,5 @@
 // js/modules/flipcard.js
-// Módulo Flipcard (v5.9.3 - Correção de Overflow/Scrollbar)
+// Módulo Flipcard (v5.9.4 - Correção de Layout/Scrollbar)
 
 GeneratorCore.registerModule('flipcard', {
     iconMap: {
@@ -15,16 +15,15 @@ GeneratorCore.registerModule('flipcard', {
 
     // 1. Setup: (Função para "Adicionar Linha")
     setup(core) {
+        // ... (código do setup permanece o mesmo) ...
         const addButton = document.getElementById('flipcard-add-item');
         const container = document.getElementById('flipcard-itens-container');
-        
         const updateItemLabels = () => {
             const allBlocks = container.querySelectorAll('.flipcard-item-bloco');
             allBlocks.forEach((bloco, index) => {
                 const itemNum = index + 1;
                 const label = bloco.querySelector('label');
                 const textarea = bloco.querySelector('textarea');
-                
                 if (label && textarea) {
                     label.innerText = `Linha ${itemNum}`;
                     label.htmlFor = `input-flipcard-item-${index}`;
@@ -32,12 +31,10 @@ GeneratorCore.registerModule('flipcard', {
                 }
             });
         };
-
         addButton.addEventListener('click', () => {
             const newIndex = container.querySelectorAll('.flipcard-item-bloco').length;
             const newItemBlock = document.createElement('div');
             newItemBlock.className = 'flipcard-item-bloco';
-            
             newItemBlock.innerHTML = `
                 <button type="button" class="flipcard-remove-item" title="Remover esta linha">X</button>
                 <div class="form-group">
@@ -46,44 +43,37 @@ GeneratorCore.registerModule('flipcard', {
                 </div>
             `;
             container.appendChild(newItemBlock);
-            
             const newItemTextarea = newItemBlock.querySelector(`#input-flipcard-item-${newIndex}`);
             if (newItemTextarea) core.utils.enableRichText(newItemTextarea);
-            
             const removeButton = newItemBlock.querySelector('.flipcard-remove-item');
             removeButton.addEventListener('click', () => {
                 container.removeChild(newItemBlock);
                 updateItemLabels();
             });
         });
-        
         updateItemLabels();
     },
 
     // 2. getFormData: (Lê os itens dinâmicos)
     getFormData(core) {
+        // ... (código do getFormData permanece o mesmo) ...
         const tituloFrenteRaw = document.getElementById('input-titulo-frente-flipcard').value;
         const iconeSelect = document.getElementById('input-icone-flipcard');
         const iconeKey = iconeSelect.value;
         const corFundo = document.getElementById('input-flipcard-bg').value;
-
         const stripHTML = (html) => {
             const tmp = document.createElement("DIV");
             tmp.innerHTML = html;
             return tmp.textContent || tmp.innerText || "";
         };
-
         const itemInputs = document.querySelectorAll('.flipcard-item-input');
         const listaItensHTML = Array.from(itemInputs)
             .map(input => {
-                if (input.value.trim() !== '') {
-                    return `          <li>${input.value}</li>`; 
-                }
+                if (input.value.trim() !== '') { return `          <li>${input.value}</li>`; }
                 return null;
             })
             .filter(item => item !== null)
             .join('\n');
-
         return {
             uniqueId: `card-flipper-${Date.now().toString().slice(-6)}`,
             corTema: document.getElementById('input-cor-tema-flipcard').value,
@@ -100,46 +90,63 @@ GeneratorCore.registerModule('flipcard', {
         };
     },
 
-    // 3. createTemplate: (Correções de CSS para Overflow)
+    // 3. createTemplate: (CSS Corrigido para layout 100%)
     createTemplate(data) {
         const { uniqueId, corTema, corFundo, corTexto, tituloFrente, descricaoFrente, tituloVerso, listaItensHTML, iconePath, iconeAriaLabel, ariaLabelRegiao, ariaLabelBotao } = data;
 
         return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-/* --- CORREÇÃO 1: Box Sizing --- */
-html,body{margin:0;padding:0;font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;height:100%;display:flex;justify-content:center;align-items:center;perspective:1000px;background-color:transparent;box-sizing:border-box}
+/* --- CORREÇÃO 1: Box Sizing e Padding no Body --- */
+html,body{
+    margin:0;
+    padding: 10px; /* Adiciona o "respiro" aqui */
+    font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    perspective:1000px;
+    background-color:transparent;
+    box-sizing:border-box; /* Garante que o padding não estoure */
+}
 *, *:before, *:after { box-sizing: inherit; }
-/* --- FIM DA CORREÇÃO 1 --- */
-.interactive-card-wrapper{opacity:0;transform:translateY(20px);transition:opacity .6s ease-out,transform .6s ease-out;padding:10px;box-sizing:border-box}
+
+/* --- CORREÇÃO 2: Wrapper agora é 100% e sem padding --- */
+.interactive-card-wrapper{
+    opacity:0;
+    transform:translateY(20px);
+    transition:opacity .6s ease-out,transform .6s ease-out;
+    padding:0; /* Remove o padding que causava o overflow */
+    box-sizing:border-box;
+    width: 100%; /* Ocupa todo o espaço do body */
+}
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
-.interactive-card{width:250px;height:180px;cursor:pointer;position:relative;display:block;perspective:1000px;border-radius:8px}
-.card-inner{width:100%;height:100%;transition:transform .6s,box-shadow .3s ease,border-left-color .3s ease;transform-style:preserve-3d;border:1px solid #e0e0e0;border-radius:8px;box-sizing:border-box;border-left:4px solid #e0e0e0;background-color:${corFundo}}
+
+/* --- CORREÇÃO 3: Card agora é 100% e tem altura definida --- */
+.interactive-card{
+    width: 100%;    /* Ocupa 100% do wrapper */
+    height: 200px;   /* Altura aumentada para melhor visualização */
+    cursor:pointer;
+    position:relative;
+    display:block;
+    perspective:1000px;
+    border-radius:8px;
+}
+.card-inner{width:100%;height:100%;transition:transform .6s,box-shadow .3s ease,border-left-color .3s ease;transform-style:preserve-3d;border:1px solid rgba(0,0,0,0.1);border-radius:8px;box-sizing:border-box;border-left:4px solid ${corTema};background-color:${corFundo}}
 .interactive-card:hover .card-inner{transform:translateY(-5px);box-shadow:0 10px 20px rgba(0,0,0,.15);border-left-color:${corTema}}
 .interactive-card:focus-visible{outline:3px solid ${corTema};outline-offset:4px;border-radius:8px}
 .interactive-card.is-flipped .card-inner{transform:rotateY(180deg)}
 .interactive-card.is-flipped:hover .card-inner{transform:rotateY(180deg) translateY(-5px)}
-.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:24px;box-sizing:border-box; overflow: hidden;} /* Adicionado overflow: hidden */
+.card-front,.card-back{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:6px;padding:20px;box-sizing:border-box; overflow: hidden;}
 .card-back{transform:rotateY(180deg);text-align:left}
 .icon{color:${corTema};margin-bottom:12px}
 .card-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 8px;overflow-wrap:break-word;word-break:break-word}
-/* --- CORREÇÃO 2: Mudar <p> para <div> --- */
 .card-description{font-size:.9rem;font-weight:400;color:${corTexto};line-height:1.4;opacity:.9;overflow-wrap:break-word;word-break:break-word}
 .back-title{font-size:1.1rem;font-weight:600;color:${corTexto};margin:0 0 10px;border-bottom:2px solid ${corTema};padding-bottom:5px;overflow-wrap:break-word;word-break:break-word}
-.objectives-list{font-size:.85rem;font-weight:400;color:${corTexto};margin:0;padding-left:20px;opacity:.9}
+.objectives-list{font-size:.85rem;font-weight:400;color:${corTexto};margin:0;padding-left:20px;opacity:.9;overflow-wrap:break-word;word-break:break-word}
 .objectives-list li{margin-bottom:5px;overflow-wrap:break-word;word-break:break-word}
-/* --- CORREÇÃO 3: Resetar margens do Rich Text --- */
-.card-title > *:first-child,
-.card-description > *:first-child,
-.back-title > *:first-child,
-.objectives-list li > *:first-child {
-    margin-top: 0;
-}
-.card-title > *:last-child,
-.card-description > *:last-child,
-.back-title > *:last-child,
-.objectives-list li > *:last-child {
-    margin-bottom: 0;
-}
+.card-title > *:first-child,.card-description > *:first-child,.back-title > *:first-child,.objectives-list li > *:first-child {margin-top: 0;}
+.card-title > *:last-child,.card-description > *:last-child,.back-title > *:last-child,.objectives-list li > *:last-child {margin-bottom: 0;}
 </style>
 <div class="interactive-card-wrapper" role="region" aria-label="${ariaLabelRegiao}">
     <div id="${uniqueId}" class="interactive-card" role="button" tabindex="0" aria-pressed="false" aria-label="${ariaLabelBotao}">

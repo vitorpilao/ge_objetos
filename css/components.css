@@ -1,0 +1,461 @@
+/* --- Seções de Formulário --- */
+.form-section {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.form-section h2 {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    color: var(--color-azul-moderno);
+    margin-top: 0;
+    border-bottom: 1px solid var(--color-azul-moderno);
+    padding-bottom: 8px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+/* --- Inputs e Controles --- */
+input[type="text"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    
+    /* === MUDANÇAS AQUI === */
+    border: 1px solid rgba(0, 0, 0, 0.2); /* Borda sutil escura */
+    background-color: var(--color-branco-puro); /* Fundo branco */
+    color: var(--color-cinza-tech); /* Texto escuro (preto) */
+    /* === FIM DAS MUDANÇAS === */
+    
+    font-family: var(--font-secondary);
+    font-size: 1rem;
+}
+
+input::placeholder,
+textarea::placeholder {
+    /* MUDANÇA: Placeholder escuro para combinar */
+    color: rgba(0, 0, 0, 0.5);
+}
+
+/* --- Botões --- */
+button {
+    font-family: var(--font-primary);
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 12px 24px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button[type="submit"] {
+    background-color: var(--color-verde-tech);
+    color: var(--color-azul-profundo);
+}
+
+button[type="submit"]:hover {
+    background-color: var(--color-branco-puro);
+    transform: translateY(-2px);
+}
+
+.copy-button {
+    background-color: var(--color-azul-moderno);
+    color: var(--color-branco-puro);
+    margin-top: 16px;
+}
+
+.copy-button:hover {
+    background-color: #0a73c4;
+}
+
+/* --- Área de Preview --- */
+.preview-controls {
+    background-color: rgba(0, 0, 0, 0.15);
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.preview-controls label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+.preview-controls select {
+    max-width: 200px;
+    margin-bottom: 0;
+}
+
+.preview-container {
+    border: 2px solid var(--color-azul-moderno);
+    border-radius: 8px;
+    padding: 16px;
+    background-color: var(--color-branco-puro);
+    transition: background-color 0.3s ease;
+}
+
+.preview-iframe {
+    width: 100%;
+    height: 450px;
+    border: none;
+    border-radius: 6px;
+    background-color: transparent;
+    resize: vertical;
+    overflow: auto;
+}
+
+.output-code-area {
+    display: none;
+}
+
+/* --- Utilitários de Layout (Grid System) --- */
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.grid-2-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .grid-2-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* === NOVA FUNÇÃO: Barra de Ferramentas de Texto Rico === */
+.rich-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    
+    /* === MUDANÇAS AQUI === */
+    border: 1px solid rgba(16, 29, 214, 0.507); /* Borda escura */
+    background-color: var(--color-branco-puro); /* Fundo branco */
+    /* === FIM DAS MUDANÇAS === */
+    
+    border-radius: 6px;
+    overflow: hidden;
+}
+.rich-text-toolbar {
+    display: flex;
+    gap: 4px;
+    background-color: rgba(16, 29, 214, 0.507);
+    padding: 6px;
+    border-bottom: 1px solid rgba(16, 29, 214, 0.507);
+    flex-wrap: wrap; /* Permite quebra em telas pequenas */
+}
+
+.rich-text-toolbar button {
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    background-color: rgba(16, 29, 214, 0.507);
+    color: var(--color-branco-puro);
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+}
+
+.rich-text-toolbar button:hover {
+    background-color: var(--color-azul-moderno);
+}
+
+/* O campo editável em si */
+.wysiwyg-editor {
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 12px;
+    
+    /* === MUDANÇAS AQUI === */
+    color: var(--color-cinza-tech); /* Texto escuro */
+    /* === FIM DAS MUDANÇAS === */
+    
+    font-family: var(--font-secondary);
+    outline: none;
+    line-height: 1.5;
+}
+
+/* Estilo especial quando aplicado a campos que deveriam ser de linha única (como Título) */
+.rich-text-wrapper.single-line .wysiwyg-editor {
+    min-height: 45px; /* Altura menor para títulos */
+    height: auto;
+    white-space: nowrap; /* Tenta forçar linha única */
+    overflow-x: auto;
+}
+
+/* Placeholder visual quando vazio (opcional, mais avançado de implementar com contenteditable, vamos simplificar por enquanto) */
+.wysiwyg-editor:empty::before {
+    content: attr(data-placeholder);
+    
+    /* === MUDANÇAS AQUI === */
+    color: rgba(0, 0, 0, 0.5); /* Placeholder escuro */
+    /* === FIM DAS MUDANÇAS === */
+    
+    pointer-events: none;
+    display: block;
+}
+
+/* Input de cor */
+.rich-text-color-picker {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* --- Estilos do Gerador Dinâmico (Guia) --- */
+
+/* Bloco que agrupa Título e Descrição de um passo */
+.guia-passo-bloco {
+    position: relative; /* Necessário para o botão de remoção */
+    background: rgba(0, 0, 0, 0.05); /* Fundo sutil nos blocos novos */
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Botão de Remover (só aparece do passo 2 em diante) */
+.guia-remove-passo {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #dc3545; /* Vermelho "perigo" */
+    color: var(--color-branco-puro);
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.guia-remove-passo:hover {
+    opacity: 1;
+    transform: scale(1.05); /* Efeito de hover */
+}
+
+/* Faz o primeiro bloco (Passo 1) parecer igual aos outros */
+#guia-passos-container .guia-passo-bloco:first-child {
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    background: none; /* O primeiro bloco não precisa de fundo */
+}
+
+/* Ajusta as labels para não ficarem embaixo do botão "X" */
+.guia-passo-bloco .form-group label {
+    margin-right: 60px;
+}
+
+/* --- Estilos do Gerador Dinâmico (Flashcard) --- */
+
+.flashcard-bloco {
+    position: relative;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Botão de Remover Card */
+.flashcard-remove-card {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #dc3545; /* Vermelho */
+    color: var(--color-branco-puro);
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.flashcard-remove-card:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Faz o primeiro bloco parecer igual aos outros */
+#flashcard-cards-container .flashcard-bloco:first-child {
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    background: none;
+}
+
+.flashcard-bloco .form-group label {
+    margin-right: 60px; /* Espaço para o botão "X" */
+}
+
+/* --- Estilos do Gerador Dinâmico (Flipcard Itens) --- */
+
+.flipcard-item-bloco {
+    position: relative;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 15px; /* Um pouco menor que os outros */
+    border-radius: 6px;
+    margin-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Botão de Remover Item */
+.flipcard-remove-item {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545; /* Vermelho */
+    color: var(--color-branco-puro);
+    padding: 2px 8px; /* Mais sutil */
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.flipcard-remove-item:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Primeiro item */
+#flipcard-itens-container .flipcard-item-bloco:first-child {
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    background: none;
+}
+
+.flipcard-item-bloco .form-group label {
+    margin-right: 50px; /* Espaço para o botão "X" */
+}
+
+/* --- Estilos do Gerador Dinâmico (Timeline) --- */
+
+.timeline-passo-bloco {
+    position: relative;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Botão de Remover Passo */
+.timeline-remove-passo {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #dc3545; /* Vermelho */
+    color: var(--color-branco-puro);
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.timeline-remove-passo:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Primeiro bloco */
+#timeline-passos-container .timeline-passo-bloco:first-child {
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    background: none;
+}
+
+.timeline-passo-bloco .form-group label {
+    margin-right: 60px; /* Espaço para o botão "X" */
+}
+
+/* --- Estilos do Gerador Dinâmico (Accordion) --- */
+
+.accordion-item-bloco {
+    position: relative;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+/* Botão de Remover Item */
+.accordion-remove-item {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #dc3545; /* Vermelho */
+    color: var(--color-branco-puro);
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.accordion-remove-item:hover {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Primeiro bloco */
+#accordion-items-container .accordion-item-bloco:first-child {
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    background: none;
+}
+
+.accordion-item-bloco .form-group label {
+    margin-right: 60px; /* Espaço para o botão "X" */
+}

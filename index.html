@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Componentes v5.9</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Central de Componentes Interativos</h1>
+            <p>Selecione, visualize e configure seu objeto (WCAG) para o Google Sites.</p>
+        </header>
+
+        <section class="form-section">
+            <h2>1. Selecione o Tipo de Objeto</h2>
+            <div class="form-group">
+                <label for="object-selector">Tipo de Objeto Interativo</label>
+                <select id="object-selector">
+                    <option value="">-- Selecione uma opção --</option>
+                    <option value="accordion" >Acordeão</option>
+                    <option value="destaque">Destaque</option>
+                    <option value="flashcard">Flashcard Interativo</option>
+                    <option value="flipcard">Flip Cards</option>
+                    <option value="guia">Guia Sequencial</option>
+                    <option value="modal">Modal de Imagem</option>
+                    <option value="timeline">TimeLine</option>
+                </select>
+            </div>
+        </section>
+
+        <div id="panel-destaque" class="generator-panel" style="display: none;">
+            <section class="form-section">
+                <h2>2. Configure o Destaque</h2>
+                <form id="generator-form-destaque">
+                    <div class="form-group">
+                        <label for="input-destaque-aria-label">Rótulo de Acessibilidade (Região)</label>
+                        <input type="text" id="input-destaque-aria-label" placeholder="Ex: Destaque: Conceito Relevante" required>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descreve o card para leitores de tela (não visível).</small>
+                    </div>
+
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-destaque-cor">Cor da Borda (Destaque)</label>
+                            <select id="input-destaque-cor">
+                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                                <option value="#C3EB1E">Verde Tech (Oficial)</option>
+                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                                <option value="#9D4DFF">Roxo (Legado)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-destaque-bg">Cor do Fundo do Card</label>
+                            <select id="input-destaque-bg">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-destaque-titulo">Título</label>
+                        <input type="text" id="input-destaque-titulo" class="rich-text-enabled" placeholder="Ex: Conceito Relevante" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="input-destaque-descricao">Descrição</label>
+                        <textarea id="input-destaque-descricao" class="rich-text-enabled" placeholder="Este card agora se destaca..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit">Visualizar</button>
+                    </div>
+                </form>
+            </section>
+
+            <div id="output-section-destaque" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-destaque">Fundo da Página (Simulado):</label>
+                    <select id="preview-bg-destaque">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E" selected>Azul Profundo (Recomendado)</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-destaque" style="background-color: #00011E;">
+                    <iframe id="preview-iframe-destaque" class="preview-iframe" title="Preview do Destaque"></iframe>
+                </div>
+                <textarea id="output-code-destaque" class="output-code-area" readonly></textarea>
+                <button id="copy-button-destaque" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
+        <div id="panel-flashcard" class="generator-panel" style="display: none;">
+            <section class="form-section">
+                <h2>2. Configure o Flashcard Interativo</h2>
+                <form id="generator-form-flashcard">
+                    <div class="form-group">
+                        <label for="input-flashcard-aria-label">Rótulo de Acessibilidade (Região)</label>
+                        <input type="text" id="input-flashcard-aria-label" placeholder="Ex: Conjunto de flashcards: Termos de HTML" required>
+                    </div>
+                    
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-flashcard-cor">Cor de Destaque (Botões)</label>
+                            <select id="input-flashcard-cor">
+                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                                <option value="#9D4DFF">Roxo (Legado)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-flashcard-cor-hover">Cor de Destaque (Hover)</label>
+                            <select id="input-flashcard-cor-hover">
+                                <option value="#C3EB1E">Verde Tech (Contraste Alto)</option>
+                                <option value="#0A88F4">Azul Moderno</option>
+                                <option value="#FF7A00">Laranja Quente</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="input-flashcard-bg">Cor do Fundo do Card</label>
+                        <select id="input-flashcard-bg">
+                            <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                            <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                            <option value="#030200">Cinza Tech (Escuro)</option>
+                            <option value="#00011E">Azul Profundo (Escuro)</option>
+                        </select>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div id="flashcard-cards-container">
+                        <div class="flashcard-bloco">
+                            <div class="form-group">
+                                <label for="input-flashcard-frente-0">Frente do Card 1</label>
+                                <input type="text" id="input-flashcard-frente-0" class="rich-text-enabled" placeholder="Ex: HTML5" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-flashcard-verso-0">Verso do Card 1</label>
+                                <textarea id="input-flashcard-verso-0" class="rich-text-enabled flashcard-verso-input" placeholder="Ex: A linguagem fundamental..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <button type="button" id="flashcard-add-card" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro);">+ Adicionar Card</button>
+                    </div>
+                    
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group"><button type="submit">Visualizar</button></div>
+                </form>
+            </section>
+            
+            <div id="output-section-flashcard" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-flashcard">Fundo (Simulado):</label>
+                    <select id="preview-bg-flashcard">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E" selected>Azul Profundo (Recomendado)</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-flashcard" style="background-color: var(--color-azul-profundo);">
+                    <iframe id="preview-iframe-flashcard" class="preview-iframe" title="Preview do Flashcard"></iframe>
+                </div>
+                <textarea id="output-code-flashcard" class="output-code-area" readonly></textarea>
+                <button id="copy-button-flashcard" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
+        <div id="panel-flipcard" class="generator-panel" style="display: none;">
+            <section class="form-section">
+                <h2>2. Configure o Flip Card</h2>
+                
+                <form id="generator-form-flipcard">
+
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-cor-tema-flipcard">Cor de Destaque (Tema)</label>
+                            <select id="input-cor-tema-flipcard">
+                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                                <option value="#C3EB1E">Verde Tech (Oficial)</option>
+                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                                <option value="#9D4DFF">Roxo (Legado)</option>
+                                <option value="#FF8C00">Laranja (Legado)</option>
+                                <option value="#28a745">Verde (Legado)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="input-flipcard-bg">Cor do Fundo do Card</label>
+                            <select id="input-flipcard-bg">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="input-icone-flipcard">Ícone (Bootstrap Icons)</label>
+                            <select id="input-icone-flipcard">
+                                <option value="lightbulb" data-label="Ícone de lâmpada">Lâmpada (bi-lightbulb)</option>
+                                <option value="bullseye" data-label="Ícone de alvo">Alvo (bi-bullseye)</option>
+                                <option value="patch-check" data-label="Ícone de selo de verificação">Selo (bi-patch-check)</option>
+                                <option value="book" data-label="Ícone de livro">Livro (bi-book)</option>
+                                <option value="cpu" data-label="Ícone de chip de CPU">CPU (bi-cpu)</option>
+                                <option value="bar-chart-steps" data-label="Ícone de gráfico de barras">Gráfico (bi-bar-chart-steps)</option>
+                                <option value="people" data-label="Ícone de pessoas">Pessoas (bi-people)</option>
+                                <option value="question-circle" data-label="Ícone de interrogação">Dúvida (bi-question-circle)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-aria-label-flipcard">Rótulo de Acessibilidade (Região)</label>
+                            <input type="text" id="input-aria-label-flipcard" placeholder="Ex: Card Interativo: Aprendizado Dinâmico" required>
+                            <small style="opacity: 0.7; font-size: 0.8rem;">Ajuda leitores de tela.</small>
+                        </div>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group">
+                        <label for="input-titulo-frente-flipcard">Título da Frente</label>
+                        <input type="text" id="input-titulo-frente-flipcard" class="rich-text-enabled" placeholder="Ex: Aprendizado Dinâmico" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-descricao-frente-flipcard">Descrição da Frente</label>
+                        <textarea id="input-descricao-frente-flipcard" class="rich-text-enabled" placeholder="Ex: Conteúdo adaptado para você." required></textarea>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group">
+                        <label for="input-titulo-verso-flipcard">Título do Verso</label>
+                        <input type="text" id="input-titulo-verso-flipcard" class="rich-text-enabled" placeholder="Ex: Objetivos da Unidade" required>
+                    </div>
+                    
+                    <label>Linhas dos Itens do Verso:</label>
+                    <div id="flipcard-itens-container" style="margin-top: 5px;">
+                        <div class="flipcard-item-bloco">
+                            <div class="form-group">
+                                <label for="input-flipcard-item-0">Linha 1</label>
+                                <textarea id="input-flipcard-item-0" class="rich-text-enabled flipcard-item-input" placeholder="Digite o texto da primeira linha..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <button type="button" id="flipcard-add-item" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro); font-size: 0.9rem; padding: 8px 12px;">+ Adicionar Linha</button>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group">
+                        <button type="submit">Visualizar</button>
+                    </div>
+                </form>
+            </section>
+
+            <div id="output-section-flipcard" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-flipcard">Fundo (Simulado):</label>
+                    <select id="preview-bg-flipcard">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E">Azul Profundo</option>
+                        <option value="#0300">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-flipcard">
+                    <iframe id="preview-iframe-flipcard" class="preview-iframe" title="Preview do Flip Card"></iframe>
+                </div>
+                <textarea id="output-code-flipcard" class="output-code-area" readonly></textarea>
+                <button id="copy-button-flipcard" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
+        <div id="panel-guia" class="generator-panel" style="display: none;">
+            <section class="form-section">
+                <h2>2. Configure o Guia Sequencial</h2>
+                
+                <form id="generator-form-guia">
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-guia-aria-label">Rótulo de Acessibilidade (Região)</label>
+                            <input type="text" id="input-guia-aria-label" placeholder="Ex: Guia de 3 passos: Como..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-guia-cor">Cor de Destaque (Principal)</label>
+                            <select id="input-guia-cor">
+                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                                <option value="#9D4DFF">Roxo (Legado)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-guia-cor-hover">Cor de Destaque (Hover)</label>
+                            <select id="input-guia-cor-hover">
+                                <option value="#C3EB1E">Verde Tech (Contraste Alto)</option>
+                                <option value="#0A88F4">Azul Moderno</option>
+                                <option value="#FF7A00">Laranja Quente</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="input-guia-bg">Cor do Fundo do Guia</label>
+                            <select id="input-guia-bg">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div id="guia-passos-container">
+                        <div class="guia-passo-bloco">
+                            <div class="form-group">
+                                <label for="input-guia-titulo-0">Título do Passo 1</label>
+                                <input type="text" class="rich-text-enabled guia-titulo-input" placeholder="Ex: Passo 1: Planejamento" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-guia-desc-0">Descrição do Passo 1</label>
+                                <textarea id="input-guia-desc-0" class="rich-text-enabled guia-desc-input" placeholder="Defina seus objetivos..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <button type="button" id="guia-add-passo" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro);">+ Adicionar Passo</button>
+                    </div>
+                    
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group">
+                        <button type="submit">Visualizar</button>
+                    </div>
+                </form>
+            </section>
+            
+            <div id="output-section-guia" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-guia">Fundo (Simulado):</label>
+                    <select id="preview-bg-guia">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E">Azul Profundo</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-guia">
+                    <iframe id="preview-iframe-guia" class="preview-iframe" title="Preview do Guia Sequencial"></iframe>
+                </div>
+                <textarea id="output-code-guia" class="output-code-area" readonly></textarea>
+                <button id="copy-button-guia" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+        
+        <div id="panel-timeline" class="generator-panel" style="display: none;">
+            <section class="form-section">
+                <h2>2. Configure a TimeLine</h2>
+                <form id="generator-form-timeline">
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-timeline-aria-label">Rótulo de Acessibilidade (Região)</label>
+                            <input type="text" id="input-timeline-aria-label" placeholder="Ex: Linha do Tempo da Engenharia de Software" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-timeline-cor">Cor de Destaque (Abas)</label>
+                            <select id="input-timeline-cor">
+                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                                <option value="#9D4DFF">Roxo (Legado)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-timeline-bg">Cor do Fundo da Timeline</label>
+                            <select id="input-timeline-bg">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            </div>
+                    </div>
+                    
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div id="timeline-passos-container">
+                        <div class="timeline-passo-bloco">
+                            <div class="form-group">
+                                <label for="input-timeline-aba-0">Título da Aba 1</label>
+                                <input type="text" id="input-timeline-aba-0" class="rich-text-enabled timeline-aba-input" placeholder="Ex: 1960s" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-timeline-titulo-0">Título do Conteúdo 1</label>
+                                <input type="text" id="input-timeline-titulo-0" class="rich-text-enabled timeline-titulo-input" placeholder="Ex: A Crise do Software" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-timeline-desc-0">Descrição do Conteúdo 1</label>
+                                <textarea id="input-timeline-desc-0" class="rich-text-enabled timeline-desc-input" placeholder="O termo é cunhado na OTAN..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <button type="button" id="timeline-add-passo" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro);">+ Adicionar Passo</button>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group"><button type="submit">Visualizar</button></div>
+                </form>
+            </section>
+            
+            <div id="output-section-timeline" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-timeline">Fundo (Simulado):</label>
+                    <select id="preview-bg-timeline">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E">Azul Profundo</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-timeline">
+                    <iframe id="preview-iframe-timeline" class="preview-iframe" title="Preview da TimeLine"></iframe>
+                </div>
+                <textarea id="output-code-timeline" class="output-code-area" readonly></textarea>
+                <button id="copy-button-timeline" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
+        <div id="panel-accordion" class="generator-panel" style="display: none;">
+            <section class="form-section">
+                <h2>2. Configure o Acordeão</h2>
+                <form id="generator-form-accordion">
+                    
+                    <div class="form-group">
+                        <label for="input-accordion-aria-label">Rótulo de Acessibilidade (Região)</label>
+                        <input type="text" id="input-accordion-aria-label" placeholder="Ex: Perguntas Frequentes sobre..." required>
+                    </div>
+
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-accordion-cor">Cor de Destaque (Títulos)</label>
+                            <select id="input-accordion-cor">
+                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                                <option value="#C3EB1E">Verde Tech (Oficial)</option>
+                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                                <option value="#9D4DFF">Roxo (Legado)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-accordion-bg">Cor do Fundo (Geral)</label>
+                            <select id="input-accordion-bg">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div id="accordion-items-container">
+                        <div class="accordion-item-bloco">
+                            <div class="form-group">
+                                <label for="input-accordion-titulo-0">Título do Item 1</label>
+                                <input type="text" id="input-accordion-titulo-0" class="rich-text-enabled accordion-titulo-input" placeholder="Ex: O que é IA?" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-accordion-desc-0">Conteúdo do Item 1</label>
+                                <textarea id="input-accordion-desc-0" class="rich-text-enabled accordion-desc-input" placeholder="Inteligência Artificial é o campo da ciência..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <button type="button" id="accordion-add-item" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro);">+ Adicionar Item</button>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group"><button type="submit">Visualizar</button></div>
+                </form>
+            </section>
+            
+            <div id="output-section-accordion" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-accordion">Fundo (Simulado):</label>
+                    <select id="preview-bg-accordion">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E" selected>Azul Profundo (Recomendado)</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-accordion" style="background-color: #00011E;">
+                    <iframe id="preview-iframe-accordion" class="preview-iframe" title="Preview do Acordeão"></iframe>
+                </div>
+                <textarea id="output-code-accordion" class="output-code-area" readonly></textarea>
+                <button id="copy-button-accordion" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
+        <div id="panel-modal" class="generator-panel" style="display: none;">
+            <section class="form-section">
+                <h2>2. Configure o Modal de Imagem</h2>
+                <form id="generator-form-modal">
+                    
+                    <div class="form-group">
+                        <label for="input-modal-aria-label">Rótulo de Acessibilidade (Janela)</label>
+                        <input type="text" id="input-modal-aria-label" placeholder="Ex: Janela modal: Imagem Ampliada" required>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descreve a janela para leitores de tela.</small>
+                    </div>
+
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-modal-cor-btn">Cor do Botão (Gatilho)</label>
+                            <select id="input-modal-cor-btn">
+                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                                <option value="#C3EB1E">Verde Tech (Oficial)</option>
+                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                                <option value="#9D4DFF">Roxo (Legado)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-modal-bg">Cor de Fundo (Janela)</label>
+                            <select id="input-modal-bg">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group">
+                        <label for="input-modal-btn-text">Texto do Botão (Gatilho)</label>
+                        <input type="text" id="input-modal-btn-text" class="rich-text-enabled" placeholder="Ex: Ver Imagem em Detalhes" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="input-modal-img-url">URL da Imagem (Link)</label>
+                        <input type="text" id="input-modal-img-url" placeholder="https://..." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="input-modal-img-alt">Texto Alternativo (Alt) da Imagem</label>
+                        <input type="text" id="input-modal-img-alt" placeholder="Descrição da imagem para acessibilidade" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-modal-caption">Legenda da Imagem (Opcional)</label>
+                        <textarea id="input-modal-caption" class="rich-text-enabled" placeholder="Escreva uma legenda ou descrição..."></textarea>
+                    </div>
+                    
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group"><button type="submit">Visualizar</button></div>
+                </form>
+            </section>
+            
+            <div id="output-section-modal" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-modal">Fundo (Simulado):</label>
+                    <select id="preview-bg-modal">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E" selected>Azul Profundo (Recomendado)</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-modal" style="background-color: #00011E;">
+                    <iframe id="preview-iframe-modal" class="preview-iframe" title="Preview do Modal de Imagem"></iframe>
+                </div>
+                <textarea id="output-code-modal" class="output-code-area" readonly></textarea>
+                <button id="copy-button-modal" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
+    </div><script src="js/core.js"></script>
+    <script src="js/modules/accordion.js"></script>
+    <script src="js/modules/destaque.js"></script>
+    <script src="js/modules/flashcard.js"></script>
+    <script src="js/modules/flipcard.js"></script>
+    <script src="js/modules/guia.js"></script>
+    <script src="js/modules/modal.js"></script>
+    <script src="js/modules/timeline.js"></script>
+
+    <script>
+        // Inicializa a aplicação
+        document.addEventListener('DOMContentLoaded', () => GeneratorCore.init());
+    </script>
+
+</body>
+</html>

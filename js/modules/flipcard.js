@@ -81,8 +81,8 @@ html,body{
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
 .interactive-card{
-    width:250px; /* Largura fixa original */
-    height:180px; /* Altura fixa original */
+    width:240px; /* Largura fixa original */
+    height:170px; /* Altura fixa original */
     cursor:pointer;
     position:relative;
     display:block;

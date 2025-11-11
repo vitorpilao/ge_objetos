@@ -1,9 +1,9 @@
 // js/modules/dragdrop.js
-// Módulo Drag and Drop Categorias
+// Módulo Drag and Drop Categorias (v6.0.1 - Correção de bug 'core')
 
 GeneratorCore.registerModule('dragdrop', {
     
-    // 1. Setup: Ativa os DOIS botões "+ Adicionar"
+    // 1. Setup: (Função para Adicionar/Remover)
     setup(core) {
         // --- Lógica para Categorias ---
         const catAddButton = document.getElementById('dragdrop-add-category');
@@ -45,7 +45,7 @@ GeneratorCore.registerModule('dragdrop', {
             });
         });
         
-        updateCatLabels(); // Renumera o primeiro
+        updateCatLabels();
 
         // --- Lógica para Itens ---
         const itemAddButton = document.getElementById('dragdrop-add-item');
@@ -101,14 +101,15 @@ GeneratorCore.registerModule('dragdrop', {
             });
         });
         
-        updateItemLabels(); // Renumera o primeiro
+        updateItemLabels();
     },
 
-    // 2. getFormData: Lê os campos dinâmicos e as cores
-    getFormData(core) {
+    // 2. (MUDANÇA AQUI) getFormData:
+    getFormData(core) { // O 'core' está disponível aqui
         const corFundo = document.getElementById('input-dragdrop-cor-fundo').value;
         const corTexto = core.utils.getContrastColor(corFundo);
         const corBorda = (corTexto === '#FFFFFF') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(3, 2, 0, 0.2)';
+        const corDestaque = document.getElementById('input-dragdrop-cor-destaque').value;
 
         // Coleta Categorias
         const categoryInputs = document.querySelectorAll('.dragdrop-category-input');
@@ -132,27 +133,29 @@ GeneratorCore.registerModule('dragdrop', {
             corFundo: corFundo,
             corTexto: corTexto,
             corBorda: corBorda,
-            corDestaque: document.getElementById('input-dragdrop-cor-destaque').value,
-            categories: categories, // Array de strings
-            items: items         // Array de objetos
+            corDestaque: corDestaque,
+            categories: categories,
+            items: items,
+            // --- MUDANÇA 1 ---
+            // Calculamos a cor do texto do botão AQUI
+            corBotaoResetTexto: core.utils.getContrastColor(corDestaque)
         };
     },
     
     // 3. createTemplate: Gera o código do componente Drag & Drop
     createTemplate(data) {
-        const { uniqueId, ariaLabel, corFundo, corTexto, corBorda, corDestaque, categories, items } = data;
+        // --- MUDANÇA 2 ---
+        // Pegamos a cor calculada (corBotaoResetTexto)
+        const { uniqueId, ariaLabel, corFundo, corTexto, corBorda, corDestaque, categories, items, corBotaoResetTexto } = data;
 
-        // Função para embaralhar os itens (para não virem na ordem certa)
         const shuffle = (array) => array.sort(() => Math.random() - 0.5);
 
-        // Gera o HTML para os itens (embaralhados)
         const itemsHTML = shuffle(items).map(item => `
             <div class="drag-item" id="${item.id}-${uniqueId}" draggable="true" data-correct-category="${item.category}" aria-grabbed="false">
                 ${item.text}
             </div>
         `).join('\n');
 
-        // Gera o HTML para as categorias (zonas de drop)
         const categoriesHTML = categories.map((category, index) => `
             <div class="drop-zone" data-category="${category}">
                 <h3 class="drop-zone-title">${category}</h3>
@@ -168,8 +171,8 @@ GeneratorCore.registerModule('dragdrop', {
     --dd-cor-texto: ${corTexto};
     --dd-cor-borda: ${corBorda};
     --dd-cor-destaque: ${corDestaque};
-    --dd-cor-sucesso: ${corDestaque}; /* Verde Sucesso */
-    --dd-cor-erro: #dc3545; /* Vermelho Erro */
+    --dd-cor-sucesso: ${corDestaque};
+    --dd-cor-erro: #dc3545;
     --font-primary: 'Montserrat', 'Arial', sans-serif;
     --font-secondary: 'Arial', sans-serif;
 }
@@ -192,8 +195,6 @@ html, body {
 }
 .drag-wrapper.is-visible { opacity: 1; transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) { .drag-wrapper { transition: none; transform: none; } }
-
-/* Banco de Itens (onde os itens começam) */
 .item-bank {
     padding: 1rem;
     border: 2px dashed var(--dd-cor-borda);
@@ -213,8 +214,6 @@ html, body {
     opacity: 0.8;
     margin: 0 0 10px 0;
 }
-
-/* Zonas de Drop (Categorias) */
 .drop-zones-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -226,7 +225,7 @@ html, body {
     transition: background-color 0.3s ease;
 }
 .drop-zone.drag-over {
-    background-color: rgba(0,0,0,0.1); /* Feedback de hover */
+    background-color: rgba(0,0,0,0.1);
 }
 .drop-zone-title {
     font-family: var(--font-primary);
@@ -243,8 +242,6 @@ html, body {
     flex-direction: column;
     gap: 10px;
 }
-
-/* Itens Arrastáveis */
 .drag-item {
     background-color: var(--dd-cor-fundo);
     border: 1px solid var(--dd-cor-borda);
@@ -255,7 +252,6 @@ html, body {
     cursor: grab;
     transition: all 0.2s ease;
     user-select: none;
-    /* Feedback de Acessibilidade */
     outline: 2px solid transparent;
 }
 .drag-item:focus {
@@ -267,16 +263,12 @@ html, body {
     cursor: grabbing;
 }
 .drag-item p { margin: 0; }
-
-/* Feedback Certo/Errado */
 .drag-item.correct {
     border-left: 4px solid var(--dd-cor-sucesso);
 }
 .drag-item.incorrect {
     border-left: 4px solid var(--dd-cor-erro);
 }
-
-/* Botão de Reset */
 .drag-reset-btn {
     font-family: var(--font-primary);
     font-weight: 600;
@@ -286,7 +278,8 @@ html, body {
     border-radius: 6px;
     cursor: pointer;
     background-color: var(--dd-cor-destaque);
-    color: ${core.utils.getContrastColor(corDestaque)};
+    /* --- MUDANÇA 3 --- */
+    color: ${corBotaoResetTexto}; /* Usamos a variável passada */
     margin-top: 20px;
     display: block;
 }
@@ -318,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let draggedItem = null;
 
-    // 1. Eventos dos Itens Arrastáveis
     items.forEach(item => {
         item.addEventListener('dragstart', (e) => {
             draggedItem = e.target;
@@ -328,7 +320,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.target.setAttribute('aria-grabbed', 'true');
             }, 0);
         });
-
         item.addEventListener('dragend', (e) => {
             e.target.classList.remove('dragging');
             e.target.setAttribute('aria-grabbed', 'false');
@@ -336,37 +327,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 2. Eventos das Zonas de Drop (e do Banco)
     const allDropAreas = [bank, ...Array.from(zones)];
     
     allDropAreas.forEach(area => {
         area.addEventListener('dragover', (e) => {
-            e.preventDefault(); // Essencial para permitir o drop
+            e.preventDefault();
             area.parentElement.classList.add('drag-over');
         });
-
         area.addEventListener('dragleave', (e) => {
             area.parentElement.classList.remove('drag-over');
         });
-
         area.addEventListener('drop', (e) => {
             e.preventDefault();
             area.parentElement.classList.remove('drag-over');
-            
             if (!draggedItem) return;
-
-            // Anexa o item na nova área
             area.appendChild(draggedItem);
             
-            // Lógica de Feedback
-            const zoneCategory = area.parentElement.dataset.category; // Categoria da caixa
-            const itemCategory = draggedItem.dataset.correctCategory; // Categoria correta do item
+            const zoneCategory = area.parentElement.dataset.category;
+            const itemCategory = draggedItem.dataset.correctCategory;
 
-            // Se for solto no banco, reseta o feedback
             if (area === bank) {
                 draggedItem.classList.remove('correct', 'incorrect');
             } else {
-                // Se for solto em uma caixa de categoria, dá o feedback
                 if (zoneCategory === itemCategory) {
                     draggedItem.classList.add('correct');
                     draggedItem.classList.remove('incorrect');
@@ -378,15 +360,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 3. Botão de Reset
     resetBtn.addEventListener('click', () => {
         items.forEach(item => {
             item.classList.remove('correct', 'incorrect');
-            bank.appendChild(item); // Devolve o item ao banco
+            bank.appendChild(item);
         });
     });
 
-    // 4. Efeito de fade-in
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {

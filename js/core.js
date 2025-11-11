@@ -1,5 +1,5 @@
 // js/core.js
-// Núcleo da Central de Componentes (v6.1 - Correção do bug de submit/blur)
+// Núcleo da Central de Componentes (v6.1.1 - Correção de Bug)
 
 const GeneratorCore = {
     modules: {},
@@ -45,6 +45,12 @@ const GeneratorCore = {
                 });
             }
         },
+        
+        // (NOVO) Adiciona uma função "placeholder" para o dragdrop
+        // Isso evita que o core quebre se o módulo de dragdrop falhar
+        syncCategoryDropdowns: () => {
+            console.warn("Função syncCategoryDropdowns não implementada pelo módulo.");
+        },
 
         // --- EDITOR VISUAL (WYSIWYG) ---
         enableRichText(originalInput) {
@@ -64,7 +70,6 @@ const GeneratorCore = {
                 { icon: '<i>I</i>', command: 'italic', title: 'Itálico' },
                 { icon: '<u>U</u>', command: 'underline', title: 'Sublinhado' }
             ];
-            // Botão de Quebra de Linha (só para textareas)
             if (!isSingleLine) {
                 tools.push({ icon: '↵', command: 'insertHTML', value: '<br>', title: 'Inserir Quebra de Linha' });
             }
@@ -105,12 +110,11 @@ const GeneratorCore = {
             colorWrapper.appendChild(colorLabel);
             colorWrapper.appendChild(colorPicker);
 
-            // --- SISTEMA DE SINCRONIZAÇÃO ---
             const syncData = () => {
                 originalInput.value = editor.innerHTML;
             };
             editor.addEventListener('input', syncData);
-            editor.addEventListener('blur', syncData); // ESSENCIAL
+            editor.addEventListener('blur', syncData);
             editor.addEventListener('paste', (e) => {
                 setTimeout(syncData, 0);
             });
@@ -130,44 +134,53 @@ const GeneratorCore = {
 
     // --- REGISTRADOR DE MÓDULOS ---
     registerModule(type, moduleDef) {
-        this.modules[type] = moduleDef;
-        const form = document.getElementById(`generator-form-${type}`);
-        if (!form) return;
-
-        const elements = {
-            outputSection: document.getElementById(`output-section-${type}`),
-            codeTextarea: document.getElementById(`output-code-${type}`),
-            previewIframe: document.getElementById(`preview-iframe-${type}`),
-        };
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // ======================================================
-            // --- CORREÇÃO GLOBAL DO BUG DE SUBMIT ---
-            // Força todos os editores deste formulário a perderem o foco
-            // e salvarem seus dados para os inputs escondidos.
-            form.querySelectorAll('.wysiwyg-editor').forEach(editor => editor.blur());
-            // ======================================================
-            
-            try {
-                const formData = moduleDef.getFormData(this);
-                const finalCode = moduleDef.createTemplate(formData);
-                elements.previewIframe.srcdoc = finalCode;
-                elements.codeTextarea.value = finalCode;
-                elements.outputSection.style.display = 'block';
-                elements.outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } catch (err) {
-                console.error(`[GeneratorCore] Erro ao gerar componente ${type}:`, err);
-                alert(`Ocorreu um erro ao gerar o componente ${type}. Verifique o console.`);
+        // (NOVO) Adicionado try...catch para proteger o registro
+        try {
+            this.modules[type] = moduleDef;
+            const form = document.getElementById(`generator-form-${type}`);
+            if (!form) {
+                console.warn(`[GeneratorCore] Formulário não encontrado: ${type}`);
+                return;
             }
-        });
 
-        this.utils.setupCopyButton(`copy-button-${type}`, `output-code-${type}`);
-        this.utils.setupPreviewBg(`preview-bg-${type}`, `preview-container-${type}`);
-        
-        if (moduleDef.setup) {
-            moduleDef.setup(this);
+            const elements = {
+                outputSection: document.getElementById(`output-section-${type}`),
+                codeTextarea: document.getElementById(`output-code-${type}`),
+                previewIframe: document.getElementById(`preview-iframe-${type}`),
+            };
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                form.querySelectorAll('.wysiwyg-editor').forEach(editor => editor.blur());
+                
+                try {
+                    const formData = moduleDef.getFormData(this);
+                    const finalCode = moduleDef.createTemplate(formData);
+                    
+                    if (elements.previewIframe) {
+                        elements.previewIframe.srcdoc = finalCode;
+                    } else {
+                        console.error(`[GeneratorCore] Iframe de preview não encontrado para: ${type}`);
+                        return; // Aborta se o iframe não existir
+                    }
+                    
+                    elements.outputSection.style.display = 'block';
+                    elements.outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } catch (err) {
+                    console.error(`[GeneratorCore] Erro ao GERAR componente ${type}:`, err);
+                    alert(`Ocorreu um erro ao gerar o componente ${type}. Verifique o console.`);
+                }
+            });
+
+            this.utils.setupCopyButton(`copy-button-${type}`, `output-code-${type}`);
+            this.utils.setupPreviewBg(`preview-bg-${type}`, `preview-container-${type}`);
+            
+            if (moduleDef.setup) {
+                moduleDef.setup(this);
+            }
+            
+        } catch (err) {
+            console.error(`[GeneratorCore] Erro fatal ao REGISTRAR módulo ${type}:`, err);
         }
     },
 
@@ -183,11 +196,10 @@ const GeneratorCore = {
             });
         }
 
-        // Ativa o Rich Text em TODOS os elementos com a classe
         document.querySelectorAll('.rich-text-enabled').forEach(el => {
             this.utils.enableRichText(el);
         });
 
-        console.log("[GeneratorCore] v6.1 inicializado com sucesso.");
+        console.log("[GeneratorCore] v6.1.1 inicializado com sucesso.");
     }
 };

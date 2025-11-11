@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central de Componentes v5.9</title>
+    <title>Central de Componentes v6.1</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/components.css">
 </head>
@@ -21,18 +21,18 @@
                 <label for="object-selector">Tipo de Objeto Interativo</label>
                 <select id="object-selector">
                     <option value="">-- Selecione uma opção --</option>
-                    <option value="accordion" >Acordeão</option>
                     <option value="destaque">Destaque</option>
-                    <option value="dragdrop">Drag & Drop (Categorias)</option>
                     <option value="flashcard">Flashcard Interativo</option>
                     <option value="flipcard">Flip Cards</option>
                     <option value="guia">Guia Sequencial</option>
-                    <option value="modal">Modal de Imagem</option>
                     <option value="timeline">TimeLine</option>
+                    <option value="accordion">Acordeão</option>
+                    <option value="modal">Modal de Imagem</option>
+                    <option value="dragdrop">Drag & Drop (Categorias)</option>
                 </select>
             </div>
         </section>
-    
+
         <div id="panel-destaque" class="generator-panel" style="display: none;">
             <section class="form-section">
                 <h2>2. Configure o Destaque</h2>
@@ -42,7 +42,6 @@
                         <input type="text" id="input-destaque-aria-label" placeholder="Ex: Destaque: Conceito Relevante" required>
                         <small style="opacity: 0.7; font-size: 0.8rem;">Descreve o card para leitores de tela (não visível).</small>
                     </div>
-
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-destaque-cor">Cor da Borda (Destaque)</label>
@@ -63,23 +62,19 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label for="input-destaque-titulo">Título</label>
                         <input type="text" id="input-destaque-titulo" class="rich-text-enabled" placeholder="Ex: Conceito Relevante" required>
                     </div>
-                    
                     <div class="form-group">
                         <label for="input-destaque-descricao">Descrição</label>
                         <textarea id="input-destaque-descricao" class="rich-text-enabled" placeholder="Este card agora se destaca..." required></textarea>
                     </div>
-
                     <div class="form-group">
                         <button type="submit">Visualizar</button>
                     </div>
                 </form>
             </section>
-
             <div id="output-section-destaque" style="display: none;">
                 <h2>3. Preview ao Vivo</h2>
                 <div class="preview-controls">
@@ -106,7 +101,6 @@
                         <label for="input-flashcard-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-flashcard-aria-label" placeholder="Ex: Conjunto de flashcards: Termos de HTML" required>
                     </div>
-                    
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-flashcard-cor">Cor de Destaque (Botões)</label>
@@ -125,7 +119,6 @@
                             </select>
                         </div>
                     </div>
-                    
                     <div class="form-group">
                         <label for="input-flashcard-bg">Cor do Fundo do Card</label>
                         <select id="input-flashcard-bg">
@@ -135,33 +128,26 @@
                             <option value="#00011E">Azul Profundo (Escuro)</option>
                         </select>
                     </div>
-        
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-        
                     <div id="flashcard-cards-container">
                         <div class="flashcard-bloco">
-                            
                             <div class="form-group">
                                 <label for="input-flashcard-frente-0">Frente do Card 1</label>
-                                <input type="text" id="input-flashcard-frente-0" class="rich-text-enabled flashcard-frente-input" placeholder="Ex: HTML5" required>
+                                <input type="text" id="input-flashcard-frente-0" class="rich-text-enabled flashcard-frente-input" placeholder="Ex: <b>HTML5</b>" required>
                             </div>
                             <div class="form-group">
                                 <label for="input-flashcard-verso-0">Verso do Card 1</label>
-                                <textarea id="input-flashcard-verso-0" class="rich-text-enabled flashcard-verso-input" placeholder="Ex: A linguagem fundamental..." required></textarea>
+                                <textarea id="input-flashcard-verso-0" class="rich-text-enabled flashcard-verso-input" placeholder="Ex: A linguagem <i>fundamental</i>..." required></textarea>
                             </div>
                         </div>
                     </div>
-        
                     <div class="form-group" style="margin-top: 15px;">
                         <button type="button" id="flashcard-add-card" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro);">+ Adicionar Card</button>
                     </div>
-                    
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-        
                     <div class="form-group"><button type="submit">Visualizar</button></div>
                 </form>
             </section>
-            
             <div id="output-section-flashcard" style="display: none;">
                 <h2>3. Preview ao Vivo</h2>
                 <div class="preview-controls">
@@ -183,9 +169,7 @@
         <div id="panel-flipcard" class="generator-panel" style="display: none;">
             <section class="form-section">
                 <h2>2. Configure o Flip Card</h2>
-                
                 <form id="generator-form-flipcard">
-
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-cor-tema-flipcard">Cor de Destaque (Tema)</label>
@@ -198,7 +182,6 @@
                                 <option value="#28a745">Verde (Legado)</option>
                             </select>
                         </div>
-                        
                         <div class="form-group">
                             <label for="input-flipcard-bg">Cor do Fundo do Card</label>
                             <select id="input-flipcard-bg">
@@ -208,8 +191,7 @@
                                 <option value="#00011E">Azul Profundo (Escuro)</option>
                             </select>
                         </div>
-
-                        <div class="form-group">
+                         <div class="form-group">
                             <label for="input-icone-flipcard">Ícone (Bootstrap Icons)</label>
                             <select id="input-icone-flipcard">
                                 <option value="lightbulb" data-label="Ícone de lâmpada">Lâmpada (bi-lightbulb)</option>
@@ -222,15 +204,13 @@
                                 <option value="question-circle" data-label="Ícone de interrogação">Dúvida (bi-question-circle)</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                         <div class="form-group">
                             <label for="input-aria-label-flipcard">Rótulo de Acessibilidade (Região)</label>
                             <input type="text" id="input-aria-label-flipcard" placeholder="Ex: Card Interativo: Aprendizado Dinâmico" required>
                             <small style="opacity: 0.7; font-size: 0.8rem;">Ajuda leitores de tela.</small>
                         </div>
                     </div>
-
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group">
                         <label for="input-titulo-frente-flipcard">Título da Frente</label>
                         <input type="text" id="input-titulo-frente-flipcard" class="rich-text-enabled" placeholder="Ex: Aprendizado Dinâmico" required>
@@ -239,14 +219,11 @@
                         <label for="input-descricao-frente-flipcard">Descrição da Frente</label>
                         <textarea id="input-descricao-frente-flipcard" class="rich-text-enabled" placeholder="Ex: Conteúdo adaptado para você." required></textarea>
                     </div>
-
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group">
                         <label for="input-titulo-verso-flipcard">Título do Verso</label>
                         <input type="text" id="input-titulo-verso-flipcard" class="rich-text-enabled" placeholder="Ex: Objetivos da Unidade" required>
                     </div>
-                    
                     <label>Linhas dos Itens do Verso:</label>
                     <div id="flipcard-itens-container" style="margin-top: 5px;">
                         <div class="flipcard-item-bloco">
@@ -259,15 +236,12 @@
                     <div class="form-group" style="margin-top: 10px;">
                         <button type="button" id="flipcard-add-item" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro); font-size: 0.9rem; padding: 8px 12px;">+ Adicionar Linha</button>
                     </div>
-
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group">
                         <button type="submit">Visualizar</button>
                     </div>
                 </form>
             </section>
-
             <div id="output-section-flipcard" style="display: none;">
                 <h2>3. Preview ao Vivo</h2>
                 <div class="preview-controls">
@@ -289,7 +263,6 @@
         <div id="panel-guia" class="generator-panel" style="display: none;">
             <section class="form-section">
                 <h2>2. Configure o Guia Sequencial</h2>
-                
                 <form id="generator-form-guia">
                     <div class="grid-2-col">
                         <div class="form-group">
@@ -314,7 +287,6 @@
                                 <option value="#FF7A00">Laranja Quente</option>
                             </select>
                         </div>
-
                         <div class="form-group">
                             <label for="input-guia-bg">Cor do Fundo do Guia</label>
                             <select id="input-guia-bg">
@@ -325,14 +297,12 @@
                             </select>
                         </div>
                     </div>
-                    
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div id="guia-passos-container">
                         <div class="guia-passo-bloco">
                             <div class="form-group">
                                 <label for="input-guia-titulo-0">Título do Passo 1</label>
-                                <input type="text" class="rich-text-enabled guia-titulo-input" placeholder="Ex: Passo 1: Planejamento" required>
+                                <input type="text" id="input-guia-titulo-0" class="rich-text-enabled guia-titulo-input" placeholder="Ex: Passo 1: Planejamento" required>
                             </div>
                             <div class="form-group">
                                 <label for="input-guia-desc-0">Descrição do Passo 1</label>
@@ -340,19 +310,15 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="form-group" style="margin-top: 15px;">
                         <button type="button" id="guia-add-passo" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro);">+ Adicionar Passo</button>
                     </div>
-                    
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group">
                         <button type="submit">Visualizar</button>
                     </div>
                 </form>
             </section>
-            
             <div id="output-section-guia" style="display: none;">
                 <h2>3. Preview ao Vivo</h2>
                 <div class="preview-controls">
@@ -389,7 +355,6 @@
                             </select>
                         </div>
                     </div>
-                    
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-timeline-bg">Cor do Fundo da Timeline</label>
@@ -400,12 +365,9 @@
                                 <option value="#00011E">Azul Profundo (Escuro)</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            </div>
+                        <div class="form-group"></div>
                     </div>
-                    
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div id="timeline-passos-container">
                         <div class="timeline-passo-bloco">
                             <div class="form-group">
@@ -422,17 +384,13 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="form-group" style="margin-top: 15px;">
                         <button type="button" id="timeline-add-passo" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro);">+ Adicionar Passo</button>
                     </div>
-
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group"><button type="submit">Visualizar</button></div>
                 </form>
             </section>
-            
             <div id="output-section-timeline" style="display: none;">
                 <h2>3. Preview ao Vivo</h2>
                 <div class="preview-controls">
@@ -455,12 +413,10 @@
             <section class="form-section">
                 <h2>2. Configure o Acordeão</h2>
                 <form id="generator-form-accordion">
-                    
                     <div class="form-group">
                         <label for="input-accordion-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-accordion-aria-label" placeholder="Ex: Perguntas Frequentes sobre..." required>
                     </div>
-
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-accordion-cor">Cor de Destaque (Títulos)</label>
@@ -481,9 +437,7 @@
                             </select>
                         </div>
                     </div>
-                    
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div id="accordion-items-container">
                         <div class="accordion-item-bloco">
                             <div class="form-group">
@@ -496,17 +450,13 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="form-group" style="margin-top: 15px;">
                         <button type="button" id="accordion-add-item" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro);">+ Adicionar Item</button>
                     </div>
-
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group"><button type="submit">Visualizar</button></div>
                 </form>
             </section>
-            
             <div id="output-section-accordion" style="display: none;">
                 <h2>3. Preview ao Vivo</h2>
                 <div class="preview-controls">
@@ -529,13 +479,11 @@
             <section class="form-section">
                 <h2>2. Configure o Modal de Imagem</h2>
                 <form id="generator-form-modal">
-                    
                     <div class="form-group">
                         <label for="input-modal-aria-label">Rótulo de Acessibilidade (Janela)</label>
                         <input type="text" id="input-modal-aria-label" placeholder="Ex: Janela modal: Imagem Ampliada" required>
                         <small style="opacity: 0.7; font-size: 0.8rem;">Descreve a janela para leitores de tela.</small>
                     </div>
-
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-modal-cor-btn">Cor do Botão (Gatilho)</label>
@@ -556,35 +504,27 @@
                             </select>
                         </div>
                     </div>
-
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group">
                         <label for="input-modal-btn-text">Texto do Botão (Gatilho)</label>
                         <input type="text" id="input-modal-btn-text" class="rich-text-enabled" placeholder="Ex: Ver Imagem em Detalhes" required>
                     </div>
-                    
                     <div class="form-group">
                         <label for="input-modal-img-url">URL da Imagem (Link)</label>
                         <input type="text" id="input-modal-img-url" placeholder="https://..." required>
                     </div>
-                    
                     <div class="form-group">
                         <label for="input-modal-img-alt">Texto Alternativo (Alt) da Imagem</label>
                         <input type="text" id="input-modal-img-alt" placeholder="Descrição da imagem para acessibilidade" required>
                     </div>
-
                     <div class="form-group">
                         <label for="input-modal-caption">Legenda da Imagem (Opcional)</label>
                         <textarea id="input-modal-caption" class="rich-text-enabled" placeholder="Escreva uma legenda ou descrição..."></textarea>
                     </div>
-                    
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group"><button type="submit">Visualizar</button></div>
                 </form>
             </section>
-            
             <div id="output-section-modal" style="display: none;">
                 <h2>3. Preview ao Vivo</h2>
                 <div class="preview-controls">
@@ -602,17 +542,15 @@
                 <button id="copy-button-modal" class="copy-button">Copiar Código</button>
             </div>
         </div>
-
+        
         <div id="panel-dragdrop" class="generator-panel" style="display: none;">
             <section class="form-section">
                 <h2>2. Configure a Atividade de Arrastar e Soltar</h2>
                 <form id="generator-form-dragdrop">
-                    
                     <div class="form-group">
                         <label for="input-dragdrop-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-dragdrop-aria-label" placeholder="Ex: Atividade de categorizar frutas e vegetais" required>
                     </div>
-
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-dragdrop-cor-fundo">Cor de Fundo (Geral)</label>
@@ -632,7 +570,6 @@
                             </select>
                         </div>
                     </div>
-
                     <h3 class="dragdrop-bloco-titulo">1. Categorias (As Caixas)</h3>
                     <div id="dragdrop-categories-container">
                         <div class="dragdrop-category-bloco">
@@ -645,9 +582,7 @@
                     <div class="form-group" style="margin-top: 10px;">
                         <button type="button" id="dragdrop-add-category" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro); font-size: 0.9rem; padding: 8px 12px;">+ Adicionar Categoria</button>
                     </div>
-
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <h3 class="dragdrop-bloco-titulo">2. Itens (Arrastáveis)</h3>
                     <div id="dragdrop-items-container">
                         <div class="dragdrop-item-bloco">
@@ -657,20 +592,20 @@
                             </div>
                             <div class="form-group">
                                 <label for="input-dragdrop-item-cat-0">Categoria Correta do Item 1</label>
-                                <input type="text" id="input-dragdrop-item-cat-0" class="dragdrop-item-cat" placeholder="Digite o nome EXATO da categoria (Ex: Frutas)" required>
+                                <select id="input-dragdrop-item-cat-0" class="dragdrop-item-cat" required>
+                                    <option value="">-- Preencha as categorias acima --</option>
+                                </select>
+                                <small style="opacity: 0.7; font-size: 0.8rem;">Selecione a categoria correspondente.</small>
                             </div>
                         </div>
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
                         <button type="button" id="dragdrop-add-item" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro); font-size: 0.9rem; padding: 8px 12px;">+ Adicionar Item</button>
                     </div>
-                    
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
-
                     <div class="form-group"><button type="submit">Visualizar</button></div>
                 </form>
             </section>
-            
             <div id="output-section-dragdrop" style="display: none;">
                 <h2>3. Preview ao Vivo</h2>
                 <div class="preview-controls">
@@ -690,14 +625,14 @@
         </div>
 
     </div><script src="js/core.js"></script>
-    <script src="js/modules/accordion.js"></script>
     <script src="js/modules/destaque.js"></script>
-    <script src="js/modules/dragdrop.js"></script>
     <script src="js/modules/flashcard.js"></script>
     <script src="js/modules/flipcard.js"></script>
     <script src="js/modules/guia.js"></script>
-    <script src="js/modules/modal.js"></script>
     <script src="js/modules/timeline.js"></script>
+    <script src="js/modules/accordion.js"></script>
+    <script src="js/modules/modal.js"></script>
+    <script src="js/modules/dragdrop.js"></script>
 
     <script>
         // Inicializa a aplicação

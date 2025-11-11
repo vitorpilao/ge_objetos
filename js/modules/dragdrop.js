@@ -1,21 +1,43 @@
 // js/modules/dragdrop.js
-// Módulo Drag and Drop Categorias (v6.0.1 - Correção de bug 'core')
+// Módulo Drag and Drop (v6.1.1 - Correção de bug de Setup)
 
 GeneratorCore.registerModule('dragdrop', {
     
-    // 1. Setup: (Função para Adicionar/Remover)
+    // 1. (ATUALIZADO) Setup: Ordem da lógica corrigida
     setup(core) {
-        // --- Lógica para Categorias ---
-        const catAddButton = document.getElementById('dragdrop-add-category');
+        // --- Referências dos Containers ---
         const catContainer = document.getElementById('dragdrop-categories-container');
-        
+        const itemContainer = document.getElementById('dragdrop-items-container');
+        const catAddButton = document.getElementById('dragdrop-add-category');
+        const itemAddButton = document.getElementById('dragdrop-add-item');
+
+        // --- FUNÇÃO DE SINCRONIZAÇÃO (Definida PRIMEIRO) ---
+        // (Anexa ao core.utils para ser acessível por todos)
+        core.utils.syncCategoryDropdowns = () => {
+            const categoryInputs = catContainer.querySelectorAll('.dragdrop-category-input');
+            const categories = Array.from(categoryInputs)
+                                    .map(input => input.value.trim())
+                                    .filter(val => val !== '');
+            const allDropdowns = document.querySelectorAll('.dragdrop-item-cat');
+            
+            allDropdowns.forEach(dropdown => {
+                const currentValue = dropdown.value;
+                dropdown.innerHTML = '';
+                dropdown.add(new Option('-- Selecione --', ''));
+                categories.forEach(catName => {
+                    dropdown.add(new Option(catName, catName));
+                });
+                dropdown.value = currentValue;
+            });
+        };
+
+        // --- Lógica para Categorias ---
         const updateCatLabels = () => {
             const allBlocks = catContainer.querySelectorAll('.dragdrop-category-bloco');
             allBlocks.forEach((bloco, index) => {
                 const itemNum = index + 1;
                 const label = bloco.querySelector('label');
                 const input = bloco.querySelector('input');
-                
                 if (label && input) {
                     label.innerText = `Nome da Categoria ${itemNum}`;
                     label.htmlFor = `input-dragdrop-category-${index}`;
@@ -24,6 +46,14 @@ GeneratorCore.registerModule('dragdrop', {
             });
         };
 
+        // Gatilho 1: Quando o usuário DIGITA em qualquer campo de categoria
+        catContainer.addEventListener('input', (e) => {
+            if (e.target.classList.contains('dragdrop-category-input')) {
+                core.utils.syncCategoryDropdowns();
+            }
+        });
+
+        // Gatilho 2: Quando clica em "+ Adicionar Categoria"
         catAddButton.addEventListener('click', () => {
             const newIndex = catContainer.querySelectorAll('.dragdrop-category-bloco').length;
             const newBlock = document.createElement('div');
@@ -42,15 +72,14 @@ GeneratorCore.registerModule('dragdrop', {
             removeButton.addEventListener('click', () => {
                 catContainer.removeChild(newBlock);
                 updateCatLabels();
+                core.utils.syncCategoryDropdowns();
             });
+            
+            updateCatLabels();
+            core.utils.syncCategoryDropdowns();
         });
         
-        updateCatLabels();
-
         // --- Lógica para Itens ---
-        const itemAddButton = document.getElementById('dragdrop-add-item');
-        const itemContainer = document.getElementById('dragdrop-items-container');
-
         const updateItemLabels = () => {
             const allBlocks = itemContainer.querySelectorAll('.dragdrop-item-bloco');
             allBlocks.forEach((bloco, index) => {
@@ -59,7 +88,6 @@ GeneratorCore.registerModule('dragdrop', {
                 const textInput = bloco.querySelector('.dragdrop-item-text');
                 const catLabel = bloco.querySelector('label[for^="input-dragdrop-item-cat-"]');
                 const catInput = bloco.querySelector('.dragdrop-item-cat');
-
                 if (textLabel && textInput) {
                     textLabel.innerText = `Texto do Item ${itemNum}`;
                     textLabel.htmlFor = `input-dragdrop-item-text-${index}`;
@@ -73,6 +101,7 @@ GeneratorCore.registerModule('dragdrop', {
             });
         };
 
+        // Gatilho 3: Quando clica em "+ Adicionar Item"
         itemAddButton.addEventListener('click', () => {
             const newIndex = itemContainer.querySelectorAll('.dragdrop-item-bloco').length;
             const newBlock = document.createElement('div');
@@ -86,7 +115,8 @@ GeneratorCore.registerModule('dragdrop', {
                 </div>
                 <div class="form-group">
                     <label for="input-dragdrop-item-cat-${newIndex}">Categoria Correta do Item ${newIndex + 1}</label>
-                    <input type="text" id="input-dragdrop-item-cat-${newIndex}" class="dragdrop-item-cat" placeholder="Digite o nome EXATO da categoria (Ex: Vegetais)" required>
+                    <select id="input-dragdrop-item-cat-${newIndex}" class="dragdrop-item-cat" required>
+                    </select>
                 </div>
             `;
             itemContainer.appendChild(newBlock);
@@ -99,23 +129,27 @@ GeneratorCore.registerModule('dragdrop', {
                 itemContainer.removeChild(newBlock);
                 updateItemLabels();
             });
+            
+            updateItemLabels();
+            core.utils.syncCategoryDropdowns();
         });
         
+        // --- Sincronização Inicial ---
+        updateCatLabels();
         updateItemLabels();
+        core.utils.syncCategoryDropdowns(); // Agora esta função já existe no 'core'
     },
 
-    // 2. (MUDANÇA AQUI) getFormData:
-    getFormData(core) { // O 'core' está disponível aqui
+    // 2. getFormData:
+    getFormData(core) {
         const corFundo = document.getElementById('input-dragdrop-cor-fundo').value;
         const corTexto = core.utils.getContrastColor(corFundo);
         const corBorda = (corTexto === '#FFFFFF') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(3, 2, 0, 0.2)';
         const corDestaque = document.getElementById('input-dragdrop-cor-destaque').value;
 
-        // Coleta Categorias
         const categoryInputs = document.querySelectorAll('.dragdrop-category-input');
         const categories = Array.from(categoryInputs).map(input => input.value.trim());
 
-        // Coleta Itens
         const itemBlocos = document.querySelectorAll('.dragdrop-item-bloco');
         const items = Array.from(itemBlocos).map((bloco, index) => {
             const textInput = bloco.querySelector('.dragdrop-item-text');
@@ -136,26 +170,19 @@ GeneratorCore.registerModule('dragdrop', {
             corDestaque: corDestaque,
             categories: categories,
             items: items,
-            // --- MUDANÇA 1 ---
-            // Calculamos a cor do texto do botão AQUI
             corBotaoResetTexto: core.utils.getContrastColor(corDestaque)
         };
     },
     
-    // 3. createTemplate: Gera o código do componente Drag & Drop
+    // 3. createTemplate:
     createTemplate(data) {
-        // --- MUDANÇA 2 ---
-        // Pegamos a cor calculada (corBotaoResetTexto)
         const { uniqueId, ariaLabel, corFundo, corTexto, corBorda, corDestaque, categories, items, corBotaoResetTexto } = data;
-
         const shuffle = (array) => array.sort(() => Math.random() - 0.5);
-
         const itemsHTML = shuffle(items).map(item => `
             <div class="drag-item" id="${item.id}-${uniqueId}" draggable="true" data-correct-category="${item.category}" aria-grabbed="false">
                 ${item.text}
             </div>
         `).join('\n');
-
         const categoriesHTML = categories.map((category, index) => `
             <div class="drop-zone" data-category="${category}">
                 <h3 class="drop-zone-title">${category}</h3>
@@ -278,24 +305,20 @@ html, body {
     border-radius: 6px;
     cursor: pointer;
     background-color: var(--dd-cor-destaque);
-    /* --- MUDANÇA 3 --- */
-    color: ${corBotaoResetTexto}; /* Usamos a variável passada */
+    color: ${corBotaoResetTexto};
     margin-top: 20px;
     display: block;
 }
 </style>
 
 <div class="drag-wrapper" id="${uniqueId}" role="region" aria-label="${ariaLabel}">
-    
     <h3 class="item-bank-title">Itens para categorizar:</h3>
     <div class="item-bank" id="bank-${uniqueId}">
         ${itemsHTML}
     </div>
-
     <div class="drop-zones-container">
         ${categoriesHTML}
     </div>
-    
     <button class="drag-reset-btn" id="reset-${uniqueId}">Resetar</button>
 </div>
 

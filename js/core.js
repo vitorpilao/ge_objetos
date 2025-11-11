@@ -1,5 +1,5 @@
 // js/core.js
-// Núcleo da Central de Componentes (v6.1.1 - Correção de Bug)
+// Núcleo da Central de Componentes (v6.1.3 - Correção de Iframe Quirks Mode)
 
 const GeneratorCore = {
     modules: {},
@@ -46,10 +46,8 @@ const GeneratorCore = {
             }
         },
         
-        // (NOVO) Adiciona uma função "placeholder" para o dragdrop
-        // Isso evita que o core quebre se o módulo de dragdrop falhar
         syncCategoryDropdowns: () => {
-            console.warn("Função syncCategoryDropdowns não implementada pelo módulo.");
+            // (Função placeholder)
         },
 
         // --- EDITOR VISUAL (WYSIWYG) ---
@@ -129,12 +127,13 @@ const GeneratorCore = {
             wrapper.appendChild(toolbar);
             wrapper.appendChild(editor);
             originalInput.style.display = 'none';
+
+            return { editor: editor, wrapper: wrapper };
         },
     },
 
     // --- REGISTRADOR DE MÓDULOS ---
     registerModule(type, moduleDef) {
-        // (NOVO) Adicionado try...catch para proteger o registro
         try {
             this.modules[type] = moduleDef;
             const form = document.getElementById(`generator-form-${type}`);
@@ -142,28 +141,31 @@ const GeneratorCore = {
                 console.warn(`[GeneratorCore] Formulário não encontrado: ${type}`);
                 return;
             }
-
             const elements = {
                 outputSection: document.getElementById(`output-section-${type}`),
                 codeTextarea: document.getElementById(`output-code-${type}`),
                 previewIframe: document.getElementById(`preview-iframe-${type}`),
             };
-
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 form.querySelectorAll('.wysiwyg-editor').forEach(editor => editor.blur());
-                
                 try {
                     const formData = moduleDef.getFormData(this);
                     const finalCode = moduleDef.createTemplate(formData);
-                    
+
+                    // ==========================================================
+                    // =================== CORREÇÃO PRINCIPAL ===================
+                    // ==========================================================
+                    // 'srcdoc' é substituído por 'src' com Data URI.
+                    // Isso força o 'Standards Mode' e corrige o layout do CSS (Grid/Flex).
                     if (elements.previewIframe) {
-                        elements.previewIframe.srcdoc = finalCode;
+                        elements.previewIframe.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(finalCode);
                     } else {
+                    // ==========================================================
                         console.error(`[GeneratorCore] Iframe de preview não encontrado para: ${type}`);
-                        return; // Aborta se o iframe não existir
+                        return;
                     }
-                    
+
                     elements.outputSection.style.display = 'block';
                     elements.outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } catch (err) {
@@ -171,14 +173,11 @@ const GeneratorCore = {
                     alert(`Ocorreu um erro ao gerar o componente ${type}. Verifique o console.`);
                 }
             });
-
             this.utils.setupCopyButton(`copy-button-${type}`, `output-code-${type}`);
             this.utils.setupPreviewBg(`preview-bg-${type}`, `preview-container-${type}`);
-            
             if (moduleDef.setup) {
                 moduleDef.setup(this);
             }
-            
         } catch (err) {
             console.error(`[GeneratorCore] Erro fatal ao REGISTRAR módulo ${type}:`, err);
         }
@@ -195,11 +194,9 @@ const GeneratorCore = {
                 if (target) target.style.display = 'block';
             });
         }
-
         document.querySelectorAll('.rich-text-enabled').forEach(el => {
             this.utils.enableRichText(el);
         });
-
-        console.log("[GeneratorCore] v6.1.1 inicializado com sucesso.");
+        console.log("[GeneratorCore] v6.1.3 inicializado com sucesso.");
     }
 };

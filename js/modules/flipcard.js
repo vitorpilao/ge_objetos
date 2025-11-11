@@ -1,5 +1,5 @@
 // js/modules/flipcard.js
-// Módulo Flipcard (v5.9.8 - Correção do Efeito Hover)
+// Módulo Flipcard (v5.9.9 - Correção para seleção de texto VLIBRAS)
 
 GeneratorCore.registerModule('flipcard', {
     iconMap: {
@@ -51,11 +51,10 @@ GeneratorCore.registerModule('flipcard', {
         };
     },
 
-    // 3. createTemplate: (CSS da v5.9.2 - Layout 250px)
+    // 3. createTemplate: (CSS v5.9.2 + Correção de VLIBRAS)
     createTemplate(data) {
         const { uniqueId, corTema, corFundo, corTexto, tituloFrente, descricaoFrente, tituloVerso, listaItensHTML, iconePath, iconeAriaLabel, ariaLabelRegiao, ariaLabelBotao } = data;
 
-        // Este é o CSS original da v5.9.1 / v5.9.2
         return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
 html,body{
     margin:0;
@@ -76,7 +75,6 @@ html,body{
     transition:opacity .6s ease-out,transform .6s ease-out;
     padding:10px; /* Padding original */
     box-sizing:border-box;
-    /* (Sem width: 100%) */
 }
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
@@ -88,19 +86,14 @@ html,body{
     display:block;
     perspective:1000px;
     border-radius:8px;
-    /* (Sem padding) */
 }
 .card-inner{
     width:100%;
     height:100%;
     transition:transform .6s,box-shadow .3s ease,border-left-color .3s ease;
     transform-style:preserve-3d;
-    
-    /* --- CORREÇÃO ESTÁ AQUI --- */
     border:1px solid #e0e0e0;
     border-left:4px solid #e0e0e0; /* Começa cinza */
-    /* --- FIM DA CORREÇÃO --- */
-    
     border-radius:8px;
     box-sizing:border-box;
     background-color:${corFundo};
@@ -149,6 +142,41 @@ html,body{
         </div>
     </div>
 </div>
-<script>document.addEventListener('DOMContentLoaded',()=>{const t=document.querySelector(\`#${uniqueId}\`).closest(".interactive-card-wrapper");if(t){const e=new IntersectionObserver((t,o)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");o.unobserve(t.target)}})},{threshold:.25});e.observe(t)}const e=document.getElementById("${uniqueId}");if(!e)return;const o=e.querySelector(".card-front"),n=e.querySelector(".card-back"),r=()=>{const t="true"===e.getAttribute("aria-pressed");e.setAttribute("aria-pressed",!t),e.classList.toggle("is-flipped",!t),o.setAttribute("aria-hidden",!t),n.setAttribute("aria-hidden",t),t?e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para fechar","Pressione para ver")):e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para ver","Pressione para fechar"))};e.addEventListener("click",r),e.addEventListener("keydown",t=>{if("Enter"===t.key||" "===t.key){t.preventDefault();r()}})});<\/script>`;
+<script>document.addEventListener('DOMContentLoaded',()=>{
+    const t=document.querySelector(\`#${uniqueId}\`).closest(".interactive-card-wrapper");
+    if(t){const e=new IntersectionObserver((t,o)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");o.unobserve(t.target)}})},{threshold:.25});e.observe(t)}
+    
+    const e=document.getElementById("${uniqueId}");
+    if(!e)return;
+    const o=e.querySelector(".card-front"),n=e.querySelector(".card-back");
+    const r=()=>{
+        const t="true"===e.getAttribute("aria-pressed");
+        e.setAttribute("aria-pressed",!t),e.classList.toggle("is-flipped",!t),o.setAttribute("aria-hidden",!t),n.setAttribute("aria-hidden",t),
+        t?e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para fechar","Pressione para ver"))
+         :e.setAttribute("aria-label",e.getAttribute("aria-label").replace("Pressione para ver","Pressione para fechar"))
+    };
+    
+    // --- CORREÇÃO VLIBRAS AQUI ---
+    e.addEventListener("click",(event)=>{
+        // Verifica se o clique foi DENTRO de um elemento de texto (título, descrição, etc.)
+        if (event.target.closest('.card-title') || 
+            event.target.closest('.card-description') ||
+            event.target.closest('.back-title') ||
+            event.target.closest('.objectives-list')) {
+            // Se foi, não faz nada (permite selecionar o texto)
+            return;
+        }
+        // Se foi no "espaço vazio" do card (ou no ícone), vira o card
+        r();
+    });
+    // --- FIM DA CORREÇÃO ---
+    
+    e.addEventListener("keydown",t=>{
+        if("Enter"===t.key||" "===t.key){
+            t.preventDefault();
+            r();
+        }
+    });
+});<\/script>`;
     }
 });

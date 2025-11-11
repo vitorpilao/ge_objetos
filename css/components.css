@@ -459,3 +459,60 @@ button[type="submit"]:hover {
 .accordion-item-bloco .form-group label {
     margin-right: 60px; /* Espaço para o botão "X" */
 }
+
+/* --- Estilos do Gerador Dinâmico (Drag & Drop) --- */
+
+.dragdrop-bloco-titulo {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    color: var(--color-azul-moderno);
+    margin-top: 25px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--color-azul-moderno);
+    padding-bottom: 5px;
+}
+
+.dragdrop-category-bloco,
+.dragdrop-item-bloco {
+    position: relative;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.dragdrop-remove-category,
+.dragdrop-remove-item {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545; /* Vermelho */
+    color: var(--color-branco-puro);
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+.dragdrop-remove-category:hover,
+.dragdrop-remove-item:hover {
+    opacity: 1;
+}
+
+/* Remove a borda/fundo do primeiro item de cada lista */
+#dragdrop-categories-container .dragdrop-category-bloco:first-child,
+#dragdrop-items-container .dragdrop-item-bloco:first-child {
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    background: none;
+}
+
+.dragdrop-category-bloco .form-group label,
+.dragdrop-item-bloco .form-group label {
+    margin-right: 50px; /* Espaço para o botão "X" */
+}

@@ -23,6 +23,7 @@
                     <option value="">-- Selecione uma opção --</option>
                     <option value="accordion" >Acordeão</option>
                     <option value="destaque">Destaque</option>
+                    <option value="dragdrop">Drag & Drop (Categorias)</option>
                     <option value="flashcard">Flashcard Interativo</option>
                     <option value="flipcard">Flip Cards</option>
                     <option value="guia">Guia Sequencial</option>
@@ -31,7 +32,7 @@
                 </select>
             </div>
         </section>
-
+    
         <div id="panel-destaque" class="generator-panel" style="display: none;">
             <section class="form-section">
                 <h2>2. Configure o Destaque</h2>
@@ -602,9 +603,96 @@
             </div>
         </div>
 
+        <div id="panel-dragdrop" class="generator-panel" style="display: none;">
+            <section class="form-section">
+                <h2>2. Configure a Atividade de Arrastar e Soltar</h2>
+                <form id="generator-form-dragdrop">
+                    
+                    <div class="form-group">
+                        <label for="input-dragdrop-aria-label">Rótulo de Acessibilidade (Região)</label>
+                        <input type="text" id="input-dragdrop-aria-label" placeholder="Ex: Atividade de categorizar frutas e vegetais" required>
+                    </div>
+
+                    <div class="grid-2-col">
+                        <div class="form-group">
+                            <label for="input-dragdrop-cor-fundo">Cor de Fundo (Geral)</label>
+                            <select id="input-dragdrop-cor-fundo">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-dragdrop-cor-destaque">Cor de Destaque (Feedback)</label>
+                            <select id="input-dragdrop-cor-destaque">
+                                <option value="#28a745">Verde (Sucesso)</option>
+                                <option value="#0A88F4">Azul Moderno</option>
+                                <option value="#C3EB1E">Verde Tech</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 class="dragdrop-bloco-titulo">1. Categorias (As Caixas)</h3>
+                    <div id="dragdrop-categories-container">
+                        <div class="dragdrop-category-bloco">
+                            <div class="form-group">
+                                <label for="input-dragdrop-category-0">Nome da Categoria 1</label>
+                                <input type="text" id="input-dragdrop-category-0" class="dragdrop-category-input" placeholder="Ex: Frutas" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <button type="button" id="dragdrop-add-category" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro); font-size: 0.9rem; padding: 8px 12px;">+ Adicionar Categoria</button>
+                    </div>
+
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <h3 class="dragdrop-bloco-titulo">2. Itens (Arrastáveis)</h3>
+                    <div id="dragdrop-items-container">
+                        <div class="dragdrop-item-bloco">
+                            <div class="form-group">
+                                <label for="input-dragdrop-item-text-0">Texto do Item 1</label>
+                                <input type="text" id="input-dragdrop-item-text-0" class="rich-text-enabled dragdrop-item-text" placeholder="Ex: Maçã" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-dragdrop-item-cat-0">Categoria Correta do Item 1</label>
+                                <input type="text" id="input-dragdrop-item-cat-0" class="dragdrop-item-cat" placeholder="Digite o nome EXATO da categoria (Ex: Frutas)" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <button type="button" id="dragdrop-add-item" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro); font-size: 0.9rem; padding: 8px 12px;">+ Adicionar Item</button>
+                    </div>
+                    
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+
+                    <div class="form-group"><button type="submit">Visualizar</button></div>
+                </form>
+            </section>
+            
+            <div id="output-section-dragdrop" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-dragdrop">Fundo (Simulado):</label>
+                    <select id="preview-bg-dragdrop">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E" selected>Azul Profundo (Recomendado)</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-dragdrop" style="background-color: #00011E;">
+                    <iframe id="preview-iframe-dragdrop" class="preview-iframe" title="Preview do Drag & Drop"></iframe>
+                </div>
+                <textarea id="output-code-dragdrop" class="output-code-area" readonly></textarea>
+                <button id="copy-button-dragdrop" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
     </div><script src="js/core.js"></script>
     <script src="js/modules/accordion.js"></script>
     <script src="js/modules/destaque.js"></script>
+    <script src="js/modules/dragdrop.js"></script>
     <script src="js/modules/flashcard.js"></script>
     <script src="js/modules/flipcard.js"></script>
     <script src="js/modules/guia.js"></script>

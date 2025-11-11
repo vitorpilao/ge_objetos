@@ -14,8 +14,82 @@ GeneratorCore.registerModule('flipcard', {
     },
 
     // 1. Setup: (Função para "Adicionar Linha")
+    // js/modules/flipcard.js
+
+    // 1. Setup: (Função para "Adicionar Linha")
     setup(core) {
-        // ... (código do setup permanece o mesmo) ...
+        const addButton = document.getElementById('flipcard-add-item');
+        const container = document.getElementById('flipcard-itens-container');
+
+        if (!addButton || !container) {
+            console.error("Erro no setup do Flipcard: Botão ou container não encontrados.");
+            return;
+        }
+
+        // --- Lógica para Adicionar Item ---
+        addButton.addEventListener('click', () => {
+            // Conta quantos blocos já existem para saber o próximo índice
+            const itemCount = container.querySelectorAll('.flipcard-item-bloco').length;
+            // O primeiro item é o 0, então o próximo será 1, 2, 3...
+            const newIndex = itemCount; 
+            
+            // 1. Criar o novo bloco
+            const newBlock = document.createElement('div');
+            newBlock.className = 'flipcard-item-bloco';
+
+            // 2. Criar o botão de remover
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'flipcard-remove-item';
+            removeButton.innerHTML = '&times;'; // Símbolo 'X'
+            removeButton.title = `Remover Linha ${newIndex + 1}`;
+            
+            // Adiciona o evento para remover o próprio bloco
+            removeButton.addEventListener('click', () => {
+                newBlock.remove(); 
+                // Nota: Se você precisar que os índices sejam sequenciais
+                // após a remoção, seria necessário renumerar os labels/IDs.
+            });
+
+            // 3. Criar o form-group
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+
+            // 4. Criar o label
+            const newLabel = document.createElement('label');
+            newLabel.setAttribute('for', `input-flipcard-item-${newIndex}`);
+            newLabel.textContent = `Linha ${newIndex + 1}`;
+
+            // 5. Criar o textarea
+            const newTextarea = document.createElement('textarea');
+            newTextarea.id = `input-flipcard-item-${newIndex}`;
+            newTextarea.className = 'rich-text-enabled flipcard-item-input';
+            newTextarea.placeholder = `Digite o texto da linha ${newIndex + 1}...`;
+            newTextarea.required = true;
+
+            // 6. Montar a estrutura do novo bloco
+            formGroup.appendChild(newLabel);
+            formGroup.appendChild(newTextarea);
+            
+            newBlock.appendChild(removeButton); // Adiciona o botão "X"
+            newBlock.appendChild(formGroup);
+
+            // 7. Adicionar o novo bloco ao container
+            container.appendChild(newBlock);
+
+            // 8. **PASSO CRÍTICO:**
+            // Ativar o editor Rich Text no novo textarea que acabamos de criar.
+            // Se pular isso, o editor visual não aparecerá nas novas linhas.
+            if (core.utils.enableRichText) {
+                core.utils.enableRichText(newTextarea);
+            } else {
+                console.error("Função enableRichText não encontrada no core.");
+            }
+        });
+
+        // (Opcional) Adicionar evento de remoção aos itens já existentes, se houver.
+        // O seu HTML inicial não tem botão de remover no item 0, 
+        // então este código só adiciona botões de remover para *novos* itens.
     },
 
     // 2. getFormData: (Lê os itens dinâmicos)
@@ -73,7 +147,7 @@ html,body{
     opacity:0;
     transform:translateY(20px);
     transition:opacity .6s ease-out,transform .6s ease-out;
-    padding:10px; /* Padding original */
+    padding:20px; /* Padding original */
     box-sizing:border-box;
 }
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}

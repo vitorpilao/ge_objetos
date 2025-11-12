@@ -278,6 +278,7 @@ html, body {
     background-color: rgba(0,0,0,0.1); 
 }
 .drop-zone-title { 
+    background-color: rgba(16, 29, 214, 0.507);
     font-family: var(--font-primary); 
     font-weight: 600; 
     font-size: 1.1rem; 

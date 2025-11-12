@@ -28,7 +28,8 @@
                     <option value="flipcard">Flip Cards</option>
                     <option value="guia">Guia Sequencial</option>
                     <option value="modal">Modal de Imagem</option>
-                    <option value="timeline">TimeLine</option>                    
+                    <option value="timeline">TimeLine</option> 
+                    <option value="multiplechoice">Múltipla Escolha (Quiz) (em dev.)</option>                 
                 </select>
             </div>
         </section>
@@ -621,6 +622,110 @@
             </div>
         </div>
 
+        <div id="panel-multiplechoice" class="generator-panel" style="display: none;">
+            <form id="generator-form-multiplechoice">
+                
+                <section class="form-section">
+                    <h2>2. Configuração: Múltipla Escolha (Quiz)</h2>
+                    <div class="form-group">
+                        <label for="input-multiplechoice-aria-label">Rótulo de Acessibilidade (Região)</label>
+                        <input type="text" id="input-multiplechoice-aria-label" placeholder="Ex: Quiz: Verificação de conhecimento sobre..." required>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descreve o quiz para leitores de tela (não visível).</small>
+                        <div class="grid-2-col">
+                         <div class="form-group">
+                            <label for="input-multiplechoice-cor">Cor de Destaque (Seleção)</label>
+                            <select id="input-multiplechoice-cor">
+                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                                <option value="#C3EB1E">Verde Tech (Oficial)</option>
+                                <option value="#9D4DFF">Roxo (Legado)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-multiplechoice-bg">Cor de Fundo do Card</label>
+                            <select id="input-multiplechoice-bg">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
+                            </select>
+                        </div>
+                     </div>
+                    </div>
+                </section>
+
+               
+                     
+
+                
+                <section class="form-section" style="padding-top: 20px;">
+                    <h3>Conteúdo do Quiz</h3>
+                    <div class="form-group">
+                        <label for="input-multiplechoice-question">Pergunta Principal</label>
+                        <textarea id="input-multiplechoice-question" class="rich-text-enabled" rows="2" placeholder="Ex: Qual dos Frameworks JavaScript é mais leve...?" required></textarea>
+                    </div>
+                </section>
+
+                <div class="grid-2-col">
+                    
+                    <section class="form-section" style="padding-top: 20px;">
+                        <div class="form-group">
+                            <label>Opções de Resposta (Marque a correta)</label>
+                            
+                            <div id="multiplechoice-options-container">
+                                <div class="multiplechoice-option-bloco" data-index="0">
+                                    <div class="multiplechoice-option-flex-group">
+                                        <div class="form-group-radio">
+                                            <input type="radio" name="multiplechoice-correct" id="multiplechoice-correct-0" value="0" checked>
+                                            <label for="multiplechoice-correct-0" class="radio-label">Correta</label>
+                                        </div>
+                                        <div class="form-group-textarea">
+                                            <label for="input-multiplechoice-option-0">Opção 1</label>
+                                            <textarea id="input-multiplechoice-option-0" class="rich-text-enabled" rows="1" placeholder="Ex: Vanilla JS" required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="multiplechoice-add-option" type="button" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro); margin-top: 10px;">+ Adicionar Opção</button>
+                        </div>
+                    </section>
+                    
+                    <section class="form-section" style="padding-top: 20px;">
+                         <h3>Feedback</h3>
+                        <div class="form-group">
+                            <label for="input-multiplechoice-feedback-correct">Feedback de Acerto</label>
+                            <textarea id="input-multiplechoice-feedback-correct" rows="2" class="rich-text-enabled" placeholder="Ex: Correto! A ausência de framework garante..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-multiplechoice-feedback-incorrect">Feedback de Erro</label>
+                            <textarea id="input-multiplechoice-feedback-incorrect" rows="2" class="rich-text-enabled" placeholder="Ex: Incorreto. Procure sempre a solução mais leve." required></textarea>
+                        </div>
+                    </section>
+                
+                </div> <div class="form-group" style="margin-top: -8px;">
+                    <button type="submit">Visualizar</button>
+                </div>
+            </form>
+            
+            <div id="output-section-multiplechoice" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-multiplechoice">Fundo (Simulado):</label>
+                    <select id="preview-bg-multiplechoice">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E" selected>Azul Profundo (Recomendado)</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-multiplechoice" style="background-color: #00011E;">
+                    <iframe id="preview-iframe-multiplechoice" class="preview-iframe" title="Preview do Múltipla Escolha"></iframe>
+                </div>
+                <textarea id="output-code-multiplechoice" class="output-code-area" readonly></textarea>
+                <button id="copy-button-multiplechoice" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
     </div><script src="js/core.js"></script>
     <script src="js/modules/accordion.js"></script>
     <script src="js/modules/destaque.js"></script>
@@ -630,6 +735,7 @@
     <script src="js/modules/guia.js"></script>
     <script src="js/modules/modal.js"></script>
     <script src="js/modules/timeline.js"></script>
+    <script src="js/modules/multiplechoice.js"></script>
     
     <script>
         // Inicializa a aplicação

@@ -615,3 +615,41 @@ button[type="submit"]:hover {
 
 /* Estilo para input single-line (Categoria) */
 /* (A classe .rich-text-wrapper.single-line já cuida disso) */
+
+/* --- NOVOS ESTILOS: Layout do Rádio (Múltipla Escolha) --- */
+
+.multiplechoice-option-flex-group {
+    display: flex;
+    align-items: flex-start; /* Alinha os itens no topo */
+    gap: 15px; /* Espaço entre o rádio e o textarea */
+}
+
+.form-group-radio {
+    padding-top: 30px; /* Alinha o rádio com o label "Opção 1" */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0; /* Impede que o rádio seja esmagado */
+}
+
+.form-group-radio input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.form-group-radio .radio-label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 4px;
+    cursor: pointer;
+}
+
+.form-group-textarea {
+    flex-grow: 1; /* Faz o textarea ocupar o espaço restante */
+}
+
+/* Garante que o label do textarea ainda tenha espaço para o botão 'X' */
+.form-group-textarea label {
+    margin-right: 60px;
+}

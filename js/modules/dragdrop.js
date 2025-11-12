@@ -1,5 +1,5 @@
 // js/modules/dragdrop.js
-// Módulo Drag and Drop (v6.2.15 - Adiciona lógica de "Verificar" com auto-reset)
+// Módulo Drag and Drop (v6.2.18 - Adiciona fundo no título da categoria)
 
 GeneratorCore.registerModule('dragdrop', {
     
@@ -192,7 +192,7 @@ GeneratorCore.registerModule('dragdrop', {
             categories: categories,
             categoriesHTML: categoriesHTML,
             items: items,
-            corBotaoResetTexto: core.utils.getContrastColor(corDestaque) // Usado para o botão de Verificar
+            corBotaoResetTexto: core.utils.getContrastColor(corDestaque)
         };
     },
     
@@ -221,14 +221,14 @@ GeneratorCore.registerModule('dragdrop', {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preview Drag & Drop</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Arial&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Arial&display=swap');
 :root {
     --dd-cor-fundo: ${corFundo};
     --dd-cor-texto: ${corTexto};
     --dd-cor-borda: ${corBorda};
     --dd-cor-destaque: ${corDestaque};
-    --dd-cor-sucesso: ${corDestaque}; /* Cor de sucesso é a cor de destaque */
-    --dd-cor-erro: #dc3545; /* Vermelho para erro */
+    --dd-cor-sucesso: ${corDestaque}; 
+    --dd-cor-erro: #dc3545; 
     --font-primary: 'Montserrat', 'Arial', sans-serif;
     --font-secondary: 'Arial', sans-serif;
     --dd-cor-item-fundo: ${corItemFundo};
@@ -249,8 +249,9 @@ html, body {
     max-width: 800px; 
     margin: 10px auto; 
     transition: all 0.3s ease-in-out;
+    position: relative; 
+    overflow: hidden; 
 }
-/* Classe de sucesso para animação */
 .drag-wrapper.all-correct {
     box-shadow: 0 0 15px var(--dd-cor-sucesso);
     border-color: var(--dd-cor-sucesso);
@@ -290,8 +291,8 @@ html, body {
 .drop-zone.drag-over { 
     background-color: rgba(0,0,0,0.1); 
 }
-.drop-zone-title {
-    background-color: rgba(16, 29, 214, 0.507);
+/* --- MUDANÇA APLICADA AQUI --- */
+.drop-zone-title { 
     font-family: var(--font-primary); 
     font-weight: 600; 
     font-size: 1.1rem; 
@@ -299,7 +300,10 @@ html, body {
     padding: 12px 15px; 
     border-bottom: 1px solid var(--dd-cor-borda); 
     overflow-wrap: break-word;
+    background-color: rgba(16, 29, 214, 0.507); /* <-- SUA ALTERAÇÃO */
 }
+/* --- FIM DA MUDANÇA --- */
+
 .drop-zone-inner { 
     padding: 15px; 
     min-height: 100px; 
@@ -310,7 +314,7 @@ html, body {
 .drag-item { 
     background-color: var(--dd-cor-item-fundo);
     color: var(--dd-cor-item-texto);
-    border: 2px solid transparent; /* Alterado para 2px para feedback */
+    border: 2px solid transparent; 
     box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
     border-radius: 99px; 
     padding: 8px 16px; 
@@ -328,17 +332,13 @@ html, body {
 .drag-item:focus { outline-color: var(--dd-cor-destaque); }
 .drag-item.dragging { opacity: 0.5; transform: scale(0.95); cursor: grabbing; }
 .drag-item p { margin: 0; }
-
-/* --- MUDANÇA AQUI: Classes de feedback agora usam 'border-color' --- */
 .drag-item.correct { 
     border-color: var(--dd-cor-sucesso); 
 }
 .drag-item.incorrect { 
     border-color: var(--dd-cor-erro); 
 }
-/* --- FIM DA MUDANÇA --- */
-
-.drag-verify-btn { /* Renomeado de 'drag-reset-btn' para clareza */
+.drag-verify-btn { 
     font-family: var(--font-primary); 
     font-weight: 600; 
     font-size: 0.9rem; 
@@ -355,6 +355,76 @@ html, body {
     background-color: #888;
     cursor: not-allowed;
 }
+
+/* --- ESTILOS PARA CONFETES E MENSAGEM DE SUCESSO --- */
+.confetti-celebration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-family: var(--font-primary);
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-align: center;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    pointer-events: none;
+}
+.confetti-celebration.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+.confetti-message {
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    transform: translateY(-20px);
+    opacity: 0;
+    animation: slideInMessage 0.6s ease-out forwards 0.5s;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    border-radius: 50%;
+    opacity: 0;
+    animation: confetti-fall 3s linear forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100px) rotateZ(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(calc(100% + 100px)) rotateZ(720deg);
+        opacity: 0;
+    }
+}
+@keyframes slideInMessage {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
 </style>
 </head>
 <body>
@@ -368,6 +438,12 @@ html, body {
         ${categoriesHTMLBlocks}
     </div>
     <button class="drag-verify-btn" id="verify-${uniqueId}">Verificar Respostas</button>
+
+    
+<div class="confetti-celebration" id="celebration-${uniqueId}">
+        <p class="confetti-message">Parabéns, você acertou!</p>
+    </div>
+    
 </div>
 
 <script>
@@ -378,10 +454,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemBank = document.getElementById('bank-${uniqueId}');
     const dropZones = wrapper.querySelectorAll('.drop-zone');
     const allItems = wrapper.querySelectorAll('.drag-item');
-    const verifyButton = document.getElementById('verify-${uniqueId}'); // Novo botão
+    const verifyButton = document.getElementById('verify-${uniqueId}');
+    const celebrationOverlay = document.getElementById('celebration-${uniqueId}');
+    const confettiMessage = celebrationOverlay.querySelector('.confetti-message');
     let draggedItem = null;
 
-    // --- Região de Anúncio (Acessibilidade) ---
     let ariaLiveRegion = document.getElementById('dragdrop-live-region');
     if (!ariaLiveRegion) {
         ariaLiveRegion = document.createElement('div');
@@ -395,7 +472,31 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { ariaLiveRegion.textContent = message; }, 150);
     };
 
-    // --- Lógica de Arrastar (Drag) ---
+    const createConfetti = () => {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = \`hsl(\${Math.random() * 360}, 100%, 70%)\`;
+        confetti.style.animationDelay = \`\${Math.random() * 0.5}s\`;
+        confetti.style.animationDuration = \`\${2 + Math.random() * 1}s\`;
+        celebrationOverlay.appendChild(confetti);
+
+        confetti.addEventListener('animationend', () => {
+            confetti.remove();
+        });
+    };
+
+    const startConfetti = () => {
+        for (let i = 0; i < 50; i++) {
+            createConfetti();
+        }
+    };
+
+    const stopConfetti = () => {
+        celebrationOverlay.querySelectorAll('.confetti').forEach(c => c.remove());
+    };
+
+
     const onDragStart = (e) => {
         draggedItem = e.target;
         setTimeout(() => e.target.classList.add('dragging'), 0);
@@ -415,7 +516,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZones.forEach(zone => zone.classList.remove('drag-over'));
     };
 
-    // --- Lógica de Soltar (Drop) ---
     const onDragOver = (e) => {
         e.preventDefault();
         const dropZone = e.target.closest('.drop-zone');
@@ -437,52 +537,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetZone = e.target.closest('.drop-zone, .item-bank');
         if (!targetZone || !draggedItem) return;
         
-        // Remove qualquer feedback anterior ao mover um item
         draggedItem.classList.remove('correct', 'incorrect');
         wrapper.classList.remove('all-correct');
+        celebrationOverlay.classList.remove('active');
+        stopConfetti();
         verifyButton.disabled = false;
 
-        // Soltando em uma caixa de categoria
         if (targetZone.classList.contains('drop-zone')) {
             const innerZone = targetZone.querySelector('.drop-zone-inner');
             innerZone.appendChild(draggedItem);
-            // NENHUM feedback imediato
             announce(\`\${draggedItem.textContent.trim()} solto em \${targetZone.dataset.category}.\`);
         } 
-        // Soltando de volta no banco
         else if (targetZone.classList.contains('item-bank')) {
             targetZone.appendChild(draggedItem);
             announce(\`\${draggedItem.textContent.trim()} retornado ao banco.\`);
         }
     };
 
-
-    // --- Lógica de Reset (usada no auto-reset) ---
     const resetAll = () => {
         allItems.forEach(item => {
             item.classList.remove('correct', 'incorrect');
-            itemBank.appendChild(item); // Devolve ao banco
+            itemBank.appendChild(item); 
         });
         wrapper.classList.remove('all-correct');
+        celebrationOverlay.classList.remove('active');
+        stopConfetti();
         verifyButton.disabled = false;
         announce('Atividade resetada. Tente novamente.');
     };
 
-    // --- Lógica de Verificação (Nova) ---
     const verifyAll = () => {
         let hasWrongItem = false;
         let itemsInBank = itemBank.querySelectorAll('.drag-item').length > 0;
 
-        // 1. Limpa verificações antigas
         allItems.forEach(item => item.classList.remove('correct', 'incorrect'));
 
-        // 2. Verifica se o jogo está incompleto
         if (itemsInBank) {
             announce('Você precisa categorizar todos os itens antes de verificar.');
             return;
         }
 
-        // 3. Verifica todos os itens nas zonas de drop
         dropZones.forEach(zone => {
             const targetCategory = zone.dataset.category;
             zone.querySelectorAll('.drag-item').forEach(item => {
@@ -495,24 +589,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // 4. Decide o resultado
         if (hasWrongItem) {
-            // --- FALHA ---
             announce('Quase lá! Verifique os erros. Resetando em 1 segundo.');
             verifyButton.disabled = true;
             setTimeout(() => {
                 resetAll();
-            }, 1000); // 1 segundo de delay como solicitado
+            }, 1000); 
 
         } else {
-            // --- SUCESSO ---
             wrapper.classList.add('all-correct');
-            verifyButton.disabled = true; // Trava o botão no sucesso
+            celebrationOverlay.classList.add('active');
+            startConfetti();
+            verifyButton.disabled = true; 
             announce('Parabéns, você acertou tudo!');
         }
     };
 
-    // --- Adiciona os Event Listeners ---
     allItems.forEach(item => {
         item.addEventListener('dragstart', onDragStart);
         item.addEventListener('dragend', onDragEnd);
@@ -522,8 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
     wrapper.addEventListener('dragleave', onDragLeave);
     wrapper.addEventListener('drop', onDrop);
     
-    // Listener antigo de reset removido
-    verifyButton.addEventListener('click', verifyAll); // Novo listener
+    verifyButton.addEventListener('click', verifyAll);
 });
 </script>
 </body>

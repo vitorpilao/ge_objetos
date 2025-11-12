@@ -1,5 +1,5 @@
 // js/core.js
-// Núcleo da Central de Componentes (v6.1.3 - Correção de Iframe Quirks Mode)
+// Núcleo da Central de Componentes (v6.1.4 - Correção do Botão Copiar)
 
 const GeneratorCore = {
     modules: {},
@@ -19,7 +19,10 @@ const GeneratorCore = {
             const textarea = document.getElementById(textareaId);
             if (!btn || !textarea) return;
             btn.addEventListener('click', () => {
-                if (!textarea.value) return;
+                if (!textarea.value) {
+                    console.warn("Nada para copiar, textarea está vazia.");
+                    return;
+                }
                 navigator.clipboard.writeText(textarea.value)
                     .then(() => {
                         const originalText = btn.textContent;
@@ -166,6 +169,10 @@ const GeneratorCore = {
                         return;
                     }
 
+                    // --- ESTA É A LINHA QUE FALTAVA ---
+                    elements.codeTextarea.value = finalCode; 
+                    // --- FIM DA CORREÇÃO ---
+
                     elements.outputSection.style.display = 'block';
                     elements.outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } catch (err) {
@@ -197,6 +204,6 @@ const GeneratorCore = {
         document.querySelectorAll('.rich-text-enabled').forEach(el => {
             this.utils.enableRichText(el);
         });
-        console.log("[GeneratorCore] v6.1.3 inicializado com sucesso.");
+        console.log("[GeneratorCore] v6.1.4 inicializado com sucesso.");
     }
 };

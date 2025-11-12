@@ -1,5 +1,5 @@
 // js/modules/dragdrop.js
-// Módulo Drag and Drop (v6.2.12 - Correção de Interpolação Aninhada)
+// Módulo Drag and Drop (v6.2.15 - Adiciona lógica de "Verificar" com auto-reset)
 
 GeneratorCore.registerModule('dragdrop', {
     
@@ -143,6 +143,9 @@ GeneratorCore.registerModule('dragdrop', {
         const corBorda = (corTexto === '#FFFFFF') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(3, 2, 0, 0.2)';
         const corDestaque = document.getElementById('input-dragdrop-cor-destaque').value;
         
+        const corItemFundo = document.getElementById('input-dragdrop-cor-item').value;
+        const corItemTexto = core.utils.getContrastColor(corItemFundo);
+
         const categories = [];
         const categoriesHTML = [];
         const categoryEditors = document.querySelectorAll('#dragdrop-category-list .wysiwyg-editor');
@@ -184,16 +187,18 @@ GeneratorCore.registerModule('dragdrop', {
             corTexto: corTexto,
             corBorda: corBorda,
             corDestaque: corDestaque,
+            corItemFundo: corItemFundo,
+            corItemTexto: corItemTexto,
             categories: categories,
             categoriesHTML: categoriesHTML,
             items: items,
-            corBotaoResetTexto: core.utils.getContrastColor(corDestaque)
+            corBotaoResetTexto: core.utils.getContrastColor(corDestaque) // Usado para o botão de Verificar
         };
     },
     
     // 3. createTemplate:
     createTemplate(data) {
-        const { uniqueId, ariaLabel, corFundo, corTexto, corBorda, corDestaque, categories, categoriesHTML, items, corBotaoResetTexto } = data;
+        const { uniqueId, ariaLabel, corFundo, corTexto, corBorda, corDestaque, categories, categoriesHTML, items, corBotaoResetTexto, corItemFundo, corItemTexto } = data;
         const shuffle = (array) => array.sort(() => Math.random() - 0.5);
         
         const itemsHTML = shuffle(items).map(item => `
@@ -222,10 +227,12 @@ GeneratorCore.registerModule('dragdrop', {
     --dd-cor-texto: ${corTexto};
     --dd-cor-borda: ${corBorda};
     --dd-cor-destaque: ${corDestaque};
-    --dd-cor-sucesso: ${corDestaque};
-    --dd-cor-erro: #dc3545;
+    --dd-cor-sucesso: ${corDestaque}; /* Cor de sucesso é a cor de destaque */
+    --dd-cor-erro: #dc3545; /* Vermelho para erro */
     --font-primary: 'Montserrat', 'Arial', sans-serif;
     --font-secondary: 'Arial', sans-serif;
+    --dd-cor-item-fundo: ${corItemFundo};
+    --dd-cor-item-texto: ${corItemTexto};
 }
 html, body { 
     margin: 0; 
@@ -241,6 +248,12 @@ html, body {
     padding: 1.5rem; 
     max-width: 800px; 
     margin: 10px auto; 
+    transition: all 0.3s ease-in-out;
+}
+/* Classe de sucesso para animação */
+.drag-wrapper.all-correct {
+    box-shadow: 0 0 15px var(--dd-cor-sucesso);
+    border-color: var(--dd-cor-sucesso);
 }
 @media (prefers-reduced-motion: reduce) { 
     .drag-wrapper { transition: none; transform: none; } 
@@ -277,7 +290,7 @@ html, body {
 .drop-zone.drag-over { 
     background-color: rgba(0,0,0,0.1); 
 }
-.drop-zone-title { 
+.drop-zone-title {
     background-color: rgba(16, 29, 214, 0.507);
     font-family: var(--font-primary); 
     font-weight: 600; 
@@ -295,24 +308,37 @@ html, body {
     gap: 10px; 
 }
 .drag-item { 
-    background-color: var(--dd-cor-fundo); 
-    border: 1px solid var(--dd-cor-borda); 
+    background-color: var(--dd-cor-item-fundo);
+    color: var(--dd-cor-item-texto);
+    border: 2px solid transparent; /* Alterado para 2px para feedback */
     box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-    border-radius: 4px; 
-    padding: 10px 15px; 
+    border-radius: 99px; 
+    padding: 8px 16px; 
     font-size: 0.95rem; 
+    font-weight: 600; 
+    font-family: var(--font-primary);
     cursor: grab; 
     transition: all 0.2s ease; 
     user-select: none; 
     outline: 2px solid transparent; 
     overflow-wrap: break-word;
+    display: inline-block; 
+    text-align: center;
 }
 .drag-item:focus { outline-color: var(--dd-cor-destaque); }
 .drag-item.dragging { opacity: 0.5; transform: scale(0.95); cursor: grabbing; }
 .drag-item p { margin: 0; }
-.drag-item.correct { border-left: 4px solid var(--dd-cor-sucesso); }
-.drag-item.incorrect { border-left: 4px solid var(--dd-cor-erro); }
-.drag-reset-btn { 
+
+/* --- MUDANÇA AQUI: Classes de feedback agora usam 'border-color' --- */
+.drag-item.correct { 
+    border-color: var(--dd-cor-sucesso); 
+}
+.drag-item.incorrect { 
+    border-color: var(--dd-cor-erro); 
+}
+/* --- FIM DA MUDANÇA --- */
+
+.drag-verify-btn { /* Renomeado de 'drag-reset-btn' para clareza */
     font-family: var(--font-primary); 
     font-weight: 600; 
     font-size: 0.9rem; 
@@ -324,6 +350,10 @@ html, body {
     color: ${corBotaoResetTexto};
     margin-top: 20px; 
     display: block; 
+}
+.drag-verify-btn:disabled {
+    background-color: #888;
+    cursor: not-allowed;
 }
 </style>
 </head>
@@ -337,7 +367,7 @@ html, body {
     <div class="drop-zones-container">
         ${categoriesHTMLBlocks}
     </div>
-    <button class="drag-reset-btn" id="reset-${uniqueId}">Resetar</button>
+    <button class="drag-verify-btn" id="verify-${uniqueId}">Verificar Respostas</button>
 </div>
 
 <script>
@@ -348,10 +378,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemBank = document.getElementById('bank-${uniqueId}');
     const dropZones = wrapper.querySelectorAll('.drop-zone');
     const allItems = wrapper.querySelectorAll('.drag-item');
-    const resetButton = document.getElementById('reset-${uniqueId}');
+    const verifyButton = document.getElementById('verify-${uniqueId}'); // Novo botão
     let draggedItem = null;
 
-    // --- Funções de Feedback de Acessibilidade (Live Region) ---
+    // --- Região de Anúncio (Acessibilidade) ---
     let ariaLiveRegion = document.getElementById('dragdrop-live-region');
     if (!ariaLiveRegion) {
         ariaLiveRegion = document.createElement('div');
@@ -375,7 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', e.target.id);
         }
-        // === CORREÇÃO APLICADA AQUI ===
         announce(\`Item \${draggedItem.textContent.trim()} selecionado.\`);
     };
 
@@ -407,45 +436,80 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const targetZone = e.target.closest('.drop-zone, .item-bank');
         if (!targetZone || !draggedItem) return;
-        const correctCategory = draggedItem.dataset.correctCategory;
-        const targetCategory = targetZone.dataset.category || null;
+        
+        // Remove qualquer feedback anterior ao mover um item
+        draggedItem.classList.remove('correct', 'incorrect');
+        wrapper.classList.remove('all-correct');
+        verifyButton.disabled = false;
 
         // Soltando em uma caixa de categoria
         if (targetZone.classList.contains('drop-zone')) {
             const innerZone = targetZone.querySelector('.drop-zone-inner');
             innerZone.appendChild(draggedItem);
-            
-            // Verifica se está correto
-            if (correctCategory === targetCategory) {
-                draggedItem.classList.add('correct');
-                draggedItem.classList.remove('incorrect');
-                // === CORREÇÃO APLICADA AQUI ===
-                announce(\`\${draggedItem.textContent.trim()} solto em \${targetCategory}. Correto.\`);
-            } else {
-                draggedItem.classList.add('incorrect');
-                draggedItem.classList.remove('correct');
-                // === CORREÇÃO APLICADA AQUI ===
-                announce(\`\${draggedItem.textContent.trim()} solto em \${targetCategory}. Incorreto.\`);
-
-            }
+            // NENHUM feedback imediato
+            announce(\`\${draggedItem.textContent.trim()} solto em \${targetZone.dataset.category}.\`);
         } 
         // Soltando de volta no banco
         else if (targetZone.classList.contains('item-bank')) {
             targetZone.appendChild(draggedItem);
-            draggedItem.classList.remove('correct', 'incorrect');
-            // === CORREÇÃO APLICADA AQUI ===
             announce(\`\${draggedItem.textContent.trim()} retornado ao banco.\`);
         }
     };
 
 
-    // --- Lógica de Reset ---
+    // --- Lógica de Reset (usada no auto-reset) ---
     const resetAll = () => {
         allItems.forEach(item => {
             item.classList.remove('correct', 'incorrect');
             itemBank.appendChild(item); // Devolve ao banco
         });
-        announce('Atividade resetada. Todos os itens voltaram ao banco.');
+        wrapper.classList.remove('all-correct');
+        verifyButton.disabled = false;
+        announce('Atividade resetada. Tente novamente.');
+    };
+
+    // --- Lógica de Verificação (Nova) ---
+    const verifyAll = () => {
+        let hasWrongItem = false;
+        let itemsInBank = itemBank.querySelectorAll('.drag-item').length > 0;
+
+        // 1. Limpa verificações antigas
+        allItems.forEach(item => item.classList.remove('correct', 'incorrect'));
+
+        // 2. Verifica se o jogo está incompleto
+        if (itemsInBank) {
+            announce('Você precisa categorizar todos os itens antes de verificar.');
+            return;
+        }
+
+        // 3. Verifica todos os itens nas zonas de drop
+        dropZones.forEach(zone => {
+            const targetCategory = zone.dataset.category;
+            zone.querySelectorAll('.drag-item').forEach(item => {
+                if (item.dataset.correctCategory === targetCategory) {
+                    item.classList.add('correct');
+                } else {
+                    item.classList.add('incorrect');
+                    hasWrongItem = true;
+                }
+            });
+        });
+
+        // 4. Decide o resultado
+        if (hasWrongItem) {
+            // --- FALHA ---
+            announce('Quase lá! Verifique os erros. Resetando em 1 segundo.');
+            verifyButton.disabled = true;
+            setTimeout(() => {
+                resetAll();
+            }, 1000); // 1 segundo de delay como solicitado
+
+        } else {
+            // --- SUCESSO ---
+            wrapper.classList.add('all-correct');
+            verifyButton.disabled = true; // Trava o botão no sucesso
+            announce('Parabéns, você acertou tudo!');
+        }
     };
 
     // --- Adiciona os Event Listeners ---
@@ -457,7 +521,9 @@ document.addEventListener('DOMContentLoaded', () => {
     wrapper.addEventListener('dragover', onDragOver);
     wrapper.addEventListener('dragleave', onDragLeave);
     wrapper.addEventListener('drop', onDrop);
-    resetButton.addEventListener('click', resetAll);
+    
+    // Listener antigo de reset removido
+    verifyButton.addEventListener('click', verifyAll); // Novo listener
 });
 </script>
 </body>

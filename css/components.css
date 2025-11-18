@@ -1,3 +1,125 @@
+.quiz-wrapper {
+    position: relative;
+}
+/* --- ESTILOS PARA CONFETES E MENSAGEM DE SUCESSO (Múltipla Escolha) --- */
+.confetti-celebration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-family: var(--font-primary);
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-align: center;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    pointer-events: none;
+}
+.confetti-celebration.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+.confetti-message {
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    transform: translateY(-20px);
+    opacity: 0;
+    animation: slideInMessage 0.6s ease-out forwards 0.5s;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    border-radius: 50%;
+    opacity: 0;
+    animation: confetti-fall 3s linear forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100px) rotateZ(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(400px) rotateZ(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInMessage {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Destaca opções erradas em vermelho */
+.multiplechoice-option-bloco.incorrect .form-group-textarea textarea {
+    background: #ffe6e6;
+    border-color: #dc3545;
+}
+/* --- Melhorias visuais para múltipla escolha --- */
+.multiplechoice-option-bloco {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    margin-bottom: 18px;
+    transition: box-shadow 0.2s;
+}
+.multiplechoice-option-bloco:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.form-group-radio input[type="radio"] {
+    border-radius: 50%;
+    border: 2px solid var(--color-azul-moderno);
+    background: var(--color-branco-puro);
+    transition: border-color 0.2s;
+}
+.form-group-radio input[type="radio"]:checked {
+    border-color: var(--color-verde-tech);
+}
+
+.form-group-textarea textarea {
+    padding: 12px;
+    border: 1.5px solid var(--color-azul-moderno);
+    border-radius: 6px;
+    font-size: 1.05rem;
+    transition: border-color 0.2s;
+}
+.form-group-textarea textarea:focus {
+    border-color: var(--color-verde-tech);
+    outline: none;
+}
+
+.multiplechoice-option-bloco input[type="radio"]:checked ~ .form-group-textarea textarea {
+    background: #e6ffe6;
+}
+
+.multiplechoice-remove-option:hover {
+    opacity: 1;
+    transform: scale(1.1) rotate(10deg);
+}
+/* Garante que o bloco de opção seja relativo para posicionar o botão de remover */
+.multiplechoice-option-bloco {
+    position: relative;
+}
 /* --- Seções de Formulário --- */
 .form-section {
     background: rgba(0, 0, 0, 0.1);
@@ -613,43 +735,50 @@ button[type="submit"]:hover {
 }
 
 
-/* Estilo para input single-line (Categoria) */
-/* (A classe .rich-text-wrapper.single-line já cuida disso) */
+/* Estilos para o Bloco de Opção (Múltipla Escolha) no formulário de administração */
+.multiplechoice-option-bloco {
+    border: 1px solid var(--color-borda-clara);
+    border-radius: var(--border-radius-padrao);
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: var(--color-fundo-secundario);
+    /* ESSENCIAL: Permite posicionamento absoluto do botão de remoção */
+    position: relative; 
+}
 
-/* --- NOVOS ESTILOS: Layout do Rádio (Múltipla Escolha) --- */
-
+/* ESSENCIAL: Garante que os elementos de rádio e textarea estejam na mesma linha ou flex */
 .multiplechoice-option-flex-group {
     display: flex;
-    align-items: flex-start; /* Alinha os itens no topo */
-    gap: 15px; /* Espaço entre o rádio e o textarea */
+    align-items: flex-start; /* Alinha o rádio/label no topo */
+    gap: 20px; 
 }
 
-.form-group-radio {
-    padding-top: 30px; /* Alinha o rádio com o label "Opção 1" */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-shrink: 0; /* Impede que o rádio seja esmagado */
+.multiplechoice-option-flex-group .form-group-textarea {
+    flex-grow: 1; /* Permite que o textarea ocupe o espaço restante */
 }
 
-.form-group-radio input[type="radio"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
+/* Novo Estilo do Botão de Remover */
+.multiplechoice-remove-option {
+    /* REMOVEMOS os estilos inline do JS e colocamos eles aqui */
+    position: absolute; 
+    top: 10px; /* Ajuste para melhor visual */
+    right: 10px; /* Ajuste para melhor visual */
+    background-color: var(--color-erro); /* Variavel que deve ser definida no core.js/components.css */
+    color: var(--color-branco-puro); 
+    border: none; 
+    border-radius: 4px; 
+    width: auto; 
+    height: auto; 
+    padding: 4px 10px; 
+    font-size: 0.8rem; 
+    font-weight: bold; 
+    line-height: 1.5; 
+    cursor: pointer; 
+    opacity: 0.8; 
+    transition: opacity 0.2s ease;
 }
 
-.form-group-radio .radio-label {
-    font-size: 0.8rem;
-    opacity: 0.8;
-    margin-top: 4px;
-    cursor: pointer;
-}
-
-.form-group-textarea {
-    flex-grow: 1; /* Faz o textarea ocupar o espaço restante */
-}
-
-/* Garante que o label do textarea ainda tenha espaço para o botão 'X' */
-.form-group-textarea label {
-    margin-right: 60px;
+.multiplechoice-remove-option:hover {
+    opacity: 1;
+    transform: scale(1.05);
 }

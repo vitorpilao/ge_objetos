@@ -344,23 +344,69 @@ document.addEventListener('DOMContentLoaded', () => {
         wrapper.classList.add('answered');
         submitBtn.disabled = true;
         const isCorrect = (selectedIndex === correctIndex);
-        
-        options.forEach(opt => {
+
+        options.forEach((opt, idx) => {
             opt.disabled = true;
             opt.classList.add('disabled');
+            if (idx === correctIndex) {
+                opt.classList.add('correct');
+            } else {
+                opt.classList.add('incorrect');
+            }
         });
 
         if (isCorrect) {
             feedbackArea.innerHTML = feedbackCorrect;
             feedbackArea.classList.add('correct');
-            options[selectedIndex].classList.add('correct');
+
+            // Explosão de emojis animados
+            const emojis = ['🎉','🥳','✨','⭐','🎊','👏','🏆','💥'];
+            const emojiCount = 30;
+            let emojiContainer = wrapper.querySelector('.emoji-explosion');
+            if (!emojiContainer) {
+                emojiContainer = document.createElement('div');
+                emojiContainer.className = 'emoji-explosion';
+                emojiContainer.style.position = 'absolute';
+                emojiContainer.style.left = 0;
+                emojiContainer.style.top = 0;
+                emojiContainer.style.width = '100%';
+                emojiContainer.style.height = '100%';
+                emojiContainer.style.pointerEvents = 'none';
+                emojiContainer.style.zIndex = 9999;
+                wrapper.appendChild(emojiContainer);
+            }
+            for (let i = 0; i < emojiCount; i++) {
+                const emoji = document.createElement('span');
+                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                emoji.style.position = 'absolute';
+                emoji.style.fontSize = (32 + Math.random() * 24) + 'px';
+                emoji.style.left = (Math.random() * 90 + 5) + '%';
+                emoji.style.top = '50%';
+                emoji.style.opacity = 0.85;
+                emoji.style.transform = 'translateY(0) scale(1)';
+                emojiContainer.appendChild(emoji);
+
+                // Animação
+                const xMove = (Math.random() - 0.5) * 200;
+                const yMove = -120 - Math.random() * 120;
+                const rotate = (Math.random() - 0.5) * 360;
+                setTimeout(() => {
+                    emoji.animate([
+                        { transform: 'translateY(0) scale(1) rotate(0deg)', opacity: 0.85 },
+                        { transform: 'translate(' + xMove + 'px, ' + yMove + 'px) scale(1.3) rotate(' + rotate + 'deg)', opacity: 0 }
+                    ], {
+                        duration: 1200 + Math.random() * 600,
+                        easing: 'cubic-bezier(.42,1.5,.58,1)',
+                        fill: 'forwards'
+                    });
+                }, 10);
+            }
+            setTimeout(() => {
+                emojiContainer.innerHTML = '';
+            }, 1800);
         } else {
             feedbackArea.innerHTML = feedbackIncorrect;
             feedbackArea.classList.add('incorrect');
-            if (selectedIndex !== null) {
-                options[selectedIndex].classList.add('incorrect');
-            }
-            options[correctIndex].classList.add('correct');
         }
     });
 

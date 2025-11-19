@@ -29,8 +29,6 @@ GeneratorCore.registerModule('encontreerro', {
         }
         
         addButton.onclick = () => addErroBloco(); // <-- CORREÇÃO: Restaurando o evento de clique.
-        // Sempre inicia com um campo
-        addErroBloco();
     },
 
     // Coleta dados do formulário
@@ -44,6 +42,13 @@ GeneratorCore.registerModule('encontreerro', {
         const corFundo = document.getElementById('input-encontreerro-bg')?.value || '#FFFFFF';
         const corDestaque = document.getElementById('input-encontreerro-cor')?.value || '#0A88F4';
         const corTexto = core.utils.getContrastColor(corFundo);
+        const feedbackCorrect = document.getElementById('input-encontreerro-feedback-correct')?.value || 'Parabéns! Você encontrou todos os erros.';
+        const feedbackIncorrect = document.getElementById('input-encontreerro-feedback-incorrect')?.value || 'Você não encontrou todos os erros. As palavras que faltaram estão destacadas em vermelho.';
+        const feedbackInitial = document.getElementById('input-encontreerro-feedback-initial')?.value || 'Clique nas palavras que você acha que estão erradas.';
+        const helpBtnText = document.getElementById('input-encontreerro-help-btn')?.value || 'Ajuda';
+        const helpActiveText = document.getElementById('input-encontreerro-help-text')?.value || 'As palavras suspeitas foram destacadas.';
+        const verifyBtnText = document.getElementById('input-encontreerro-verify-btn')?.value || 'Verificar';
+
 
         return {
             uniqueId: `encontreerro-${Date.now().toString().slice(-6)}`,
@@ -55,19 +60,35 @@ GeneratorCore.registerModule('encontreerro', {
             corDestaque,
             corDestaqueTexto: core.utils.getContrastColor(corDestaque),
             corBorda: (corTexto === '#FFFFFF') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(3, 2, 0, 0.2)',
+            feedbackCorrect,
+            feedbackIncorrect,
+            feedbackInitial,
+            helpBtnText,
+            helpActiveText,
+            verifyBtnText
         };
     },
 
     // Gera o HTML do preview
     createTemplate(data) {
-        const { uniqueId, ariaLabel, erros, textoBase, corFundo, corTexto, corDestaque, corDestaqueTexto, corBorda } = data;
+        const { uniqueId, ariaLabel, erros, textoBase, corFundo, corTexto, corDestaque, corDestaqueTexto, corBorda, feedbackCorrect, feedbackIncorrect, feedbackInitial, helpBtnText, helpActiveText, verifyBtnText } = data;
 
         let textoDestacado = textoBase;
         // Usar um placeholder para evitar que substituições afetem outras
         const replacements = [];
         erros.forEach((erro, idx) => {
             if (erro.trim()) {
-                const erroRegex = new RegExp(erro.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+                const escapedErro = erro.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escapa caracteres especiais para a regex
+                
+                // Verifica se o erro é uma "palavra" (letras, números, underscore)
+                // ou um "símbolo" (contém outros caracteres).
+                const isWord = /^\w+$/.test(erro);
+
+                // Constrói a regex de forma condicional
+                const erroRegex = isWord 
+                    ? new RegExp(`\\b${escapedErro}\\b`, 'g') // Usa limites de palavra para palavras
+                    : new RegExp(escapedErro, 'g');          // Não usa limites para símbolos/tokens
+
                 textoDestacado = textoDestacado.replace(erroRegex, (match) => {
                     const placeholder = `__PLACEHOLDER_${replacements.length}__`;
                     replacements.push(`<button class="encontreerro-item" data-index="${idx}" aria-label="Palavra suspeita: ${match}">${match}</button>`);
@@ -91,6 +112,7 @@ GeneratorCore.registerModule('encontreerro', {
     --ee-cor-destaque: ${corDestaque};
     --ee-cor-destaque-texto: ${corDestaqueTexto};
     --ee-cor-sucesso: #28a745;
+    --ee-cor-erro: #dc3545;
     --font-primary: 'Montserrat', 'Arial', sans-serif;
     --font-code: 'Roboto Slab', 'Courier New', monospace;
 }
@@ -101,6 +123,7 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     border: 1px solid var(--ee-cor-borda);
     border-radius: 8px;
     padding: 24px;
+    position: relative; /* Para a animação de sucesso */
     max-width: 750px;
     margin: 10px auto;
     font-family: var(--font-primary);
@@ -123,28 +146,63 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     margin: -2px -4px;
     border-radius: 4px;
     cursor: pointer;
-    font-family: inherit;
-    font-size: inherit;
+    font: inherit; /* Herda toda a tipografia */
     transition: background-color 0.2s ease, color 0.2s ease;
-    border-bottom: 2px dotted var(--ee-cor-destaque);
+    border-bottom: 2px dotted transparent; /* Borda invisível por padrão */
 }
-.encontreerro-item:hover, .encontreerro-item:focus {
+/* Destaque no hover/focus apenas quando a ajuda estiver ativa */
+.help-active .encontreerro-item:hover, .help-active .encontreerro-item:focus {
     background-color: var(--ee-cor-destaque);
     color: var(--ee-cor-destaque-texto);
     outline: none;
 }
-.encontreerro-item.found {
+/* Estilo da borda quando a ajuda está ativa */
+.help-active .encontreerro-item {
+    border-bottom-color: var(--ee-cor-destaque);
+}
+/* Estilo para item selecionado pelo usuário */
+.encontreerro-item.selected {
+    background-color: var(--ee-cor-destaque);
+    color: var(--ee-cor-destaque-texto);
+    border-bottom-color: transparent;
+}
+/* Estilo para item correto após verificação */
+.encontreerro-item.correct {
     background-color: var(--ee-cor-sucesso);
     color: white;
     cursor: default;
-    border-bottom: 2px solid transparent;
+    border-bottom-color: transparent;
     animation: found-anim 0.4s ease;
+}
+/* Estilo para item que o usuário não encontrou */
+.encontreerro-item.missed {
+    background-color: var(--ee-cor-erro);
+    color: white;
+    border-bottom-color: transparent;
 }
 @keyframes found-anim {
     0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    50% { transform: scale(1.05); }
     100% { transform: scale(1); }
 }
+/* Animação de sucesso (similar ao Drag&Drop) */
+.encontreerro-container.success-anim::before {
+    content: '✔';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 80px;
+    color: var(--ee-cor-sucesso);
+    opacity: 0;
+    animation: success-burst 0.8s ease-out forwards;
+}
+@keyframes success-burst {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
 .encontreerro-status {
     display: flex;
     align-items: center;
@@ -154,19 +212,34 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
 }
 .encontreerro-feedback {
     font-weight: 600;
+    flex-grow: 1; /* Faz o feedback ocupar o espaço disponível */
 }
-.encontreerro-progress-bar {
+.encontreerro-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
     flex-grow: 1;
-    height: 10px;
-    background-color: var(--ee-cor-borda);
-    border-radius: 5px;
-    overflow: hidden;
+    justify-content: flex-end;
 }
-.encontreerro-progress-inner {
-    width: 0%;
-    height: 100%;
-    background-color: var(--ee-cor-sucesso);
-    transition: width 0.5s ease;
+.encontreerro-help-btn {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: var(--ee-cor-destaque);
+    cursor: pointer;
+    text-decoration: underline;
+}
+.encontreerro-verify-btn {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: var(--ee-cor-destaque);
+    color: var(--ee-cor-destaque-texto);
 }
 .encontreerro-reset-btn {
     font-family: var(--font-primary);
@@ -190,11 +263,12 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
 <div class="encontreerro-container" id="${uniqueId}" role="group" aria-label="${ariaLabel}">
     <div class="encontreerro-texto">${textoDestacado}</div>
     <div class="encontreerro-status">
-        <div class="encontreerro-feedback" aria-live="polite">Clique nas palavras que você acha que estão erradas.</div>
-        <div class="encontreerro-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="${erros.length}">
-            <div class="encontreerro-progress-inner"></div>
+        <div class="encontreerro-feedback" aria-live="polite">${feedbackInitial}</div>
+        <div class="encontreerro-actions">
+            <button class="encontreerro-help-btn">${helpBtnText}</button>
+            <button class="encontreerro-verify-btn">${verifyBtnText}</button>
+            <button class="encontreerro-reset-btn">Tentar Novamente</button>
         </div>
-        <button class="encontreerro-reset-btn">Tentar Novamente</button>
     </div>
 </div>
 <script>
@@ -204,49 +278,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const items = container.querySelectorAll('.encontreerro-item');
     const feedback = container.querySelector('.encontreerro-feedback');
-    const progressBar = container.querySelector('.encontreerro-progress-bar');
-    const progressInner = container.querySelector('.encontreerro-progress-inner');
     const resetBtn = container.querySelector('.encontreerro-reset-btn');
+    const helpBtn = container.querySelector('.encontreerro-help-btn');
+    const verifyBtn = container.querySelector('.encontreerro-verify-btn');
     
     const totalErros = items.length;
-    let encontrados = 0;
-
-    const updateState = () => {
-        progressInner.style.width = \`\${(encontrados / totalErros) * 100}%\`;
-        progressBar.setAttribute('aria-valuenow', encontrados);
-
-        if (encontrados === 0) {
-            feedback.textContent = 'Clique nas palavras que você acha que estão erradas.';
-        } else if (encontrados === totalErros) {
-            feedback.textContent = 'Parabéns! Você encontrou todos os erros.';
-            resetBtn.classList.add('visible');
-        } else {
-            feedback.textContent = \`Erros encontrados: \${encontrados} de \${totalErros}\`;
-        }
-    };
 
     items.forEach(item => {
         item.addEventListener('click', () => {
-            if (!item.classList.contains('found')) {
-                item.classList.add('found');
-                item.setAttribute('aria-disabled', 'true');
-                encontrados++;
-                updateState();
+            // Permite selecionar/desselecionar apenas se a verificação não foi feita
+            if (!container.classList.contains('verified')) {
+                item.classList.toggle('selected');
             }
         });
     });
 
-    resetBtn.addEventListener('click', () => {
-        encontrados = 0;
-        items.forEach(item => {
-            item.classList.remove('found');
-            item.removeAttribute('aria-disabled');
-        });
-        resetBtn.classList.remove('visible');
-        updateState();
+    verifyBtn.addEventListener('click', () => {
+        container.classList.add('verified'); // Marca que a verificação foi feita
+        const selectedItems = container.querySelectorAll('.encontreerro-item.selected');
+
+        // Desabilita todos os itens para cliques futuros
+        items.forEach(item => item.setAttribute('aria-disabled', 'true'));
+
+        if (selectedItems.length === totalErros) {
+            // Caso de sucesso: todas as palavras corretas foram selecionadas
+            feedback.innerHTML = '${feedbackCorrect}';
+            container.classList.add('success-anim');
+            items.forEach(item => item.classList.add('correct'));
+        } else {
+            // Caso de erro: nem todas as palavras foram encontradas
+            feedback.innerHTML = '${feedbackIncorrect}';
+            items.forEach(item => {
+                if (item.classList.contains('selected')) {
+                    item.classList.add('correct'); // Marca as que acertou
+                } else {
+                    item.classList.add('missed'); // Marca as que errou
+                }
+            });
+        }
+
+        // Mostra o botão de reset e esconde o de verificar/ajuda
+        resetBtn.classList.add('visible');
+        verifyBtn.style.display = 'none';
+        helpBtn.style.display = 'none';
     });
 
-    updateState();
+    helpBtn.addEventListener('click', () => {
+        container.classList.add('help-active');
+        feedback.innerHTML = '${helpActiveText}';
+        helpBtn.style.display = 'none'; // Esconde o botão após o uso
+    });
+
+    resetBtn.addEventListener('click', () => {
+        container.classList.remove('verified', 'help-active', 'success-anim');
+        items.forEach(item => {
+            item.classList.remove('selected', 'correct', 'missed');
+            item.removeAttribute('aria-disabled');
+        });
+
+        feedback.innerHTML = '${feedbackInitial}';
+        resetBtn.classList.remove('visible');
+        verifyBtn.style.display = 'inline-block';
+        helpBtn.style.display = 'inline-block';
+    });
 });
 </script>
 `;

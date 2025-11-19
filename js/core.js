@@ -198,13 +198,7 @@ const GeneratorCore = {
             selector.addEventListener('change', () => {
                 panels.forEach(p => p.style.display = 'none');
                 const target = document.getElementById(`panel-${selector.value}`);
-                if (target) {
-                    target.style.display = 'block';
-                    // Executa o setup do módulo sempre que o painel é aberto
-                    if (GeneratorCore.modules[selector.value] && typeof GeneratorCore.modules[selector.value].setup === 'function') {
-                        GeneratorCore.modules[selector.value].setup(GeneratorCore);
-                    }
-                }
+                if (target) target.style.display = 'block';
             });
         }
         document.querySelectorAll('.rich-text-enabled').forEach(el => {

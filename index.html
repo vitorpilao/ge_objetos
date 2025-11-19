@@ -28,8 +28,10 @@
                     <option value="flipcard">Flip Cards</option>
                     <option value="guia">Guia Sequencial</option>
                     <option value="modal">Modal de Imagem</option>
-                    <option value="timeline">TimeLine</option> 
-                    <option value="multiplechoice">Múltipla Escolha</option>                 
+                    <option value="multiplechoice">Múltipla Escolha</option> 
+                    <option value="timeline">TimeLine</option>
+                    <option value="encontreerro">Encontre o erro</option> 
+                                    
                 </select>
             </div>
         </section>
@@ -653,10 +655,6 @@
                      </div>
                     </div>
                 </section>
-
-               
-                     
-
                 
                 <section class="form-section" style="padding-top: 20px;">
                     <h3>Conteúdo do Quiz</h3>
@@ -726,6 +724,54 @@
             </div>
         </div>
 
+        <div id="panel-encontreerro" class="generator-panel" style="display: none;">
+            <form id="generator-form-encontreerro">
+                <section class="form-section">
+                    <h2>2. Configure o Encontre o Erro</h2>
+                    <div class="form-group">
+                        <label for="input-encontreerro-aria-label">Rótulo de Acessibilidade (Região)</label>
+                        <input type="text" id="input-encontreerro-aria-label" placeholder="Ex: Encontre o erro na frase..." required>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descreve o objeto para leitores de tela (não visível).</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-encontreerro-texto">Texto Base</label>
+                        <textarea id="input-encontreerro-texto" rows="3" placeholder="Digite o texto com erros destacados..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="encontreerro-add-erro" style="background-color: var(--color-azul-moderno); color: var(--color-branco-puro); margin-top: 10px;">+ Adicionar Erro</button>
+                    </div>
+                    <div id="encontreerro-erros-lista" class="form-group"></div>
+                    <div class="form-group">
+                        <label for="input-encontreerro-feedback-correct">Feedback de Acerto</label>
+                        <textarea id="input-encontreerro-feedback-correct" rows="2" class="rich-text-enabled" placeholder="Ex: Parabéns! Você encontrou todos os erros." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-encontreerro-feedback-incorrect">Feedback de Erro</label>
+                        <textarea id="input-encontreerro-feedback-incorrect" rows="2" class="rich-text-enabled" placeholder="Ex: Tente novamente, há erros não encontrados." required></textarea>
+                    </div>
+                    <div class="form-group" style="margin-top: -8px;">
+                        <button type="submit">Visualizar</button>
+                    </div>
+                </section>
+            </form>
+            <div id="output-section-encontreerro" style="display: none;">
+                <h2>3. Preview ao Vivo</h2>
+                <div class="preview-controls">
+                    <label for="preview-bg-encontreerro">Fundo (Simulado):</label>
+                    <select id="preview-bg-encontreerro">
+                        <option value="#FFFFFF">Branco Puro</option>
+                        <option value="#00011E" selected>Azul Profundo (Recomendado)</option>
+                        <option value="#030200">Cinza Tech</option>
+                    </select>
+                </div>
+                <div class="preview-container" id="preview-container-encontreerro" style="background-color: #00011E;">
+                    <iframe id="preview-iframe-encontreerro" class="preview-iframe" title="Preview do Encontre o Erro"></iframe>
+                </div>
+                <textarea id="output-code-encontreerro" class="output-code-area" readonly></textarea>
+                <button id="copy-button-encontreerro" class="copy-button">Copiar Código</button>
+            </div>
+        </div>
+
     </div><script src="js/core.js"></script>
     <script src="js/modules/accordion.js"></script>
     <script src="js/modules/destaque.js"></script>
@@ -736,6 +782,7 @@
     <script src="js/modules/modal.js"></script>
     <script src="js/modules/timeline.js"></script>
     <script src="js/modules/multiplechoice.js"></script>
+    <script src="js/modules/encontreerro.js"></script>
     
     <script>
         // Inicializa a aplicação

@@ -1,3 +1,89 @@
+/* Card do preview Encontre o Erro - layout moderno */
+.encontreerro-wrapper {
+    position: relative;
+    background: #00011E;
+    border: 2px solid var(--color-azul-moderno);
+    border-radius: 12px;
+    padding: 32px 28px;
+    max-width: 700px;
+    margin: 32px auto;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+    color: var(--color-branco-puro);
+    font-family: var(--font-primary);
+}
+.encontreerro-texto {
+    font-size: 1.22rem;
+    line-height: 1.8;
+    color: var(--color-branco-puro);
+    margin-bottom: 18px;
+    word-break: break-word;
+}
+.encontreerro-item {
+    background: #ffe0e0;
+    color: #c00;
+    padding: 3px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 0 3px;
+    font-weight: 700;
+    font-size: 1.08rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    transition: background 0.2s, color 0.2s;
+}
+.encontreerro-item.found {
+    background: #c8ffd4;
+    color: #1a7f37;
+    text-decoration: line-through;
+}
+.encontreerro-feedback {
+    margin-top: 22px;
+    font-weight: 700;
+    font-size: 1.18rem;
+    color: var(--color-verde-tech);
+    text-align: center;
+}
+/* Bloco de erro individual (Encontre o Erro) */
+.encontreerro-bloco {
+    position: relative;
+    margin-bottom: 12px;
+    padding: 8px 12px 8px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.encontreerro-flex-group {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+}
+.encontreerro-remove {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    /* ...restante do estilo já aplicado... */
+}
+/* Botão de Remover Erro (Encontre o Erro) */
+.encontreerro-remove {
+    background-color: #dc3545;
+    color: white;
+    padding: 0;
+    width: 25px;
+    height: 25px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 50%;
+    border: 2px solid var(--color-azul-profundo);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    margin-left: 8px;
+}
+.encontreerro-remove:hover {
+    transform: scale(1.1);
+    background-color: #c82333;
+}
 .quiz-wrapper {
     position: relative;
 }
@@ -122,7 +208,7 @@
 }
 /* --- Seções de Formulário --- */
 .form-section {
-    background: rgba(0, 0, 0, 0.1);
+   
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 24px;
@@ -781,4 +867,41 @@ button[type="submit"]:hover {
 .multiplechoice-remove-option:hover {
     opacity: 1;
     transform: scale(1.05);
+}
+
+/* Card do preview Encontre o Erro */
+.encontreerro-wrapper {
+    position: relative;
+    background: #fffbe6;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 700px;
+    margin: 20px auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.encontreerro-texto {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: #222;
+    margin-bottom: 12px;
+}
+.encontreerro-item {
+    background: #ffe0e0;
+    color: #c00;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 2px;
+    transition: background 0.2s;
+}
+.encontreerro-item.found {
+    background: #c8ffd4;
+    color: #1a7f37;
+    text-decoration: line-through;
+}
+.encontreerro-feedback {
+    margin-top: 18px;
+    font-weight: 600;
+    font-size: 1.1rem;
 }

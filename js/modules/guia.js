@@ -99,6 +99,7 @@ GeneratorCore.registerModule('guia', {
         return {
             uniqueId: uniqueId,
             ariaLabel: document.getElementById('input-guia-aria-label').value,
+            audiodescricao: document.getElementById('input-guia-audiodescricao').value,
             panelsHTML: panelsHTML,
             totalSteps: totalSteps,
             corDestaque: corDestaque,
@@ -116,10 +117,12 @@ GeneratorCore.registerModule('guia', {
     createTemplate(data) {
         // Recebe as novas variáveis
         const { 
-            uniqueId, ariaLabel, panelsHTML, totalSteps, 
+            uniqueId, ariaLabel, audiodescricao, panelsHTML, totalSteps, 
             corDestaque, corDestaqueTexto, corHover, corHoverTexto,
             corFundo, corTexto, corNavBg
         } = data;
+
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
 
         // Adiciona as novas variáveis CSS (--cor-fundo-card, --cor-texto-card, --cor-nav-bg)
         // e as aplica em .steps-container, .step-panel p, .step-status, e .steps-nav
@@ -140,6 +143,7 @@ GeneratorCore.registerModule('guia', {
     --cor-nav-bg:${corNavBg};
 }
 html,body{margin:0;padding:0;background-color:transparent;font-family:'Montserrat',sans-serif;box-sizing:border-box}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .interactive-guia-wrapper{opacity:0;transform:translateY(20px);transition:opacity .6s ease-out,transform .6s ease-out;padding:10px;box-sizing:border-box;width:100%;max-width:500px;margin:0 auto}
 .interactive-guia-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-guia-wrapper{transition:opacity .4s ease-out;transform:none}}
@@ -160,7 +164,7 @@ html,body{margin:0;padding:0;background-color:transparent;font-family:'Montserra
 .nav-buttons button{font-family:'Montserrat',sans-serif;font-size:.9rem;font-weight:600;border:none;background-color:var(--cor-destaque-dinamica);color:var(--cor-destaque-texto-dinamica);padding:8px 15px;border-radius:5px;cursor:pointer;margin-left:10px;transition:transform .3s ease,background-color .3s ease,color .3s ease}
 .nav-buttons button:hover:not(:disabled){transform:scale(1.05);background-color:var(--cor-hover-dinamica)!important;color:var(--cor-hover-texto-dinamica)!important}
 .nav-buttons button:focus-visible{outline:2px solid var(--cor-destaque-dinamica);outline-offset:2px}
-.nav-buttons button:disabled{background-color:var(--color-cinza-tech-light);opacity:.6;cursor:not-allowed}</style><div class="interactive-guia-wrapper" role="region" aria-label="${ariaLabel}"><div class="steps-container" id="${uniqueId}"><div class="steps-inner" id="steps-live-region-${uniqueId}" aria-live="polite">${panelsHTML}</div><div class="steps-nav"><div class="step-status" id="step-status-${uniqueId}" aria-live="polite"></div><div class="nav-buttons"><button class="step-prev" disabled>Anterior</button><button class="step-next">Próximo</button></div></div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t="${uniqueId}",e=document.getElementById(t);if(!e)return;const o=Array.from(e.querySelectorAll(".step-panel")),n=e.querySelector(".step-prev"),r=e.querySelector(".step-next"),a=e.querySelector(\`#step-status-\${t}\`),i=${totalSteps};let l=1;function s(t,d="forward"){const c=t+1,p=l-1,u=p===t;o.forEach((e,o_idx)=>{if(o_idx===p&&!u){e.classList.remove("is-active");e.classList.remove("prepare-enter-left","prepare-enter-right");"forward"===d?e.classList.add("is-exiting-left"):e.classList.add("is-exiting-right");e.addEventListener("transitionend",function t(){e.classList.contains("is-active")||(e.setAttribute("hidden",!0),e.classList.remove("is-exiting-left","is-exiting-right"),e.removeEventListener("transitionend",t))},{once:!0})}else if(o_idx===t){e.classList.remove("is-exiting-left","is-exiting-right");e.removeAttribute("hidden");if(!u){"forward"===d?e.classList.add("prepare-enter-right"):e.classList.add("prepare-enter-left")}
+.nav-buttons button:disabled{background-color:var(--color-cinza-tech-light);opacity:.6;cursor:not-allowed}</style><div class="interactive-guia-wrapper" role="region" aria-label="${ariaLabel}"><div class="steps-container" id="${uniqueId}"><div class="steps-inner" id="steps-live-region-${uniqueId}" aria-live="polite">${audiodescricaoHTML}${panelsHTML}</div><div class="steps-nav"><div class="step-status" id="step-status-${uniqueId}" aria-live="polite"></div><div class="nav-buttons"><button class="step-prev" disabled>Anterior</button><button class="step-next">Próximo</button></div></div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t="${uniqueId}",e=document.getElementById(t);if(!e)return;const o=Array.from(e.querySelectorAll(".step-panel")),n=e.querySelector(".step-prev"),r=e.querySelector(".step-next"),a=e.querySelector(\`#step-status-\${t}\`),i=${totalSteps};let l=1;function s(t,d="forward"){const c=t+1,p=l-1,u=p===t;o.forEach((e,o_idx)=>{if(o_idx===p&&!u){e.classList.remove("is-active");e.classList.remove("prepare-enter-left","prepare-enter-right");"forward"===d?e.classList.add("is-exiting-left"):e.classList.add("is-exiting-right");e.addEventListener("transitionend",function t(){e.classList.contains("is-active")||(e.setAttribute("hidden",!0),e.classList.remove("is-exiting-left","is-exiting-right"),e.removeEventListener("transitionend",t))},{once:!0})}else if(o_idx===t){e.classList.remove("is-exiting-left","is-exiting-right");e.removeAttribute("hidden");if(!u){"forward"===d?e.classList.add("prepare-enter-right"):e.classList.add("prepare-enter-left")}
 e.offsetWidth;e.classList.remove("prepare-enter-left","prepare-enter-right");e.classList.add("is-active");if(!u){setTimeout(()=>{const t=e.querySelector("h3");t&&t.focus()},0)}}else{e.setAttribute("hidden",!0);e.classList.remove("is-active","is-exiting-left","is-exiting-right","prepare-enter-left","prepare-enter-right")}});a.textContent=\`Passo \${c} de \${i}\`;n.disabled=1===c;r.disabled=c===i;l=c}n.addEventListener('click',()=>{l>1&&s(l-2,"backward")}),r.addEventListener('click',()=>{l<i&&s(l,"forward")});const d=e.closest(".interactive-guia-wrapper");if(d){const t=new IntersectionObserver((t,e)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");e.unobserve(t.target)}})},{threshold:.25});t.observe(d)}s(0,"forward")});<\/script>`;
     }
 });

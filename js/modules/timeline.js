@@ -116,7 +116,7 @@ GeneratorCore.registerModule('timeline', {
             const [tabTitle] = item;
             const isSelected = index === 0;
             return `
-        <button
+        <div
           class="timeline-tab"
           role="tab"
           id="tab-${index}-${uniqueId}"
@@ -124,8 +124,8 @@ GeneratorCore.registerModule('timeline', {
           aria-selected="${isSelected ? 'true' : 'false'}"
           tabindex="${isSelected ? '0' : '-1'}"
         >
-          ${tabTitle}
-        </button>`;
+          <span class="timeline-tab-text">${tabTitle}</span>
+        </div>`;
         }).join('');
 
         // Gera o HTML dos Painéis de Conteúdo
@@ -148,6 +148,7 @@ GeneratorCore.registerModule('timeline', {
         return {
             uniqueId: uniqueId,
             ariaLabel: document.getElementById('input-timeline-aria-label').value,
+            audiodescricao: document.getElementById('input-timeline-audiodescricao').value,
             tabsHTML: tabsHTML,
             panelsHTML: panelsHTML,
             corDestaque: corDestaque,
@@ -161,9 +162,11 @@ GeneratorCore.registerModule('timeline', {
     // 3. createTemplate: (Mudei <p> para <div> na descrição para aceitar melhor o HTML)
     createTemplate(data) {
         const { 
-            uniqueId, ariaLabel, tabsHTML, panelsHTML, corDestaque,
+            uniqueId, ariaLabel, audiodescricao, tabsHTML, panelsHTML, corDestaque,
             corFundo, corTextoPrincipal, corTextoSecundario, corBorda 
         } = data;
+
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
 
         return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Arial:wght@400;700&display=swap');
 :root{
@@ -176,6 +179,7 @@ GeneratorCore.registerModule('timeline', {
     --cor-borda-leve: ${corBorda};
 }
 html,body{margin:0;padding:0;background-color:transparent}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .interactive-timeline-wrapper{opacity:0;transform:translateY(20px);transition:opacity .6s ease-out,transform .6s ease-out;padding:10px;box-sizing:border-box;width:100%}
 .interactive-timeline-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-timeline-wrapper{transition:opacity .4s ease-out;transform:none}}
@@ -184,7 +188,7 @@ html,body{margin:0;padding:0;background-color:transparent}
 .timeline-nav::-webkit-scrollbar{display:none}
 .timeline-tab{appearance:none;background:none;border:none;cursor:pointer;font-family:var(--font-primary);font-size:1.1rem;font-weight:700;color:var(--cor-texto-secundario);padding:14px 20px;margin:0;border-bottom:3px solid transparent;flex-shrink:0;transition:color .3s ease,border-color .3s ease,filter .3s ease}
 .timeline-tab:hover,.timeline-tab:focus{color:var(--cor-destaque-dinamica);outline:none;filter:brightness(1.15)}
-.timeline-tab:focus-visible{outline:2px solid var(--cor-destaque-dinamica);outline-offset:-2px}
+.timeline-tab:focus-visible{outline:2px solid var(--cor-destaque-dinamica);outline-offset:2px}
 .timeline-tab[aria-selected=true]{color:var(--cor-destaque-dinamica);border-bottom-color:var(--cor-destaque-dinamica)}
 .timeline-content-area{padding:24px;position:relative;min-height:150px}
 .timeline-content{position:absolute;top:24px;left:24px;right:24px;bottom:24px;opacity:0;transform:translateY(15px);transition:opacity .4s ease-out,transform .4s ease-out;visibility:hidden;pointer-events:none}
@@ -195,6 +199,9 @@ html,body{margin:0;padding:0;background-color:transparent}
 .timeline-description{font-family:var(--font-secondary);font-size:.95rem;color:var(--cor-texto-principal);line-height:1.5;margin:0;opacity:.85}
 .timeline-description p { margin: 0 0 1em 0; }
 .timeline-description p:last-child { margin-bottom: 0; }
-</style><div class="interactive-timeline-wrapper" role="region" aria-label="${ariaLabel}"><div class="timeline-stepper-wrapper" id="${uniqueId}"><div class="timeline-nav" role="tablist" aria-label="Marcos da timeline">${tabsHTML}</div><div class="timeline-content-area">${panelsHTML}</div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t="${uniqueId}",e=document.getElementById(t);if(!e)return;const o=e.querySelector(".timeline-nav"),n=Array.from(o.querySelectorAll(".timeline-tab")),r=e.querySelector(".timeline-content-area"),a=Array.from(r.querySelectorAll(".timeline-content"));function i(t){a.forEach(t=>{t.classList.remove("is-active"),t.addEventListener("transitionend",function e(){t.classList.contains("is-active")||(t.setAttribute("hidden",!0),t.removeEventListener("transitionend",e))})}),n.forEach(t=>{t.setAttribute("aria-selected","false"),t.setAttribute("tabindex","-1")}),t.setAttribute("aria-selected","true"),t.setAttribute("tabindex","0");const o=t.getAttribute("aria-controls"),r=e.querySelector(\`#\${o}\`);r&&(r.removeAttribute("hidden"),setTimeout(()=>{r.classList.add("is-active")},50)),t.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"})}o.addEventListener("click",t=>{const e=t.target.closest(".timeline-tab");e&&"true"!==e.getAttribute("aria-selected")&&i(e)}),o.addEventListener("keydown",t=>{let e=o.querySelector('[tabindex="0"]');if(!e)return;let r;const l=n.indexOf(e);if("ArrowRight"===t.key)t.preventDefault(),r=(l+1)%n.length;else if("ArrowLeft"===t.key)t.preventDefault(),r=(l-1+n.length)%n.length;else if("Home"===t.key)t.preventDefault(),r=0;else{if("End"!==t.key)return;t.preventDefault(),r=n.length-1}const c=n[r];c.focus(),i(c)});const l=e.closest(".interactive-timeline-wrapper");if(l){const t=new IntersectionObserver((t,e)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");e.unobserve(t.target)}})},{threshold:.25});t.observe(l)}});<\/script>`;
+.timeline-tab-text > *:first-child { margin-top: 0; }
+.timeline-tab-text > *:last-child { margin-bottom: 0; }
+
+</style><div class="interactive-timeline-wrapper" role="region" aria-label="${ariaLabel}"><div class="timeline-stepper-wrapper" id="${uniqueId}">${audiodescricaoHTML}<div class="timeline-nav" role="tablist" aria-label="Marcos da timeline">${tabsHTML}</div><div class="timeline-content-area">${panelsHTML}</div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t="${uniqueId}",e=document.getElementById(t);if(!e)return;const o=e.querySelector(".timeline-nav"),n=Array.from(o.querySelectorAll(".timeline-tab")),r=e.querySelector(".timeline-content-area"),a=Array.from(r.querySelectorAll(".timeline-content"));function i(t){a.forEach(t=>{t.classList.remove("is-active"),t.addEventListener("transitionend",function e(){t.classList.contains("is-active")||(t.setAttribute("hidden",!0),t.removeEventListener("transitionend",e))})}),n.forEach(t=>{t.setAttribute("aria-selected","false"),t.setAttribute("tabindex","-1")}),t.setAttribute("aria-selected","true"),t.setAttribute("tabindex","0");const o=t.getAttribute("aria-controls"),r=e.querySelector(\`#\${o}\`);r&&(r.removeAttribute("hidden"),setTimeout(()=>{r.classList.add("is-active")},50)),t.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"})}o.addEventListener("click",t=>{const e=t.target.closest(".timeline-tab");e&&"true"!==e.getAttribute("aria-selected")&&i(e)}),o.addEventListener("keydown",t=>{let e=o.querySelector('[tabindex="0"]');if(!e)return;let r;const l=n.indexOf(e);if("ArrowRight"===t.key)t.preventDefault(),r=(l+1)%n.length;else if("ArrowLeft"===t.key)t.preventDefault(),r=(l-1+n.length)%n.length;else if("Home"===t.key)t.preventDefault(),r=0;else{if("End"!==t.key)return;t.preventDefault(),r=n.length-1}const c=n[r];c.focus(),i(c)});const l=e.closest(".interactive-timeline-wrapper");if(l){const t=new IntersectionObserver((t,e)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");e.unobserve(t.target)}})},{threshold:.25});t.observe(l)}});<\/script>`;
     }
 });

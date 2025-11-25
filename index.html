@@ -45,6 +45,11 @@
                         <input type="text" id="input-destaque-aria-label" placeholder="Ex: Destaque: Conceito Relevante" required>
                         <small style="opacity: 0.7; font-size: 0.8rem;">Descreve o card para leitores de tela (não visível).</small>
                     </div>
+                    <div class="form-group">
+                        <label for="input-destaque-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-destaque-audiodescricao" placeholder="Descreva a aparência e o conteúdo do card para ser lido por um leitor de tela. Ex: Card com fundo branco e borda azul à esquerda. Título: Conceito Relevante. Conteúdo..."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
+                    </div>
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-destaque-cor">Cor da Borda (Destaque)</label>
@@ -103,6 +108,11 @@
                     <div class="form-group">
                         <label for="input-flashcard-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-flashcard-aria-label" placeholder="Ex: Conjunto de flashcards: Termos de HTML" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-flashcard-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-flashcard-audiodescricao" placeholder="Descreva a aparência e a função do conjunto de flashcards. Ex: Conjunto de flashcards interativos com fundo branco, botões de navegação e um botão para virar o card."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
                     </div>
                     <div class="grid-2-col">
                         <div class="form-group">
@@ -213,6 +223,11 @@
                             <small style="opacity: 0.7; font-size: 0.8rem;">Ajuda leitores de tela.</small>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="input-flipcard-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-flipcard-audiodescricao" placeholder="Descreva a aparência e a função do card. Ex: Card interativo que vira ao ser clicado. A frente contém um ícone e um título, e o verso contém uma lista de objetivos."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
+                    </div>
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
                     <div class="form-group">
                         <label for="input-titulo-frente-flipcard">Título da Frente</label>
@@ -272,12 +287,28 @@
                             <label for="input-guia-aria-label">Rótulo de Acessibilidade (Região)</label>
                             <input type="text" id="input-guia-aria-label" placeholder="Ex: Guia de 3 passos: Como..." required>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-guia-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-guia-audiodescricao" placeholder="Descreva a aparência e a função do guia. Ex: Guia sequencial com fundo branco, botões de navegação 'Anterior' e 'Próximo', e um contador de passos."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
+                    </div>
+                    <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-guia-cor">Cor de Destaque (Principal)</label>
                             <select id="input-guia-cor">
                                 <option value="#0A88F4">Azul Moderno (Oficial)</option>
                                 <option value="#FF7A00">Laranja Quente (Oficial)</option>
                                 <option value="#9D4DFF">Roxo (Legado)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-guia-bg">Cor do Fundo do Guia</label>
+                            <select id="input-guia-bg">
+                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                                <option value="#030200">Cinza Tech (Escuro)</option>
+                                <option value="#00011E">Azul Profundo (Escuro)</option>
                             </select>
                         </div>
                     </div>
@@ -288,15 +319,6 @@
                                 <option value="#C3EB1E">Verde Tech (Contraste Alto)</option>
                                 <option value="#0A88F4">Azul Moderno</option>
                                 <option value="#FF7A00">Laranja Quente</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="input-guia-bg">Cor do Fundo do Guia</label>
-                            <select id="input-guia-bg">
-                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
-                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
-                                <option value="#030200">Cinza Tech (Escuro)</option>
-                                <option value="#00011E">Azul Profundo (Escuro)</option>
                             </select>
                         </div>
                     </div>
@@ -350,6 +372,15 @@
                             <input type="text" id="input-timeline-aria-label" placeholder="Ex: Linha do Tempo da Engenharia de Software" required>
                         </div>
                         <div class="form-group">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-timeline-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-timeline-audiodescricao" placeholder="Descreva a aparência e a função da timeline. Ex: Linha do tempo horizontal com abas clicáveis no topo e conteúdo correspondente abaixo."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
+                    </div>
+                    <div class="grid-2-col">
+                        <div class="form-group">
                             <label for="input-timeline-cor">Cor de Destaque (Abas)</label>
                             <select id="input-timeline-cor">
                                 <option value="#0A88F4">Azul Moderno (Oficial)</option>
@@ -358,7 +389,6 @@
                             </select>
                         </div>
                     </div>
-                    <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-timeline-bg">Cor do Fundo da Timeline</label>
                             <select id="input-timeline-bg">
@@ -368,8 +398,6 @@
                                 <option value="#00011E">Azul Profundo (Escuro)</option>
                             </select>
                         </div>
-                        <div class="form-group"></div>
-                    </div>
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
                     <div id="timeline-passos-container">
                         <div class="timeline-passo-bloco">
@@ -419,6 +447,11 @@
                     <div class="form-group">
                         <label for="input-accordion-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-accordion-aria-label" placeholder="Ex: Perguntas Frequentes sobre..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-accordion-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-accordion-audiodescricao" placeholder="Descreva a aparência e a função do acordeão. Ex: Acordeão com fundo escuro e 3 itens empilhados. Cada item tem um título e um conteúdo que se expande ao clicar."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
                     </div>
                     <div class="grid-2-col">
                         <div class="form-group">
@@ -487,6 +520,11 @@
                         <input type="text" id="input-modal-aria-label" placeholder="Ex: Janela modal: Imagem Ampliada" required>
                         <small style="opacity: 0.7; font-size: 0.8rem;">Descreve a janela para leitores de tela.</small>
                     </div>
+                    <div class="form-group">
+                        <label for="input-modal-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-modal-audiodescricao" placeholder="Descreva a aparência e a função do modal. Ex: Janela modal que sobrepõe a página com um fundo escuro. Contém uma imagem ampliada e uma legenda opcional."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
+                    </div>
                     <div class="grid-2-col">
                         <div class="form-group">
                             <label for="input-modal-cor-btn">Cor do Botão (Gatilho)</label>
@@ -553,6 +591,11 @@
                     <div class="form-group">
                         <label for="input-dragdrop-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-dragdrop-aria-label" placeholder="Ex: Atividade de categorizar frutas e vegetais" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-dragdrop-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-dragdrop-audiodescricao" placeholder="Descreva a aparência e a função da atividade. Ex: Atividade de arrastar e soltar com duas caixas de categoria e vários itens para serem classificados."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
                     </div>
                     <div class="grid-2-col">
                         <div class="form-group">
@@ -632,6 +675,11 @@
                         <label for="input-multiplechoice-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-multiplechoice-aria-label" placeholder="Ex: Quiz: Verificação de conhecimento sobre..." required>
                         <small style="opacity: 0.7; font-size: 0.8rem;">Descreve o quiz para leitores de tela (não visível).</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-multiplechoice-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-multiplechoice-audiodescricao" placeholder="Descreva a aparência e a função do quiz. Ex: Quiz de múltipla escolha com uma pergunta, várias opções de resposta e um botão para verificar."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
                     </div>
                     <div class="grid-2-col">
                         <div class="form-group">
@@ -735,6 +783,11 @@
                         <label for="input-encontreerro-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-encontreerro-aria-label" placeholder="Ex: Encontre o erro na frase..." required>
                         <small style="opacity: 0.7; font-size: 0.8rem;">Descreve o objeto para leitores de tela (não visível).</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-encontreerro-audiodescricao">Audiodescrição (Opcional)</label>
+                        <textarea id="input-encontreerro-audiodescricao" placeholder="Descreva a aparência e a função da atividade. Ex: Atividade de encontrar erros em um bloco de texto com fundo escuro e palavras clicáveis."></textarea>
+                        <small style="opacity: 0.7; font-size: 0.8rem;">Descrição detalhada para tecnologias assistivas, lida sob demanda.</small>
                     </div>
                     <div class="grid-2-col">
                         <div class="form-group">

@@ -183,6 +183,7 @@ GeneratorCore.registerModule('dragdrop', {
         return {
             uniqueId: `dragdrop-${Date.now().toString().slice(-6)}`,
             ariaLabel: document.getElementById('input-dragdrop-aria-label').value,
+            audiodescricao: document.getElementById('input-dragdrop-audiodescricao').value,
             corFundo: corFundo,
             corTexto: corTexto,
             corBorda: corBorda,
@@ -198,7 +199,9 @@ GeneratorCore.registerModule('dragdrop', {
     
     // 3. createTemplate:
     createTemplate(data) {
-        const { uniqueId, ariaLabel, corFundo, corTexto, corBorda, corDestaque, categories, categoriesHTML, items, corBotaoResetTexto, corItemFundo, corItemTexto } = data;
+        const { uniqueId, ariaLabel, audiodescricao, corFundo, corTexto, corBorda, corDestaque, categories, categoriesHTML, items, corBotaoResetTexto, corItemFundo, corItemTexto } = data;
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
+
         const shuffle = (array) => array.sort(() => Math.random() - 0.5);
         
         const itemsHTML = shuffle(items).map(item => `
@@ -240,6 +243,7 @@ html, body {
     background-color: transparent; 
     font-family: var(--font-secondary); 
 }
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .drag-wrapper { 
     background-color: var(--dd-cor-fundo); 
     color: var(--dd-cor-texto); 
@@ -430,6 +434,7 @@ html, body {
 <body>
 
 <div class="drag-wrapper" id="${uniqueId}" role="region" aria-label="${ariaLabel}">
+    ${audiodescricaoHTML}
     <h3 class="item-bank-title">Itens para categorizar:</h3>
     <div class="item-bank" id="bank-${uniqueId}">
         ${itemsHTML}

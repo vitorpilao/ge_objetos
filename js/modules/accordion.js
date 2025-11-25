@@ -96,13 +96,15 @@ GeneratorCore.registerModule('accordion', {
             corFundo: corFundo,
             corTexto: corTexto,
             corBorda: corBorda,
+            audiodescricao: document.getElementById('input-accordion-audiodescricao').value,
             itemsJson: safeJsonString
         };
     },
     
     // 3. createTemplate: (Gera o código do componente)
     createTemplate(data) {
-        const { uniqueId, ariaLabel, corDestaque, corFundo, corTexto, corBorda, itemsJson } = data;
+        const { uniqueId, ariaLabel, corDestaque, corFundo, corTexto, corBorda, itemsJson, audiodescricao } = data;
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
 
         return `
 <style>
@@ -199,10 +201,12 @@ html, body {
 }
 .accordion-content p { margin: 0 0 1em 0; }
 .accordion-content p:last-child { margin-bottom: 0; }
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 </style>
 
 <div class="accordion-wrapper" id="${uniqueId}" role="region" aria-label="${ariaLabel}">
-    </div>
+    ${audiodescricaoHTML}
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -234,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         \`;
     });
-    container.innerHTML = html;
+    container.insertAdjacentHTML('beforeend', html);
 
     // 3. Lógica de Clique
     container.addEventListener('click', (e) => {

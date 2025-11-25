@@ -93,6 +93,7 @@ GeneratorCore.registerModule('flashcard', {
         return {
             uniqueId: `flashcard-engine-${Date.now().toString().slice(-6)}`,
             ariaLabel: document.getElementById('input-flashcard-aria-label').value,
+            audiodescricao: document.getElementById('input-flashcard-audiodescricao').value,
             corDestaque: corDestaque,
             corHover: corHover,
             corDestaqueTexto: core.utils.getContrastColor(corDestaque),
@@ -106,10 +107,12 @@ GeneratorCore.registerModule('flashcard', {
     // 3. createTemplate: (Nenhuma mudança necessária aqui)
     createTemplate(data) {
         const { 
-            uniqueId, ariaLabel, cardDataJson, 
+            uniqueId, ariaLabel, audiodescricao, cardDataJson, 
             corDestaque, corDestaqueTexto, corHover, corHoverTexto,
             corFundo, corTexto 
         } = data;
+
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
 
         return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&family=Arial&display=swap');
 :root{
@@ -121,7 +124,7 @@ GeneratorCore.registerModule('flashcard', {
     --cor-fundo-card:${corFundo};
     --cor-texto-card:${corTexto};
 }
-html{height:100%}body{font-family:'Arial',sans-serif;background-color:transparent;display:flex;justify-content:center;align-items:center;margin:0;padding:0;height:100%;box-sizing:border-box}
+html{height:100%}body{font-family:'Arial',sans-serif;background-color:transparent;display:flex;justify-content:center;align-items:center;margin:0;padding:0;height:100%;box-sizing:border-box}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .interactive-card-wrapper{opacity:0;transform:translateY(20px);transition:opacity .6s ease-out,transform .6s ease-out;width:100%;max-width:500px;margin:auto;display:flex;flex-direction:column;align-items:center;padding:20px 10px;box-sizing:border-box}
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
@@ -140,6 +143,7 @@ html{height:100%}body{font-family:'Arial',sans-serif;background-color:transparen
 .progress-indicator{color:var(--color-branco-puro);text-align:center;margin-top:10px;font-family:'Montserrat',sans-serif;font-weight:300;width:100%}
 @media (max-width:480px){.card-face-front{font-size:1.5rem}.card-face-back{font-size:1rem}.card-button{padding:8px 12px;font-size:.8rem}.card-controls{max-width:100%}.flash-card{height:220px}}</style>
 <div class="interactive-card-wrapper" role="region" aria-label="${ariaLabel}">
+    ${audiodescricaoHTML}
     <div class="flashcard-engine" id="${uniqueId}">
         <div class="flash-card" aria-live="polite">
             <div class="card-face card-face-front" aria-hidden="false"></div>

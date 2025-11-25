@@ -12,6 +12,7 @@ GeneratorCore.registerModule('modal', {
 
         return {
             uniqueId: `modal-img-${Date.now().toString().slice(-6)}`,
+            audiodescricao: document.getElementById('input-modal-audiodescricao').value,
             ariaLabel: document.getElementById('input-modal-aria-label').value,
             corBotao: corBotao,
             corBotaoTexto: corBotaoTexto,
@@ -28,13 +29,15 @@ GeneratorCore.registerModule('modal', {
     // 2. (ATUALIZADO) createTemplate: Estilos de Lightbox
     createTemplate(data) {
         const { 
-            uniqueId, ariaLabel, corBotao, corBotaoTexto, corFundo, corTexto, corBorda,
+            uniqueId, audiodescricao, ariaLabel, corBotao, corBotaoTexto, corFundo, corTexto, corBorda,
             btnText, imgUrl, imgAlt, caption
         } = data;
 
         const triggerId = `btn-${uniqueId}`;
         const modalId = `modal-${uniqueId}`;
         const figcaptionHTML = caption ? `<figcaption class="modal-caption">${caption}</figcaption>` : '';
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
+
 
         return `
 <style>
@@ -52,6 +55,7 @@ html, body {
     margin: 0; padding: 0;
     font-family: var(--font-secondary);
 }
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 /* 1. O Botão de Gatilho (Sem mudança) */
 .modal-trigger-btn {
     font-family: var(--font-primary);
@@ -183,7 +187,7 @@ html, body {
 <button class="modal-close-btn" id="close-${uniqueId}" aria-label="Fechar modal" style="opacity:0; visibility:hidden;">&times;</button>
 <div class="modal-overlay" id="overlay-${uniqueId}"></div>
 <div class="modal-dialog" id="${modalId}" role="dialog" aria-modal="true" aria-labelledby="${triggerId}" aria-label="${ariaLabel}" tabindex="-1">
-    
+    ${audiodescricaoHTML}
     <div class="modal-content">
         <figure style="margin:0;">
             <img class="modal-img" src="${imgUrl}" alt="${imgAlt}">

@@ -110,6 +110,7 @@ GeneratorCore.registerModule('flipcard', {
             .filter(item => item !== null)
             .join('\n');
         return {
+            audiodescricao: document.getElementById('input-flipcard-audiodescricao').value,
             uniqueId: `card-flipper-${Date.now().toString().slice(-6)}`,
             corTema: document.getElementById('input-cor-tema-flipcard').value,
             corFundo: corFundo,
@@ -127,7 +128,8 @@ GeneratorCore.registerModule('flipcard', {
 
     // 3. createTemplate: (CSS v5.9.2 + Correção de VLIBRAS)
     createTemplate(data) {
-        const { uniqueId, corTema, corFundo, corTexto, tituloFrente, descricaoFrente, tituloVerso, listaItensHTML, iconePath, iconeAriaLabel, ariaLabelRegiao, ariaLabelBotao } = data;
+        const { uniqueId, audiodescricao, corTema, corFundo, corTexto, tituloFrente, descricaoFrente, tituloVerso, listaItensHTML, iconePath, iconeAriaLabel, ariaLabelRegiao, ariaLabelBotao } = data;
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
 
         return `<style>@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
 html,body{
@@ -142,6 +144,7 @@ html,body{
     background-color:transparent;
     box-sizing:border-box
 }
+*, *:before, *:after { box-sizing: inherit; }
 *, *:before, *:after { box-sizing: inherit; }
 .interactive-card-wrapper{
     opacity:0;
@@ -200,9 +203,10 @@ html,body{
 .objectives-list li{margin-bottom:5px;overflow-wrap:break-word;word-break:break-word}
 .card-title > *:first-child,.card-description > *:first-child,.back-title > *:first-child,.objectives-list li > *:first-child {margin-top: 0;}
 .card-title > *:last-child,.card-description > *:last-child,.back-title > *:last-child,.objectives-list li > *:last-child {margin-bottom: 0;}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 </style>
 <div class="interactive-card-wrapper" role="region" aria-label="${ariaLabelRegiao}">
-    <div id="${uniqueId}" class="interactive-card" role="button" tabindex="0" aria-pressed="false" aria-label="${ariaLabelBotao}">
+    ${audiodescricaoHTML}<div id="${uniqueId}" class="interactive-card" role="button" tabindex="0" aria-pressed="false" aria-label="${ariaLabelBotao}">
         <div class="card-inner">
             <div class="card-front" aria-hidden="false">
                 <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi" viewBox="0 0 16 16" role="img" aria-label="${iconeAriaLabel}"><path d="${iconePath}"/></svg></div>

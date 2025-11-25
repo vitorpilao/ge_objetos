@@ -52,6 +52,7 @@ GeneratorCore.registerModule('encontreerro', {
 
         return {
             uniqueId: `encontreerro-${Date.now().toString().slice(-6)}`,
+            audiodescricao: document.getElementById('input-encontreerro-audiodescricao')?.value,
             ariaLabel: document.getElementById('input-encontreerro-aria-label')?.value || 'Atividade de encontrar o erro',
             erros,
             textoBase,
@@ -71,7 +72,7 @@ GeneratorCore.registerModule('encontreerro', {
 
     // Gera o HTML do preview
     createTemplate(data) {
-        const { uniqueId, ariaLabel, erros, textoBase, corFundo, corTexto, corDestaque, corDestaqueTexto, corBorda, feedbackCorrect, feedbackIncorrect, feedbackInitial, helpBtnText, helpActiveText, verifyBtnText } = data;
+        const { uniqueId, ariaLabel, audiodescricao, erros, textoBase, corFundo, corTexto, corDestaque, corDestaqueTexto, corBorda, feedbackCorrect, feedbackIncorrect, feedbackInitial, helpBtnText, helpActiveText, verifyBtnText } = data;
 
         let textoDestacado = textoBase;
         // Usar um placeholder para evitar que substituições afetem outras
@@ -102,6 +103,8 @@ GeneratorCore.registerModule('encontreerro', {
             textoDestacado = textoDestacado.replace(`__PLACEHOLDER_${index}__`, replacement);
         });
 
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
+
         return `
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Roboto+Slab:wght@400;700&display=swap');
@@ -117,6 +120,7 @@ GeneratorCore.registerModule('encontreerro', {
     --font-code: 'Roboto Slab', 'Courier New', monospace;
 }
 html, body { margin: 0; padding: 0; background-color: transparent; }
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .encontreerro-container {
     background-color: var(--ee-cor-fundo);
     color: var(--ee-cor-texto);
@@ -261,6 +265,7 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
 }
 </style>
 <div class="encontreerro-container" id="${uniqueId}" role="group" aria-label="${ariaLabel}">
+    ${audiodescricaoHTML}
     <div class="encontreerro-texto">${textoDestacado}</div>
     <div class="encontreerro-status">
         <div class="encontreerro-feedback" aria-live="polite">${feedbackInitial}</div>

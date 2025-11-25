@@ -133,6 +133,7 @@ GeneratorCore.registerModule('multiplechoice', {
 
         return {
             uniqueId: `quiz-${Date.now().toString().slice(-6)}`,
+            audiodescricao: document.getElementById('input-multiplechoice-audiodescricao').value,
             ariaLabel: document.getElementById('input-multiplechoice-aria-label').value,
             title: document.getElementById('input-multiplechoice-title').value,
             question: document.getElementById('input-multiplechoice-question').value,
@@ -153,19 +154,22 @@ GeneratorCore.registerModule('multiplechoice', {
     // 3. createTemplate: (ATUALIZADO)
     createTemplate(data) {
         const {
-            uniqueId, ariaLabel, title,
+            uniqueId, audiodescricao, ariaLabel, title,
             question, options, correctIndex, feedbackCorrect, feedbackIncorrect,
             corFundo, corTexto, corBorda, corDestaque, corDestaqueTexto
         } = data;
 
+        const audiodescricaoHTML = audiodescricao ? `<div class="visually-hidden">${audiodescricao}</div>` : '';
+
         const optionsHTML = options.map((optionHTML, index) => {
             return `
-            <button class="quiz-option" 
-                    role="radio" 
-                    aria-checked="false" 
-                    data-index="${index}">
-                ${optionHTML}
-            </button>
+            <div class="quiz-option" 
+                 role="radio" 
+                 aria-checked="false" 
+                 data-index="${index}"
+                 tabindex="0">
+                <span class="quiz-option-text">${optionHTML}</span>
+            </div>
             `;
         }).join('');
         
@@ -186,10 +190,14 @@ GeneratorCore.registerModule('multiplechoice', {
     --font-primary: 'Montserrat', 'Arial', sans-serif;
     --font-secondary: 'Arial', sans-serif;
 }
+.quiz-option-text > *:first-child {
+    margin-top: 0;
+}
 html, body {
     margin: 0; padding: 0;
     background-color: transparent;
 }
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .quiz-wrapper {
     font-family: var(--font-secondary);
     background-color: var(--quiz-cor-fundo);
@@ -201,6 +209,7 @@ html, body {
     margin: 10px auto;
     opacity: 0;
     transform: translateY(20px);
+    position: relative; /* Necessário para o posicionamento da celebração */
     transition: opacity .6s ease-out, transform .6s ease-out;
 }
 .quiz-wrapper.is-visible {
@@ -232,11 +241,12 @@ html, body {
     text-align: left;
     width: 100%;
     padding: 12px 16px;
-    border-radius: 6px;
+    border-radius: 6px; /* Adicionado para consistência */
     border: 1px solid var(--quiz-cor-borda);
     background-color: #f0f0f0;
     color: var(--quiz-cor-texto);
     cursor: pointer;
+    box-sizing: border-box; /* Garante que padding e borda não aumentem a largura */
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 .quiz-option:hover {
@@ -301,9 +311,70 @@ html, body {
     border: 1px solid var(--quiz-cor-erro);
     color: var(--quiz-cor-texto);
 }
+/* --- ESTILOS PARA CONFETES E MENSAGEM DE SUCESSO (do Drag&Drop) --- */
+.confetti-celebration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-family: var(--font-primary);
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-align: center;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    pointer-events: none;
+    border-radius: 8px; /* Para acompanhar o wrapper */
+}
+.confetti-celebration.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+.confetti-message {
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    transform: translateY(-20px);
+    opacity: 0;
+    animation: slideInMessage-quiz 0.6s ease-out forwards 0.5s;
+}
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    border-radius: 50%;
+    opacity: 0;
+    animation: confetti-fall-quiz 3s linear forwards;
+}
+@keyframes confetti-fall-quiz {
+    0% { transform: translateY(-100px) rotateZ(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    100% { transform: translateY(calc(100vh + 100px)) rotateZ(720deg); opacity: 0; }
+}
+@keyframes slideInMessage-quiz {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
 </style>
 
 <div class="quiz-wrapper" id="${uniqueId}" role="region" aria-label="${ariaLabel}">
+    ${audiodescricaoHTML}
     ${title ? `<h3 class="quiz-title">${title}</h3>` : ''}
     <div class="quiz-question" id="quiz-question-${uniqueId}">${question}</div>
     <div class="quiz-options-list" role="radiogroup" aria-labelledby="quiz-question-${uniqueId}">
@@ -311,6 +382,9 @@ html, body {
     </div>
     <button class="quiz-submit-btn" disabled>Verificar</button>
     <div class="quiz-feedback-area" aria-live="polite"></div>
+    <div class="confetti-celebration" id="celebration-${uniqueId}">
+        <p class="confetti-message">Parabéns, você acertou!</p>
+    </div>
 </div>
 
 <script>
@@ -321,6 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const options = wrapper.querySelectorAll('.quiz-option');
     const submitBtn = wrapper.querySelector('.quiz-submit-btn');
     const feedbackArea = wrapper.querySelector('.quiz-feedback-area');
+    const celebrationOverlay = document.getElementById('celebration-${uniqueId}');
     
     const correctIndex = ${correctIndex};
     const feedbackCorrect = '${safeFeedbackCorrect}';
@@ -330,7 +405,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     options.forEach(option => {
         option.addEventListener('click', () => {
-            if (wrapper.classList.contains('answered')) return;
+            // Se o quiz já foi respondido, não faz nada.
+            if (wrapper.classList.contains('answered')) return; 
+
+            // Se o usuário está selecionando texto, não seleciona a opção.
+            const selection = window.getSelection();
+            if (selection.toString().length > 0 && option.contains(selection.anchorNode)) return;
             
             options.forEach(opt => {
                 opt.classList.remove('selected');
@@ -342,7 +422,37 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedIndex = parseInt(option.dataset.index, 10);
             submitBtn.disabled = false;
         });
+
+        option.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                option.click();
+            }
+        });
     });
+
+    // --- LÓGICA DOS CONFETES (do Drag&Drop) ---
+    const createConfetti = () => {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = \`hsl(\${Math.random() * 360}, 100%, 70%)\`;
+        confetti.style.animationDelay = \`\${Math.random() * 0.5}s\`;
+        confetti.style.animationDuration = \`\${2 + Math.random() * 1}s\`;
+        celebrationOverlay.appendChild(confetti);
+
+        confetti.addEventListener('animationend', () => {
+            confetti.remove();
+        });
+    };
+
+    const startConfetti = () => {
+        celebrationOverlay.classList.add('active');
+        for (let i = 0; i < 50; i++) {
+            createConfetti();
+        }
+        setTimeout(() => celebrationOverlay.classList.remove('active'), 2500);
+    };
 
     submitBtn.addEventListener('click', () => {
         if (selectedIndex === null || wrapper.classList.contains('answered')) return;
@@ -364,52 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isCorrect) {
             feedbackArea.innerHTML = feedbackCorrect;
             feedbackArea.classList.add('correct');
-
-            // Explosão de emojis animados
-            const emojis = ['🎉','🥳','✨','⭐','🎊','👏','🏆','💥'];
-            const emojiCount = 30;
-            let emojiContainer = wrapper.querySelector('.emoji-explosion');
-            if (!emojiContainer) {
-                emojiContainer = document.createElement('div');
-                emojiContainer.className = 'emoji-explosion';
-                emojiContainer.style.position = 'absolute';
-                emojiContainer.style.left = 0;
-                emojiContainer.style.top = 0;
-                emojiContainer.style.width = '100%';
-                emojiContainer.style.height = '100%';
-                emojiContainer.style.pointerEvents = 'none';
-                emojiContainer.style.zIndex = 9999;
-                wrapper.appendChild(emojiContainer);
-            }
-            for (let i = 0; i < emojiCount; i++) {
-                const emoji = document.createElement('span');
-                emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                emoji.style.position = 'absolute';
-                emoji.style.fontSize = (32 + Math.random() * 24) + 'px';
-                emoji.style.left = (Math.random() * 90 + 5) + '%';
-                emoji.style.top = '50%';
-                emoji.style.opacity = 0.85;
-                emoji.style.transform = 'translateY(0) scale(1)';
-                emojiContainer.appendChild(emoji);
-
-                // Animação
-                const xMove = (Math.random() - 0.5) * 200;
-                const yMove = -120 - Math.random() * 120;
-                const rotate = (Math.random() - 0.5) * 360;
-                setTimeout(() => {
-                    emoji.animate([
-                        { transform: 'translateY(0) scale(1) rotate(0deg)', opacity: 0.85 },
-                        { transform: 'translate(' + xMove + 'px, ' + yMove + 'px) scale(1.3) rotate(' + rotate + 'deg)', opacity: 0 }
-                    ], {
-                        duration: 1200 + Math.random() * 600,
-                        easing: 'cubic-bezier(.42,1.5,.58,1)',
-                        fill: 'forwards'
-                    });
-                }, 10);
-            }
-            setTimeout(() => {
-                emojiContainer.innerHTML = '';
-            }, 1800);
+            startConfetti(); // <-- Nova chamada para a animação de confetes
         } else {
             feedbackArea.innerHTML = feedbackIncorrect;
             feedbackArea.classList.add('incorrect');

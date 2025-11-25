@@ -439,9 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const confetti = document.createElement('div');
         confetti.classList.add('confetti');
         confetti.style.left = Math.random() * 100 + '%';
-        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
-        confetti.style.animationDelay = `${Math.random() * 0.5}s`;
-        confetti.style.animationDuration = `${2 + Math.random() * 1}s`;
+        confetti.style.backgroundColor = \`hsl(\${Math.random() * 360}, 100%, 70%)\`;
+        confetti.style.animationDelay = \`\${Math.random() * 0.5}s\`;
+        confetti.style.animationDuration = \`\${2 + Math.random() * 1}s\`;
         celebrationOverlay.appendChild(confetti);
 
         confetti.addEventListener('animationend', () => {

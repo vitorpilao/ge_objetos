@@ -154,18 +154,16 @@ html, body {
     color: var(--acc-cor-texto);
     width: 100%;
     text-align: left;
-    
-    /* --- CORREÇÃO AQUI --- */
-    /*---padding: 15px 20px; /* Era 18px */---*/
-    
+    padding: 1px 20px;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 .accordion-header:hover {
     background-color: rgba(0,0,0,0.05);
+    color: var(--acc-cor-destaque);
 }
 .accordion-header.is-open {
     color: var(--acc-cor-destaque);
@@ -173,6 +171,9 @@ html, body {
 .accordion-header:focus-visible {
     outline: 2px solid var(--acc-cor-destaque);
     outline-offset: -2px;
+}
+.accordion-header > span:first-child {
+    user-select: text;
 }
 /* Ícone +/- */
 .accordion-icon {

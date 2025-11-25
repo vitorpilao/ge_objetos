@@ -2,7 +2,8 @@
 // Módulo de Múltipla Escolha (Quiz) v2.2
 // (Adiciona Rótulo de Acessibilidade - Aria-Label)
 
-GeneratorCore.registerModule('multiplechoice', {
+document.addEventListener('DOMContentLoaded', () => {
+    GeneratorCore.registerModule('multiplechoice', {
     
     // 1. Setup: (Sem mudanças aqui)
     setup(core) {
@@ -494,4 +495,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 `;
     }
+    });
 });

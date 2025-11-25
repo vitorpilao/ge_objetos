@@ -625,39 +625,42 @@
         </div>
 
         <div id="panel-multiplechoice" class="generator-panel" style="display: none;">
-            <form id="generator-form-multiplechoice">
-                
+            <form id="generator-form-multiplechoice">                
                 <section class="form-section">
                     <h2>2. Configuração: Múltipla Escolha (Quiz)</h2>
                     <div class="form-group">
                         <label for="input-multiplechoice-aria-label">Rótulo de Acessibilidade (Região)</label>
                         <input type="text" id="input-multiplechoice-aria-label" placeholder="Ex: Quiz: Verificação de conhecimento sobre..." required>
                         <small style="opacity: 0.7; font-size: 0.8rem;">Descreve o quiz para leitores de tela (não visível).</small>
-                        <div class="grid-2-col">
-                         <div class="form-group">
-                            <label for="input-multiplechoice-cor">Cor de Destaque (Seleção)</label>
-                            <select id="input-multiplechoice-cor">
-                                <option value="#FF7A00">Laranja Quente (Oficial)</option>
-                                <option value="#0A88F4">Azul Moderno (Oficial)</option>
-                                <option value="#C3EB1E">Verde Tech (Oficial)</option>
-                                <option value="#9D4DFF">Roxo (Legado)</option>
-                            </select>
-                        </div>
+                    </div>
+                    <div class="grid-2-col">
                         <div class="form-group">
-                            <label for="input-multiplechoice-bg">Cor de Fundo do Card</label>
-                            <select id="input-multiplechoice-bg">
-                                <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
-                                <option value="#F8F9FA">Cinza Off-white (Suave)</option>
-                                <option value="#030200">Cinza Tech (Escuro)</option>
-                                <option value="#00011E">Azul Profundo (Escuro)</option>
-                            </select>
-                        </div>
-                     </div>
+                        <label for="input-multiplechoice-cor">Cor de Destaque (Seleção)</label>
+                        <select id="input-multiplechoice-cor">
+                            <option value="#FF7A00">Laranja Quente (Oficial)</option>
+                            <option value="#0A88F4">Azul Moderno (Oficial)</option>
+                            <option value="#C3EB1E">Verde Tech (Oficial)</option>
+                            <option value="#9D4DFF">Roxo (Legado)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-multiplechoice-bg">Cor de Fundo do Card</label>
+                        <select id="input-multiplechoice-bg">
+                            <option value="#FFFFFF" selected>Branco Puro (Padrão)</option>
+                            <option value="#F8F9FA">Cinza Off-white (Suave)</option>
+                            <option value="#030200">Cinza Tech (Escuro)</option>
+                            <option value="#00011E">Azul Profundo (Escuro)</option>
+                        </select>
+                    </div>
                     </div>
                 </section>
                 
                 <section class="form-section" style="padding-top: 20px;">
                     <h3>Conteúdo do Quiz</h3>
+                    <div class="form-group">
+                        <label for="input-multiplechoice-title">Título do Quiz (Opcional)</label>
+                        <input type="text" id="input-multiplechoice-title" class="rich-text-enabled" placeholder="Ex: Verificação de Aprendizagem">
+                    </div>
                     <div class="form-group">
                         <label for="input-multiplechoice-question">Pergunta Principal</label>
                         <textarea id="input-multiplechoice-question" class="rich-text-enabled" rows="2" placeholder="Ex: Qual dos Frameworks JavaScript é mais leve...?" required></textarea>

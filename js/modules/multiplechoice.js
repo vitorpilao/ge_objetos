@@ -133,8 +133,8 @@ GeneratorCore.registerModule('multiplechoice', {
 
         return {
             uniqueId: `quiz-${Date.now().toString().slice(-6)}`,
-            // *** NOVO CAMPO LIDO AQUI ***
             ariaLabel: document.getElementById('input-multiplechoice-aria-label').value,
+            title: document.getElementById('input-multiplechoice-title').value,
             question: document.getElementById('input-multiplechoice-question').value,
             options: options,
             correctIndex: correctIndex,
@@ -153,9 +153,7 @@ GeneratorCore.registerModule('multiplechoice', {
     // 3. createTemplate: (ATUALIZADO)
     createTemplate(data) {
         const {
-            uniqueId, 
-            // *** NOVA VARIÁVEL AQUI ***
-            ariaLabel, 
+            uniqueId, ariaLabel, title,
             question, options, correctIndex, feedbackCorrect, feedbackIncorrect,
             corFundo, corTexto, corBorda, corDestaque, corDestaqueTexto
         } = data;
@@ -209,9 +207,16 @@ html, body {
     opacity: 1;
     transform: translateY(0);
 }
-.quiz-question {
+.quiz-title {
     font-family: var(--font-primary);
     font-weight: 600;
+    font-size: 1.4rem;
+    line-height: 1.3;
+    margin: 0 0 16px 0;
+}
+.quiz-question {
+    font-family: var(--font-primary);
+    font-weight: 250;
     font-size: 1.2rem;
     line-height: 1.4;
     margin: 0 0 20px 0;
@@ -228,8 +233,8 @@ html, body {
     width: 100%;
     padding: 12px 16px;
     border-radius: 6px;
-    border: 2px solid var(--quiz-cor-borda);
-    background-color: transparent;
+    border: 1px solid var(--quiz-cor-borda);
+    background-color: #f0f0f0;
     color: var(--quiz-cor-texto);
     cursor: pointer;
     transition: border-color 0.2s ease, background-color 0.2s ease;
@@ -299,7 +304,8 @@ html, body {
 </style>
 
 <div class="quiz-wrapper" id="${uniqueId}" role="region" aria-label="${ariaLabel}">
-    <div class="quiz-question">${question}</div>
+    ${title ? `<h3 class="quiz-title">${title}</h3>` : ''}
+    <div class="quiz-question" id="quiz-question-${uniqueId}">${question}</div>
     <div class="quiz-options-list" role="radiogroup" aria-labelledby="quiz-question-${uniqueId}">
         ${optionsHTML}
     </div>

@@ -335,6 +335,7 @@ html, body {
     transition: opacity 0.5s ease, visibility 0.5s ease;
     pointer-events: none;
     border-radius: 8px; /* Para acompanhar o wrapper */
+    overflow: hidden; /* Evita que confetes provoquem scroll na página/iframe */
 }
 .confetti-celebration.active {
     opacity: 1;
@@ -360,7 +361,8 @@ html, body {
 @keyframes confetti-fall-quiz {
     0% { transform: translateY(-100px) rotateZ(0deg); opacity: 0; }
     10% { opacity: 1; }
-    100% { transform: translateY(calc(100vh + 100px)) rotateZ(720deg); opacity: 0; }
+    /* Usa 100% relativo ao container para evitar overflow que gera scrollbar */
+    100% { transform: translateY(calc(100% + 100px)) rotateZ(720deg); opacity: 0; }
 }
 @keyframes slideInMessage-quiz {
     from {

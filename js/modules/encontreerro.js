@@ -210,20 +210,37 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
 .encontreerro-status {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 20px;
     margin-top: 15px;
+    justify-content: space-between; /* Espaça feedback e ações para extremos */
 }
 .encontreerro-feedback {
     font-weight: 600;
-    flex-grow: 1; /* Faz o feedback ocupar o espaço disponível */
+    flex: 1 1 auto; /* Ocupa o espaço restante, empurrando os botões para a direita */
 }
 .encontreerro-actions {
     display: flex;
     gap: 10px;
     align-items: center;
-    flex-grow: 1;
-    justify-content: flex-end;
+    justify-content: flex-end; /* Garante os botões sempre alinhados à direita */
+    flex: 0 0 auto; /* Não expande além do necessário */
+    padding-right: 16px; /* Espaço entre os botões e a margem direita do container */
+}
+.action-stack {
+    position: relative;
+    display: inline-block; /* Define largura baseada no botão de verificação */
+    min-width: max-content; /* Garante largura mínima baseada no conteúdo */
+}
+.action-stack .encontreerro-verify-btn {
+    position: relative; /* Mantém o botão de verificação no fluxo para definir o tamanho da pilha */
+    z-index: 1;
+}
+.action-stack .encontreerro-reset-btn {
+    position: absolute; /* Sobrepõe o botão de reset exatamente sobre o verificar */
+    top: 0;
+    left: 0;
+    z-index: 2;
+    /*width: 100%; Garante que o botão de reset tenha a mesma largura do botão de verificar */
 }
 .encontreerro-help-btn {
     font-family: var(--font-primary);
@@ -263,6 +280,12 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     opacity: 1;
     visibility: visible;
 }
+/* Oculta visualmente mantendo o espaço no layout (não usar display:none) */
+.hidden-preserve {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
 </style>
 <div class="encontreerro-container" id="${uniqueId}" role="group" aria-label="${ariaLabel}">
     ${audiodescricaoHTML}
@@ -271,8 +294,10 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
         <div class="encontreerro-feedback" aria-live="polite">${feedbackInitial}</div>
         <div class="encontreerro-actions">
             <button class="encontreerro-help-btn">${helpBtnText}</button>
-            <button class="encontreerro-verify-btn">${verifyBtnText}</button>
-            <button class="encontreerro-reset-btn">Tentar Novamente</button>
+            <div class="action-stack">
+                <button class="encontreerro-verify-btn">${verifyBtnText}</button>
+                <button class="encontreerro-reset-btn">Tentar Novamente</button>
+            </div>
         </div>
     </div>
 </div>
@@ -322,16 +347,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Mostra o botão de reset e esconde o de verificar/ajuda
+        // Mostra o botão de reset e esconde (visualmente) o de verificar/ajuda
         resetBtn.classList.add('visible');
-        verifyBtn.style.display = 'none';
-        helpBtn.style.display = 'none';
+        verifyBtn.classList.add('hidden-preserve');
+        helpBtn.classList.add('hidden-preserve');
     });
 
     helpBtn.addEventListener('click', () => {
         container.classList.add('help-active');
         feedback.innerHTML = '${helpActiveText}';
-        helpBtn.style.display = 'none'; // Esconde o botão após o uso
+        helpBtn.classList.add('hidden-preserve'); // Esconde visualmente após o uso, mantendo o espaço
     });
 
     resetBtn.addEventListener('click', () => {
@@ -343,8 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         feedback.innerHTML = '${feedbackInitial}';
         resetBtn.classList.remove('visible');
-        verifyBtn.style.display = 'inline-block';
-        helpBtn.style.display = 'inline-block';
+        verifyBtn.classList.remove('hidden-preserve');
+        helpBtn.classList.remove('hidden-preserve');
     });
 });
 </script>

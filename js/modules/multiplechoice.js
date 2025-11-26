@@ -2,9 +2,10 @@
 // Módulo de Múltipla Escolha (Quiz) v2.2
 // (Adiciona Rótulo de Acessibilidade - Aria-Label)
 
+GeneratorCore.registerModule('multiplechoice', {
 document.addEventListener('DOMContentLoaded', () => {
     GeneratorCore.registerModule('multiplechoice', {
-    
+
     // 1. Setup: (Sem mudanças aqui)
     setup(core) {
         const container = document.getElementById('multiplechoice-options-container');
@@ -19,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const allBlocks = container.querySelectorAll('.multiplechoice-option-bloco');
             allBlocks.forEach((bloco, index) => {
                 const optionNum = index + 1;
-                
+
                 const radio = bloco.querySelector('input[type="radio"]');
                 const radioLabel = bloco.querySelector('.radio-label');
                 if (radio) {
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (radioLabel) {
                     radioLabel.setAttribute('for', `multiplechoice-correct-${index}`);
                 }
-                
+
                 const textarea = bloco.querySelector('textarea');
                 const textareaLabel = bloco.querySelector('.form-group-textarea label');
                 if (textarea) {
@@ -39,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     textareaLabel.textContent = `Opção ${optionNum}`;
                     textareaLabel.setAttribute('for', `input-multiplechoice-option-${index}`);
                 }
-                
+
                 const removeBtn = bloco.querySelector('.multiplechoice-remove-option');
                 if(removeBtn) {
                     removeBtn.title = `Remover Opção ${optionNum}`;
@@ -52,23 +53,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let removeButton = bloco.querySelector('.multiplechoice-remove-option');
             if (removeButton) return;
-            
+
             removeButton = document.createElement('button');
             removeButton.type = 'button';
             removeButton.className = 'multiplechoice-remove-option';
             removeButton.innerHTML = '&times;';
             removeButton.title = `Remover Opção ${index + 1}`;
             removeButton.style.cssText = "position: absolute; top: 15px; right: 15px; background-color: #dc3545; color: var(--color-branco-puro); border: none; border-radius: 4px; width: auto; height: auto; padding: 4px 10px; font-size: 0.8rem; font-weight: bold; line-height: 1.5; cursor: pointer; opacity: 0.7; transition: opacity 0.2s ease, transform 0.2s ease;";
-            
+
             removeButton.addEventListener('click', () => {
                 const wasChecked = bloco.querySelector('input[type="radio"]').checked;
                 bloco.remove();
-                
+
                 if (wasChecked) {
                     const firstRadio = container.querySelector('input[type="radio"]');
                     if(firstRadio) firstRadio.checked = true;
                 }
-                
+
                 updateOptionIndices();
             });
 
@@ -93,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
-            
+
             container.appendChild(newBlock);
 
             const newTextarea = newBlock.querySelector(`#input-multiplechoice-option-${newIndex}`);
@@ -107,20 +108,20 @@ document.addEventListener('DOMContentLoaded', () => {
         container.querySelectorAll('.multiplechoice-option-bloco').forEach((bloco, index) => {
              addRemoveButton(bloco, index);
         });
-        
+
         updateOptionIndices();
     },
 
     // 2. getFormData: (ATUALIZADO)
     getFormData(core) {
-        
+
         const checkedRadio = document.querySelector('input[name="multiplechoice-correct"]:checked');
-        
+
         if (!checkedRadio) {
             alert("Erro: Você precisa selecionar uma opção como a correta antes de visualizar.");
             throw new Error("Validação do Múltipla Escolha falhou: Nenhuma resposta correta selecionada."); 
         }
-        
+
         const correctIndex = parseInt(checkedRadio.value, 10);
 
         const options = [];
@@ -142,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             correctIndex: correctIndex,
             feedbackCorrect: document.getElementById('input-multiplechoice-feedback-correct').value,
             feedbackIncorrect: document.getElementById('input-multiplechoice-feedback-incorrect').value,
-            
+
             // Cores
             corFundo: corFundo,
             corTexto: core.utils.getContrastColor(corFundo),
@@ -173,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             `;
         }).join('');
-        
+
         const safeFeedbackCorrect = feedbackCorrect.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, "\\n");
         const safeFeedbackIncorrect = feedbackIncorrect.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, "\\n");
 
@@ -335,7 +336,6 @@ html, body {
     transition: opacity 0.5s ease, visibility 0.5s ease;
     pointer-events: none;
     border-radius: 8px; /* Para acompanhar o wrapper */
-    overflow: hidden; /* Evita que confetes provoquem scroll na página/iframe */
 }
 .confetti-celebration.active {
     opacity: 1;
@@ -361,8 +361,7 @@ html, body {
 @keyframes confetti-fall-quiz {
     0% { transform: translateY(-100px) rotateZ(0deg); opacity: 0; }
     10% { opacity: 1; }
-    /* Usa 100% relativo ao container para evitar overflow que gera scrollbar */
-    100% { transform: translateY(calc(100% + 100px)) rotateZ(720deg); opacity: 0; }
+    100% { transform: translateY(calc(100vh + 100px)) rotateZ(720deg); opacity: 0; }
 }
 @keyframes slideInMessage-quiz {
     from {

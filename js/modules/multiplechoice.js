@@ -3,8 +3,6 @@
 // (Adiciona Rótulo de Acessibilidade - Aria-Label)
 
 GeneratorCore.registerModule('multiplechoice', {
-document.addEventListener('DOMContentLoaded', () => {
-    GeneratorCore.registerModule('multiplechoice', {
 
     // 1. Setup: (Sem mudanças aqui)
     setup(core) {
@@ -76,33 +74,48 @@ document.addEventListener('DOMContentLoaded', () => {
             bloco.appendChild(removeButton);
         };
 
-        addButton.addEventListener('click', () => {
-            const newIndex = container.querySelectorAll('.multiplechoice-option-bloco').length;
-            const newBlock = document.createElement('div');
-            newBlock.className = 'multiplechoice-option-bloco';
-            newBlock.dataset.index = newIndex;
+        addButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            try {
+                console.log('[multiplechoice] add-option clicked');
+                const newIndex = container.querySelectorAll('.multiplechoice-option-bloco').length;
+                const newBlock = document.createElement('div');
+                newBlock.className = 'multiplechoice-option-bloco';
+                newBlock.dataset.index = newIndex;
 
-            newBlock.innerHTML = `
-                <div class="multiplechoice-option-flex-group">
-                    <div class="form-group-radio">
-                        <input type="radio" name="multiplechoice-correct" id="multiplechoice-correct-${newIndex}" value="${newIndex}">
-                        <label for="multiplechoice-correct-${newIndex}" class="radio-label">Correta</label>
+                newBlock.innerHTML = `
+                    <div class="multiplechoice-option-flex-group">
+                        <div class="form-group-radio">
+                            <input type="radio" name="multiplechoice-correct" id="multiplechoice-correct-${newIndex}" value="${newIndex}">
+                            <label for="multiplechoice-correct-${newIndex}" class="radio-label">Correta</label>
+                        </div>
+                        <div class="form-group-textarea">
+                            <label for="input-multiplechoice-option-${newIndex}">Opção ${newIndex + 1}</label>
+                            <textarea id="input-multiplechoice-option-${newIndex}" class="rich-text-enabled" rows="1" placeholder="Nova opção..." required></textarea>
+                        </div>
                     </div>
-                    <div class="form-group-textarea">
-                        <label for="input-multiplechoice-option-${newIndex}">Opção ${newIndex + 1}</label>
-                        <textarea id="input-multiplechoice-option-${newIndex}" class="rich-text-enabled" rows="1" placeholder="Nova opção..." required></textarea>
-                    </div>
-                </div>
-            `;
+                `;
 
-            container.appendChild(newBlock);
+                container.appendChild(newBlock);
 
-            const newTextarea = newBlock.querySelector(`#input-multiplechoice-option-${newIndex}`);
-            if (newTextarea) {
-                core.utils.enableRichText(newTextarea);
+                const newTextarea = newBlock.querySelector(`#input-multiplechoice-option-${newIndex}`);
+                if (newTextarea) {
+                    try {
+                        core.utils.enableRichText(newTextarea);
+                    } catch (errInner) {
+                        console.error('[multiplechoice] erro ao ativar rich text no novo textarea:', errInner);
+                    }
+                }
+
+                try {
+                    addRemoveButton(newBlock, newIndex);
+                } catch (errRemove) {
+                    console.error('[multiplechoice] erro ao adicionar botão remover:', errRemove);
+                }
+            } catch (err) {
+                console.error('[multiplechoice] erro geral no handler de adicionar opção:', err);
+                alert('Ocorreu um erro ao adicionar a opção. Veja o console para detalhes.');
             }
-
-            addRemoveButton(newBlock, newIndex);
         });
 
         container.querySelectorAll('.multiplechoice-option-bloco').forEach((bloco, index) => {
@@ -315,9 +328,8 @@ html, body {
 }
 /* --- ESTILOS PARA CONFETES E MENSAGEM DE SUCESSO (do Drag&Drop) --- */
 .confetti-celebration {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: fixed; /* Cobrir a viewport inteira */
+    inset: 0; /* top:0; right:0; bottom:0; left:0 */
     width: 100%;
     height: 100%;
     display: flex;
@@ -335,7 +347,7 @@ html, body {
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s ease;
     pointer-events: none;
-    border-radius: 8px; /* Para acompanhar o wrapper */
+    overflow: hidden; /* Impede que confetes causem scroll na viewport */
 }
 .confetti-celebration.active {
     opacity: 1;
@@ -357,11 +369,20 @@ html, body {
     border-radius: 50%;
     opacity: 0;
     animation: confetti-fall-quiz 3s linear forwards;
+    will-change: transform, opacity; /* Ajuda desempenho e evita repaints desnecessários */
 }
 @keyframes confetti-fall-quiz {
-    0% { transform: translateY(-100px) rotateZ(0deg); opacity: 0; }
-    10% { opacity: 1; }
-    100% { transform: translateY(calc(100vh + 100px)) rotateZ(720deg); opacity: 0; }
+    0% {
+        transform: translateY(-100px) rotateZ(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(calc(100% + 100px)) rotateZ(720deg);
+        opacity: 0;
+    }
 }
 @keyframes slideInMessage-quiz {
     from {
@@ -496,5 +517,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 `;
     }
-    });
 });

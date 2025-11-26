@@ -34,28 +34,44 @@ GeneratorCore.registerModule('flashcard', {
             const newCardBlock = document.createElement('div');
             newCardBlock.className = 'flashcard-bloco';
             
-            // --- MUDANÇA ESTÁ AQUI ---
-            // O campo "Frente" agora é um <input type="text">
+            // --- CAMPO RICH-TEXT: usar elementos `contenteditable` para frente/verso ---
+            // Isso evita submissão por Enter e permite que o core.utils.enableRichText funcione corretamente.
             newCardBlock.innerHTML = `
                 <button type="button" class="flashcard-remove-card" title="Remover este card">X</button>
                 <div class="form-group">
                     <label for="input-flashcard-frente-${newIndex}">Frente do Card ${newIndex + 1}</label>
-                    <input type="text" id="input-flashcard-frente-${newIndex}" class="rich-text-enabled flashcard-frente-input" required>
+                    <div id="input-flashcard-frente-${newIndex}" class="rich-text-enabled flashcard-frente-input" contenteditable="true" role="textbox" aria-multiline="true" required></div>
                 </div>
                 <div class="form-group">
                     <label for="input-flashcard-verso-${newIndex}">Verso do Card ${newIndex + 1}</label>
-                    <textarea id="input-flashcard-verso-${newIndex}" class="rich-text-enabled flashcard-verso-input" required></textarea>
+                    <div id="input-flashcard-verso-${newIndex}" class="rich-text-enabled flashcard-verso-input" contenteditable="true" role="textbox" aria-multiline="true" required></div>
                 </div>
             `;
-            // --- FIM DA MUDANÇA ---
 
             container.appendChild(newCardBlock);
 
             // Ativa o Rich Text nos novos campos
             const newFrenteInput = newCardBlock.querySelector(`#input-flashcard-frente-${newIndex}`);
             const newVersoInput = newCardBlock.querySelector(`#input-flashcard-verso-${newIndex}`);
-            if (newFrenteInput) core.utils.enableRichText(newFrenteInput);
-            if (newVersoInput) core.utils.enableRichText(newVersoInput);
+            if (newFrenteInput) {
+                core.utils.enableRichText(newFrenteInput);
+                // Evita que Enter dispare comportamentos indesejados; insere quebra de linha simples
+                newFrenteInput.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter'){
+                        ev.preventDefault();
+                        document.execCommand && document.execCommand('insertHTML', false, '<br>');
+                    }
+                });
+            }
+            if (newVersoInput) {
+                core.utils.enableRichText(newVersoInput);
+                newVersoInput.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter'){
+                        ev.preventDefault();
+                        document.execCommand && document.execCommand('insertHTML', false, '<br>');
+                    }
+                });
+            }
 
             const removeButton = newCardBlock.querySelector('.flashcard-remove-card');
             removeButton.addEventListener('click', () => {
@@ -63,6 +79,16 @@ GeneratorCore.registerModule('flashcard', {
                 updateCardLabels();
             });
         });
+        // Conecta handlers de remoção para blocos já existentes
+        const existingRemove = container.querySelectorAll('.flashcard-remove-card');
+        existingRemove.forEach(btn => {
+            btn.removeEventListener && btn.removeEventListener('click', () => {});
+            btn.addEventListener('click', (ev) => {
+                const block = ev.target.closest('.flashcard-bloco');
+                if (block) { block.remove(); updateCardLabels(); }
+            });
+        });
+
         updateCardLabels();
     },
 
@@ -77,18 +103,33 @@ GeneratorCore.registerModule('flashcard', {
         cardBlocos.forEach(bloco => {
             const frenteInput = bloco.querySelector('.flashcard-frente-input');
             const versoInput = bloco.querySelector('.flashcard-verso-input');
-            if (frenteInput && versoInput && (frenteInput.value || versoInput.value)) {
-                cardDataArray.push({
-                    front: frenteInput.value,
-                    back: versoInput.value
-                });
+            let frontVal = '';
+            let backVal = '';
+            if (frenteInput) {
+                // Prioriza `value` — o `enableRichText` grava o conteúdo em `value`.
+                const rawVal = ('value' in frenteInput) ? (frenteInput.value || '').trim() : '';
+                if (rawVal) frontVal = rawVal;
+                else if (frenteInput.contentEditable === 'true') frontVal = (frenteInput.innerHTML || '').trim();
+                else frontVal = (frenteInput.textContent || '').trim();
+            }
+            if (versoInput) {
+                const rawValB = ('value' in versoInput) ? (versoInput.value || '').trim() : '';
+                if (rawValB) backVal = rawValB;
+                else if (versoInput.contentEditable === 'true') backVal = (versoInput.innerHTML || '').trim();
+                else backVal = (versoInput.textContent || '').trim();
+            }
+            if (frontVal || backVal) {
+                cardDataArray.push({ front: frontVal, back: backVal });
             }
         });
 
         let jsonString = JSON.stringify(cardDataArray);
-        const safeJsonString = jsonString
+        // Escapa sequências que podem quebrar a injeção dentro do template/script
+        let safeJsonString = jsonString
             .replace(/\\/g, '\\\\')
-            .replace(/'/g, "\\'");
+            .replace(/'/g, "\\'")
+            .replace(/<\/script>/gi, '<\\/script>')
+            .replace(/<!--/g, '<\\!--');
         
         return {
             uniqueId: `flashcard-engine-${Date.now().toString().slice(-6)}`,
@@ -129,20 +170,24 @@ html{height:100%}body{font-family:'Arial',sans-serif;background-color:transparen
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-card-wrapper{transition:opacity .4s ease-out;transform:none}}
 .flashcard-engine{width:100%;perspective:1000px;display:flex;flex-direction:column;align-items:center}
-.flash-card{width:100%;height:250px;position:relative;transform-style:preserve-3d;transition:transform .6s;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.1);background-color:var(--cor-fundo-card);border:2px solid rgba(0,0,0,.08);box-sizing:border-box;margin-bottom:20px}
+.flash-card{width:425px;height:216px;max-width:425px;max-height:216px;min-width:425px;min-height:216px;position:relative;transform-style:preserve-3d;transition:transform .6s;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.1);background-color:var(--cor-fundo-card);border:2px solid rgba(0,0,0,.08);box-sizing:border-box;margin-bottom:20px;overflow:visible}
 .flash-card.is-flipped{transform:rotateY(180deg)}
-.card-face{position:absolute;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;display:flex;justify-content:center;align-items:center;padding:20px;box-sizing:border-box;border-radius:12px;color:var(--cor-texto-card);overflow:auto}
+.card-face{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;box-sizing:border-box;border-radius:12px;color:var(--cor-texto-card);overflow:visible;word-break:break-word;white-space:normal;text-align:center}
+.card-face .card-inner{display:flex;flex-direction:column;justify-content:center;align-items:center;width:100%;height:100%;box-sizing:border-box;max-width:100%;margin:0;padding:0}
+.card-face .card-inner p,.card-face .card-inner ul,.card-face .card-inner ol{margin:0}
+.card-face .card-inner img{max-width:100%;max-height:100%;height:auto;display:block}
 .card-face-front{font-family:'Montserrat',sans-serif;font-size:1.8rem;font-weight:700;text-align:center;line-height:1.3}
-.card-face-back{font-family:'Arial',sans-serif;font-size:1.1rem;font-weight:400;transform:rotateY(180deg);line-height:1.5;text-align:left}
+.card-face-back{font-family:'Arial',sans-serif;font-size:1.1rem;font-weight:400;transform:rotateY(180deg);line-height:1.5;text-align:center}
 .card-controls{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:400px;margin-top:15px}
 .card-button{border:none;border-radius:8px;padding:10px 18px;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:500;font-size:.9rem;transition:transform .2s ease,background-color .3s ease,color .3s ease;flex-grow:1;margin:0 5px;white-space:nowrap}
 .card-button:first-child{margin-left:0}.card-button:last-child{margin-right:0}
 .card-button:hover:not(:disabled){transform:scale(1.05);background-color:var(--cor-hover-dinamica)!important;color:var(--cor-hover-texto-dinamica)!important}
 .card-button:focus-visible{outline:3px solid var(--cor-destaque-dinamica)}
+.card-button:disabled{opacity:0.45;cursor:not-allowed;transform:none;filter:grayscale(20%)}
 .btn-flip,.btn-prev,.btn-next{background-color:var(--cor-destaque-dinamica);color:var(--cor-destaque-texto-dinamica);font-weight:700}
 .progress-indicator{color:var(--color-branco-puro);text-align:center;margin-top:10px;font-family:'Montserrat',sans-serif;font-weight:300;width:100%}
-@media (max-width:480px){.card-face-front{font-size:1.5rem}.card-face-back{font-size:1rem}.card-button{padding:8px 12px;font-size:.8rem}.card-controls{max-width:100%}.flash-card{height:220px}}</style>
-<div class="interactive-card-wrapper" role="region" aria-label="${ariaLabel}">
+@media (max-width:480px){.card-face-front{font-size:1.5rem}.card-face-back{font-size:1rem}.card-button{padding:8px 12px;font-size:.8rem}.card-controls{max-width:100%}.flash-card{width:100%;height:auto;min-height:160px;max-height:none}}</style>
+<div zclass="interactive-card-wrapper" role="region" aria-label="${ariaLabel}">
     ${audiodescricaoHTML}
     <div class="flashcard-engine" id="${uniqueId}">
         <div class="flash-card" aria-live="polite">
@@ -164,6 +209,47 @@ html{height:100%}body{font-family:'Arial',sans-serif;background-color:transparen
     if(!o)return;
     const n=o.querySelector(".flash-card"),r=o.querySelector(".card-face-front"),a=o.querySelector(".card-face-back"),l=o.querySelector(".btn-flip"),c=o.querySelector(".btn-prev"),s=o.querySelector(".btn-next"),i=o.querySelector(".progress-indicator");
     let d=0,u=!1;
+
+    // Ajusta a altura do cartão para evitar barras de rolagem
+    const adjustCardHeight = () => {
+        try {
+            // limpa alturas para medir corretamente
+            r.style.height = 'auto';
+            a.style.height = 'auto';
+            n.style.minHeight = '0';
+
+            const frontHeight = r.scrollHeight;
+            const backHeight = a.scrollHeight;
+            const target = Math.max(frontHeight, backHeight);
+
+            n.style.minHeight = target + 'px';
+        } catch (err) {
+            // elementos podem não existir ainda
+        }
+    };
+
+    const debounce = (fn, wait) => {
+        let t = null;
+        return (...args) => {
+            clearTimeout(t);
+            t = setTimeout(() => fn.apply(this, args), wait);
+        };
+    };
+
+    const debouncedAdjust = debounce(adjustCardHeight, 60);
+
+    window.addEventListener('resize', () => {
+        debouncedAdjust();
+    });
+
+    try {
+        const mo = new MutationObserver(debouncedAdjust);
+        mo.observe(r, { subtree: true, childList: true, characterData: true });
+        mo.observe(a, { subtree: true, childList: true, characterData: true });
+    } catch (err) {
+        // MutationObserver pode não estar disponível; segue sem observer
+    }
+
     function p(t){
         if(t<0||!e||e.length===0){
             r.innerHTML='Sem dados.'; a.innerHTML='Sem dados.'; i.textContent='0 / 0';
@@ -171,13 +257,26 @@ html{height:100%}body{font-family:'Arial',sans-serif;background-color:transparen
             return;
         }
         const o=e[t];
-        r.innerHTML=o.front; a.innerHTML=o.back;
-        i.textContent=\`\${t+1} / \${e.length}\`;
+        // Envolve o conteúdo em um wrapper para garantir centralização vertical/horizontal
+        r.innerHTML = '<div class="card-inner">' + (o.front || '') + '</div>';
+        a.innerHTML = '<div class="card-inner">' + (o.back || '') + '</div>';
+        i.textContent = (t+1) + ' / ' + e.length;
         l.style.display='block';
         l.disabled=false;
-        c.style.display = e.length <= 1 ? 'none' : 'block';
-        s.style.display = e.length <= 1 ? 'none' : 'block';
-        l.style.margin = e.length <= 1 ? 'auto' : '';
+        if (e.length <= 1) {
+            c.style.display = 'none'; s.style.display = 'none';
+            c.disabled = true; s.disabled = true;
+            l.style.margin = 'auto';
+        } else {
+            c.style.display = 'block'; s.style.display = 'block';
+            c.disabled = (t === 0);
+            s.disabled = (t === e.length - 1);
+            l.style.margin = '';
+        }
+
+        // Recalcula altura após inserir conteúdo
+        adjustCardHeight();
+
         u&&f();
     }
     function f(){

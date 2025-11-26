@@ -62,7 +62,9 @@ const GeneratorCore = {
             editor.className = 'wysiwyg-editor';
             editor.contentEditable = true;
             editor.setAttribute('data-placeholder', originalInput.getAttribute('placeholder') || 'Digite aqui...');
-            editor.innerHTML = originalInput.value;
+            // Protege contra 'undefined' sendo escrito no editor quando o input não tem value
+            const initialValue = (typeof originalInput.value === 'string') ? originalInput.value : '';
+            editor.innerHTML = initialValue || '';
             const toolbar = document.createElement('div');
             toolbar.className = 'rich-text-toolbar';
 

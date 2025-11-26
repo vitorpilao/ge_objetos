@@ -205,7 +205,7 @@ GeneratorCore.registerModule('dragdrop', {
         const shuffle = (array) => array.sort(() => Math.random() - 0.5);
         
         const itemsHTML = shuffle(items).map(item => `
-            <div class="drag-item" id="${item.id}-${uniqueId}" draggable="true" data-correct-category="${item.category}" aria-grabbed="false">
+            <div class="drag-item" id="${item.id}-${uniqueId}" draggable="true" data-correct-category="${item.category}" aria-grabbed="false" tabindex="0">
                 ${item.text}
             </div>
         `).join('\n');
@@ -213,7 +213,7 @@ GeneratorCore.registerModule('dragdrop', {
         const categoriesHTMLBlocks = categories.map((categoryName, index) => `
             <div class="drop-zone" data-category="${categoryName}">
                 <h3 class="drop-zone-title">${categoriesHTML[index]}</h3>
-                <div class="drop-zone-inner" aria-label="Caixa da categoria ${categoryName}"></div>
+                <div class="drop-zone-inner" tabindex="0" aria-label="Caixa da categoria ${categoryName}"></div>
             </div>
         `).join('\n');
 
@@ -252,16 +252,23 @@ html, body {
     padding: 1.5rem; 
     max-width: 800px; 
     margin: 10px auto; 
-    transition: all 0.3s ease-in-out;
+    /* Entrada suave: comece invisível e desloque-se para baixo */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .6s ease-out, transform .6s ease-out, box-shadow .3s ease-in-out;
     position: relative; 
     overflow: hidden; 
+}
+.drag-wrapper.is-visible{
+    opacity: 1;
+    transform: translateY(0);
 }
 .drag-wrapper.all-correct {
     box-shadow: 0 0 15px var(--dd-cor-sucesso);
     border-color: var(--dd-cor-sucesso);
 }
 @media (prefers-reduced-motion: reduce) { 
-    .drag-wrapper { transition: none; transform: none; } 
+    .drag-wrapper { transition: none; transform: none; opacity:1 } 
 }
 .item-bank { 
     padding: 1rem; 
@@ -327,7 +334,11 @@ html, body {
     font-family: var(--font-primary);
     cursor: grab; 
     transition: all 0.2s ease; 
-    user-select: none; 
+    /* Permite seleção de texto nas "pills" (por mouse/teclado) */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
     outline: 2px solid transparent; 
     overflow-wrap: break-word;
     display: inline-block; 
@@ -335,6 +346,14 @@ html, body {
 }
 .drag-item:focus { outline-color: var(--dd-cor-destaque); }
 .drag-item.dragging { opacity: 0.5; transform: scale(0.95); cursor: grabbing; }
+
+/* Enquanto o item está sendo arrastado, evitar seleção de texto */
+.drag-item.dragging {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 .drag-item p { margin: 0; }
 .drag-item.correct { 
     border-color: var(--dd-cor-sucesso); 
@@ -455,6 +474,22 @@ html, body {
 document.addEventListener('DOMContentLoaded', () => {
     const wrapper = document.getElementById('${uniqueId}');
     if (!wrapper) return;
+
+    // Entrada suave: adiciona a classe .is-visible quando o componente entra na viewport
+    try {
+        const obsTarget = wrapper;
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    obsTarget.classList.add('is-visible');
+                    obs.unobserve(obsTarget);
+                }
+            });
+        }, { threshold: 0.15 });
+        observer.observe(obsTarget);
+    } catch (e) {
+        wrapper.classList.add('is-visible');
+    }
 
     const itemBank = document.getElementById('bank-${uniqueId}');
     const dropZones = wrapper.querySelectorAll('.drop-zone');

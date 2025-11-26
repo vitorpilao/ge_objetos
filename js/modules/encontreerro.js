@@ -132,6 +132,19 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     margin: 10px auto;
     font-family: var(--font-primary);
 }
+/* Entrada suave do componente (fade + slide) */
+.encontreerro-container {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .6s ease-out, transform .6s ease-out;
+}
+.encontreerro-container.is-visible{
+    opacity: 1;
+    transform: translateY(0);
+}
+@media (prefers-reduced-motion:reduce){
+    .encontreerro-container{transition:none;transform:none;opacity:1}
+}
 .encontreerro-texto {
     font-family: var(--font-code);
     background-color: rgba(0,0,0,0.2);
@@ -305,6 +318,23 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('${uniqueId}');
     if (!container) return;
+
+    // Entrada suave: adiciona a classe .is-visible quando o componente entra na viewport
+    try {
+        const obsTarget = container;
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    obsTarget.classList.add('is-visible');
+                    obs.unobserve(obsTarget);
+                }
+            });
+        }, { threshold: 0.15 });
+        observer.observe(obsTarget);
+    } catch (e) {
+        // Se IntersectionObserver não estiver disponível, mostra imediatamente
+        container.classList.add('is-visible');
+    }
 
     const items = container.querySelectorAll('.encontreerro-item');
     const feedback = container.querySelector('.encontreerro-feedback');

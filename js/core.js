@@ -154,6 +154,14 @@ const GeneratorCore = {
                 form.querySelectorAll('.wysiwyg-editor').forEach(editor => editor.blur());
                 try {
                     const formData = moduleDef.getFormData(this);
+                    // Log rápido dos hotspots coletados para facilitar debug ao clicar em Visualizar
+                    try {
+                        if (type === 'modal' && formData && formData.hotspots) {
+                            console.info('[GeneratorCore] Hotspots coletados:', formData.hotspots);
+                        }
+                    } catch (err) {
+                        console.warn('[GeneratorCore] Erro ao logar hotspots:', err);
+                    }
                     const finalCode = moduleDef.createTemplate(formData);
 
                     // ==========================================================

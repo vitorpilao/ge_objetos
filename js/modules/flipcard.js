@@ -150,7 +150,7 @@ html,body{
     opacity:0;
     transform:translateY(20px);
     transition:opacity .6s ease-out,transform .6s ease-out;
-    padding:20px; /* Padding original */
+    padding:5px; /*Padding original */
     box-sizing:border-box;
 }
 .interactive-card-wrapper.is-visible{opacity:1;transform:translateY(0)}

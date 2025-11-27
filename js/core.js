@@ -48,10 +48,6 @@ const GeneratorCore = {
                 });
             }
         },
-        
-        syncCategoryDropdowns: () => {
-            // (Função placeholder)
-        },
 
         // --- EDITOR VISUAL (WYSIWYG) ---
         enableRichText(originalInput) {

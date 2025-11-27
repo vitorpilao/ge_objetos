@@ -317,7 +317,6 @@ html, body {
 document.addEventListener('DOMContentLoaded', () => {
     const hotspots = ${JSON.stringify(hotspots)} || [];
     const imgCandidates = ${JSON.stringify(uniqueCandidates)} || [];
-    const imgEl = null;
     const triggerBtn = document.getElementById("${triggerId}");
     const modal = document.getElementById("${modalId}");
     const overlay = document.getElementById("overlay-${uniqueId}");

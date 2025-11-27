@@ -16,8 +16,6 @@ GeneratorCore.registerModule('dragdrop', {
         let catCounter = 0;
         let itemCounter = 0;
 
-        core.utils.syncCategoryDropdowns = () => {};
-
         const renderItemManager = (categoryName, selectedEditor = null) => {
             this.currentCategory = categoryName;
             itemTitle.innerHTML = `"${categoryName}"`;

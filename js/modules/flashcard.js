@@ -79,15 +79,6 @@ GeneratorCore.registerModule('flashcard', {
                 updateCardLabels();
             });
         });
-        // Conecta handlers de remoção para blocos já existentes
-        const existingRemove = container.querySelectorAll('.flashcard-remove-card');
-        existingRemove.forEach(btn => {
-            btn.removeEventListener && btn.removeEventListener('click', () => {});
-            btn.addEventListener('click', (ev) => {
-                const block = ev.target.closest('.flashcard-bloco');
-                if (block) { block.remove(); updateCardLabels(); }
-            });
-        });
 
         updateCardLabels();
     },

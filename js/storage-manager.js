@@ -1027,21 +1027,22 @@ const ProfilePictureManager = {
                 userAvatar.textContent = '⏳';
             }
             
-            // Criar FormData para enviar arquivo
-            const formData = new FormData();
-            formData.append('profile_picture', file);
+            // Converter imagem para base64
+            const base64 = await this.fileToBase64(file);
             
-            console.log('📦 Enviando arquivo:', file.name);
+            console.log('📦 Imagem convertida para base64');
             
-            // Enviar para Xano
+            // Enviar para Xano como JSON
             const authToken = AuthManager.getAuthToken();
-            const response = await fetch(`${AuthManager.API_BASE_URL}/auth/update/me`, {
+            const response = await fetch(`${AuthManager.API_BASE_URL}/auth/me`, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': `Bearer ${authToken}`
-                    // Não incluir Content-Type, o browser define automaticamente
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                body: JSON.stringify({
+                    profile_picture: base64
+                })
             });
             
             console.log('📡 Status da resposta:', response.status);
@@ -1055,20 +1056,18 @@ const ProfilePictureManager = {
             const updatedUser = await response.json();
             console.log('✅ Foto de perfil atualizada');
             
-            // Extrair URL da imagem
-            const profilePicData = updatedUser.profile_picture || updatedUser._user?.profile_picture;
-            const imageUrl = profilePicData?.url || profilePicData?.path;
-            
-            console.log('🔗 URL da imagem:', imageUrl);
+            // A imagem agora é base64, usar diretamente
+            const imageUrl = updatedUser.profile_picture || base64;
             
             // Atualizar usuário no localStorage
             AuthManager.updateCurrentUser({
-                ...updatedUser,
+                name: updatedUser.name,
+                email: updatedUser.email,
                 profile_picture: imageUrl
             });
             
             // Atualizar display
-            if (userAvatar && imageUrl) {
+            if (userAvatar) {
                 userAvatar.style.opacity = '1';
                 userAvatar.style.backgroundImage = `url(${imageUrl})`;
                 userAvatar.textContent = '';

@@ -1,3 +1,27 @@
+/* Blocos de flashcard */
+.flashcard-bloco,
+.flashcard-card-bloco {
+    position: relative;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.flashcard-bloco .form-group,
+.flashcard-card-bloco .form-group {
+    margin-bottom: 15px;
+}
+
+.flashcard-bloco input,
+.flashcard-bloco textarea,
+.flashcard-card-bloco input,
+.flashcard-card-bloco textarea {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--color-branco-puro) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
 
 /* Bloco de erro individual (Encontre o Erro) */
 .encontreerro-bloco {
@@ -402,22 +426,29 @@ button[type="submit"]:hover {
 
 /* Bloco que agrupa Título e Descrição de um passo */
 .guia-passo-bloco {
-    position: relative; /* Necessário para o botão de remoção */
-    background: rgba(0, 0, 0, 0.05); /* Fundo sutil nos blocos novos */
-    padding: 20px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.05) !important;
+    padding: 15px;
     border-radius: 6px;
-    margin-top: 20px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+    margin-top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.guia-passo-bloco input,
+.guia-passo-bloco textarea {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--color-branco-puro) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Botão de Remover (só aparece do passo 2 em diante) */
 .guia-remove-passo {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background-color: #dc3545; /* Vermelho "perigo" */
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
     color: var(--color-branco-puro);
-    padding: 4px 10px;
+    padding: 2px 8px;
     font-size: 0.8rem;
     font-weight: bold;
     border-radius: 4px;
@@ -429,7 +460,7 @@ button[type="submit"]:hover {
 
 .guia-remove-passo:hover {
     opacity: 1;
-    transform: scale(1.05); /* Efeito de hover */
+    transform: scale(1.05);
 }
 
 /* Faz o primeiro bloco (Passo 1) parecer igual aos outros */
@@ -442,7 +473,7 @@ button[type="submit"]:hover {
 
 /* Ajusta as labels para não ficarem embaixo do botão "X" */
 .guia-passo-bloco .form-group label {
-    margin-right: 60px;
+    margin-right: 50px;
 }
 
 /* --- Estilos do Gerador Dinâmico (Flashcard) --- */
@@ -494,11 +525,18 @@ button[type="submit"]:hover {
 
 .flipcard-item-bloco {
     position: relative;
-    background: rgba(0, 0, 0, 0.05);
-    padding: 15px; /* Um pouco menor que os outros */
+    background: rgba(255, 255, 255, 0.05) !important;
+    padding: 15px;
     border-radius: 6px;
     margin-top: 10px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.flipcard-item-bloco input,
+.flipcard-item-bloco textarea {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--color-branco-puro) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Botão de Remover Item */
@@ -539,21 +577,28 @@ button[type="submit"]:hover {
 
 .timeline-passo-bloco {
     position: relative;
-    background: rgba(0, 0, 0, 0.05);
-    padding: 20px;
+    background: rgba(255, 255, 255, 0.05) !important;
+    padding: 15px;
     border-radius: 6px;
-    margin-top: 20px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+    margin-top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.timeline-passo-bloco input,
+.timeline-passo-bloco textarea {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--color-branco-puro) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Botão de Remover Passo */
 .timeline-remove-passo {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background-color: #dc3545; /* Vermelho */
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
     color: var(--color-branco-puro);
-    padding: 4px 10px;
+    padding: 2px 8px;
     font-size: 0.8rem;
     font-weight: bold;
     border-radius: 4px;
@@ -577,18 +622,25 @@ button[type="submit"]:hover {
 }
 
 .timeline-passo-bloco .form-group label {
-    margin-right: 60px; /* Espaço para o botão "X" */
+    margin-right: 50px;
 }
 
 /* --- Estilos do Gerador Dinâmico (Accordion) --- */
 
 .accordion-item-bloco {
     position: relative;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.05) !important;
     padding: 20px;
     border-radius: 6px;
     margin-top: 20px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.accordion-item-bloco input,
+.accordion-item-bloco textarea {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--color-branco-puro) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Botão de Remover Item */

@@ -95,6 +95,77 @@ GeneratorCore.registerModule('modal', {
             })()
         };
     },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do Modal:', data);
+        
+        setTimeout(() => {
+            const ariaField = document.getElementById('input-modal-aria-label');
+            const audioField = document.getElementById('input-modal-audiodescricao');
+            const imagemField = document.getElementById('input-modal-imagem');
+            const altField = document.getElementById('input-modal-alt');
+            const captionField = document.getElementById('input-modal-caption');
+            
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabel);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            if (imagemField) imagemField.value = data.imagemUrl || '';
+            restoreFieldWithWYSIWYG(altField, data.altText);
+            restoreFieldWithWYSIWYG(captionField, data.caption);
+            
+            // Restaurar hotspots
+            const container = document.getElementById('modal-hotspots-container');
+            if (container && data.hotspots && data.hotspots.length > 0) {
+                container.innerHTML = '';
+                
+                data.hotspots.forEach((hotspot, index) => {
+                    const bloco = document.createElement('div');
+                    bloco.className = 'modal-hotspot-bloco';
+                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; background-color: #fff;";
+                    
+                    bloco.innerHTML = `
+                        <div class="form-group">
+                            <label>Texto do Hotspot ${index + 1}</label>
+                            <input type="text" class="hotspot-text" placeholder="Ex: Ponto de interesse" value="${hotspot.text || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>Posição X (%)</label>
+                            <input type="number" class="hotspot-x" min="0" max="100" placeholder="Ex: 50" value="${hotspot.x || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>Posição Y (%)</label>
+                            <input type="number" class="hotspot-y" min="0" max="100" placeholder="Ex: 50" value="${hotspot.y || ''}">
+                        </div>
+                    `;
+                    
+                    container.appendChild(bloco);
+                    
+                    if (index > 0) {
+                        const removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'modal-remove-hotspot';
+                        removeButton.innerHTML = '&times;';
+                        removeButton.title = `Remover Hotspot ${index + 1}`;
+                        removeButton.style.cssText = "position: absolute; top: 10px; right: 10px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer;";
+                        
+                        removeButton.addEventListener('click', () => bloco.remove());
+                        bloco.appendChild(removeButton);
+                    }
+                });
+            }
+            
+            console.log('✅ Modal restaurado');
+        }, 200);
+    },
     
     // 2. (ATUALIZADO) createTemplate: Estilos de Lightbox
     createTemplate(data) {

@@ -78,12 +78,45 @@ GeneratorCore.registerModule('guia', {
         const passoBlocos = document.querySelectorAll('.guia-passo-bloco');
         
         passoBlocos.forEach(bloco => {
-            const tituloInput = bloco.querySelector('.guia-titulo-input');
-            const descInput = bloco.querySelector('.guia-desc-input');
-            if (tituloInput && descInput) {
-                dataArray.push([ tituloInput.value, descInput.value ]);
+            const tituloEditor = bloco.querySelector('.guia-titulo-input + .rich-text-wrapper .wysiwyg-editor') ||
+                                 bloco.querySelector('.guia-titulo-input.wysiwyg-editor') ||
+                                 bloco.querySelector('.guia-titulo-input');
+            const descEditor = bloco.querySelector('.guia-desc-input + .rich-text-wrapper .wysiwyg-editor') ||
+                               bloco.querySelector('.guia-desc-input.wysiwyg-editor') ||
+                               bloco.querySelector('.guia-desc-input');
+            
+            let tituloVal = '';
+            let descVal = '';
+            
+            if (tituloEditor) {
+                if (tituloEditor.classList.contains('wysiwyg-editor') || tituloEditor.contentEditable === 'true') {
+                    tituloVal = (tituloEditor.innerHTML || '').trim();
+                } else if ('value' in tituloEditor) {
+                    tituloVal = (tituloEditor.value || '').trim();
+                }
+            }
+            
+            if (descEditor) {
+                if (descEditor.classList.contains('wysiwyg-editor') || descEditor.contentEditable === 'true') {
+                    descVal = (descEditor.innerHTML || '').trim();
+                } else if ('value' in descEditor) {
+                    descVal = (descEditor.value || '').trim();
+                }
+            }
+            
+            if (tituloVal || descVal) {
+                dataArray.push([ tituloVal, descVal ]);
             }
         });
+
+        // Se não houver passos, adicionar passos padrão para demonstração
+        if (dataArray.length === 0) {
+            dataArray.push(
+                ['Passo 1: Planejamento', 'Defina seus objetivos e crie um plano de ação claro.'],
+                ['Passo 2: Execução', 'Implemente as ações planejadas com dedicação e foco.'],
+                ['Passo 3: Avaliação', 'Analise os resultados e faça ajustes necessários.']
+            );
+        }
 
         const totalSteps = dataArray.length;
 
@@ -109,8 +142,122 @@ GeneratorCore.registerModule('guia', {
             // Passa as novas cores para o template
             corFundo: corFundo,
             corTexto: corTexto,
-            corNavBg: corNavBg
+            corNavBg: corNavBg,
+            dataArray: dataArray // Salvar array original
         };
+    },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do Guia:', data);
+        console.log('🎨 Cores recebidas - corDestaque:', data.corDestaque, 'corHover:', data.corHover, 'corFundo:', data.corFundo);
+        
+        setTimeout(() => {
+            const ariaField = document.getElementById('input-guia-aria-label');
+            const audioField = document.getElementById('input-guia-audiodescricao');
+            const corField = document.getElementById('input-guia-cor');
+            const corHoverField = document.getElementById('input-guia-cor-hover');
+            const corFundoField = document.getElementById('input-guia-bg');
+            
+            console.log('🎨 Campos encontrados:', {
+                cor: !!corField,
+                corHover: !!corHoverField,
+                corFundo: !!corFundoField
+            });
+            
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            const restoreSelectField = (field, value, defaultValue) => {
+                if (!field) {
+                    console.warn('⚠️ Campo não encontrado');
+                    return;
+                }
+                
+                const finalValue = value || defaultValue;
+                console.log(`📝 Tentando restaurar select com valor: "${finalValue}"`);
+                
+                // Verificar se a opção existe
+                const optionExists = Array.from(field.options).some(opt => opt.value === finalValue);
+                console.log(`  Opção "${finalValue}" existe? ${optionExists}`);
+                
+                if (optionExists) {
+                    field.value = finalValue;
+                    console.log(`  ✅ Valor aplicado: "${field.value}"`);
+                } else {
+                    console.warn(`  ⚠️ Opção "${finalValue}" não encontrada, usando padrão`);
+                    field.value = defaultValue;
+                }
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabel);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            
+            restoreSelectField(corField, data.corDestaque, '#0A88F4');
+            restoreSelectField(corHoverField, data.corHover, '#C3EB1E');
+            restoreSelectField(corFundoField, data.corFundo, '#FFFFFF');
+            
+            // Restaurar passos
+            const container = document.getElementById('guia-passos-container');
+            if (container && data.dataArray && data.dataArray.length > 0) {
+                container.innerHTML = '';
+                
+                data.dataArray.forEach((item, index) => {
+                    const [titulo, desc] = item;
+                    
+                    const bloco = document.createElement('div');
+                    bloco.className = 'guia-passo-bloco';
+                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; background-color: #fff;";
+                    
+                    bloco.innerHTML = `
+                        <div class="form-group">
+                            <label for="input-guia-titulo-${index}">Título do Passo ${index + 1}</label>
+                            <input type="text" id="input-guia-titulo-${index}" class="rich-text-enabled guia-titulo-input" placeholder="Ex: Passo 1: Planejamento">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-guia-desc-${index}">Descrição do Passo ${index + 1}</label>
+                            <textarea id="input-guia-desc-${index}" class="rich-text-enabled guia-desc-input" placeholder="Defina seus objetivos..."></textarea>
+                        </div>
+                    `;
+                    
+                    container.appendChild(bloco);
+                    
+                    const tituloField = document.getElementById(`input-guia-titulo-${index}`);
+                    const descField = document.getElementById(`input-guia-desc-${index}`);
+                    
+                    if (tituloField) tituloField.value = titulo || '';
+                    if (descField) descField.value = desc || '';
+                    
+                    if (index > 0) {
+                        const removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'guia-remove-passo';
+                        removeButton.innerHTML = '&times;';
+                        removeButton.title = `Remover Passo ${index + 1}`;
+                        removeButton.style.cssText = "position: absolute; top: 10px; right: 10px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer;";
+                        
+                        removeButton.addEventListener('click', () => bloco.remove());
+                        bloco.appendChild(removeButton);
+                    }
+                });
+                
+                setTimeout(() => {
+                    container.querySelectorAll('.rich-text-enabled').forEach(field => {
+                        if (!field.closest('.rich-text-wrapper')) {
+                            GeneratorCore.utils.enableRichText(field);
+                        }
+                    });
+                }, 100);
+            }
+            
+            console.log('✅ Guia restaurado com', data.dataArray?.length || 0, 'passos');
+        }, 200);
     },
 
     // 3. (ATUALIZADO) createTemplate: Usa as novas variáveis de cor
@@ -164,7 +311,85 @@ html,body{margin:0;padding:0;background-color:transparent;font-family:'Montserra
 .nav-buttons button{font-family:'Montserrat',sans-serif;font-size:.9rem;font-weight:600;border:none;background-color:var(--cor-destaque-dinamica);color:var(--cor-destaque-texto-dinamica);padding:8px 15px;border-radius:5px;cursor:pointer;margin-left:10px;transition:transform .3s ease,background-color .3s ease,color .3s ease}
 .nav-buttons button:hover:not(:disabled){transform:scale(1.05);background-color:var(--cor-hover-dinamica)!important;color:var(--cor-hover-texto-dinamica)!important}
 .nav-buttons button:focus-visible{outline:2px solid var(--cor-destaque-dinamica);outline-offset:2px}
-.nav-buttons button:disabled{background-color:var(--color-cinza-tech-light);opacity:.6;cursor:not-allowed}</style><div class="interactive-guia-wrapper" role="region" aria-label="${ariaLabel}"><div class="steps-container" id="${uniqueId}"><div class="steps-inner" id="steps-live-region-${uniqueId}" aria-live="polite">${audiodescricaoHTML}${panelsHTML}</div><div class="steps-nav"><div class="step-status" id="step-status-${uniqueId}" aria-live="polite"></div><div class="nav-buttons"><button class="step-prev" disabled>Anterior</button><button class="step-next">Próximo</button></div></div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t="${uniqueId}",e=document.getElementById(t);if(!e)return;const o=Array.from(e.querySelectorAll(".step-panel")),n=e.querySelector(".step-prev"),r=e.querySelector(".step-next"),a=e.querySelector(\`#step-status-\${t}\`),i=${totalSteps};let l=1;function s(t,d="forward"){const c=t+1,p=l-1,u=p===t;o.forEach((e,o_idx)=>{if(o_idx===p&&!u){e.classList.remove("is-active");e.classList.remove("prepare-enter-left","prepare-enter-right");"forward"===d?e.classList.add("is-exiting-left"):e.classList.add("is-exiting-right");e.addEventListener("transitionend",function t(){e.classList.contains("is-active")||(e.setAttribute("hidden",!0),e.classList.remove("is-exiting-left","is-exiting-right"),e.removeEventListener("transitionend",t))},{once:!0})}else if(o_idx===t){e.classList.remove("is-exiting-left","is-exiting-right");e.removeAttribute("hidden");if(!u){"forward"===d?e.classList.add("prepare-enter-right"):e.classList.add("prepare-enter-left")}
-e.offsetWidth;e.classList.remove("prepare-enter-left","prepare-enter-right");e.classList.add("is-active");if(!u){setTimeout(()=>{const t=e.querySelector("h3");t&&t.focus()},0)}}else{e.setAttribute("hidden",!0);e.classList.remove("is-active","is-exiting-left","is-exiting-right","prepare-enter-left","prepare-enter-right")}});a.textContent=\`Passo \${c} de \${i}\`;n.disabled=1===c;r.disabled=c===i;l=c}n.addEventListener('click',()=>{l>1&&s(l-2,"backward")}),r.addEventListener('click',()=>{l<i&&s(l,"forward")});const d=e.closest(".interactive-guia-wrapper");if(d){const t=new IntersectionObserver((t,e)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");e.unobserve(t.target)}})},{threshold:.25});t.observe(d)}s(0,"forward")});<\/script>`;
+.nav-buttons button:disabled{background-color:var(--color-cinza-tech-light);opacity:.6;cursor:not-allowed}
+.object-card-preview .interactive-guia-wrapper{max-width:100%;padding:5px}
+.object-card-preview .steps-container{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.object-card-preview .steps-inner{padding:12px;min-height:60px}
+.object-card-preview .step-panel{top:12px;left:12px;right:12px}
+.object-card-preview .step-panel h3{font-size:0.9rem;margin:0 0 6px}
+.object-card-preview .step-panel p{font-size:0.75rem;line-height:1.3;min-height:40px}
+.object-card-preview .steps-nav{padding:8px 12px;flex-wrap:wrap;gap:8px}
+.object-card-preview .step-status{font-size:0.75rem;order:1;width:100%;text-align:center}
+.object-card-preview .nav-buttons{order:2;display:flex;justify-content:center;width:100%;margin:0}
+.object-card-preview .nav-buttons button{font-size:0.75rem;padding:5px 10px;margin:0 4px}</style><div class="interactive-guia-wrapper" role="region" aria-label="${ariaLabel}"><div class="steps-container" id="${uniqueId}"><div class="steps-inner" id="steps-live-region-${uniqueId}" aria-live="polite">${audiodescricaoHTML}${panelsHTML}</div><div class="steps-nav"><div class="step-status" id="step-status-${uniqueId}" aria-live="polite"></div><div class="nav-buttons"><button class="step-prev" disabled>Anterior</button><button class="step-next">Próximo</button></div></div></div></div><script>
+(function(){
+    const init = () => {
+        const t="${uniqueId}",e=document.getElementById(t);
+        console.log('🎯 Guia init - Container encontrado:', e);
+        if(!e)return;
+        const o=Array.from(e.querySelectorAll(".step-panel"));
+        console.log('📋 Painéis encontrados:', o.length, o);
+        const n=e.querySelector(".step-prev"),r=e.querySelector(".step-next"),a=e.querySelector('#step-status-${uniqueId}'),i=${totalSteps};
+        console.log('🎮 Botões encontrados - prev:', n, 'next:', r, 'status:', a);
+        let l=1;
+        function s(t,d="forward"){
+            console.log('🔄 Mudando para passo:', t, 'direção:', d);
+            const c=t+1,p=l-1,u=p===t;
+            o.forEach((e,o_idx)=>{
+                if(o_idx===p&&!u){
+                    e.classList.remove("is-active");
+                    e.classList.remove("prepare-enter-left","prepare-enter-right");
+                    "forward"===d?e.classList.add("is-exiting-left"):e.classList.add("is-exiting-right");
+                    e.addEventListener("transitionend",function t(){
+                        e.classList.contains("is-active")||(e.setAttribute("hidden",!0),e.classList.remove("is-exiting-left","is-exiting-right"),e.removeEventListener("transitionend",t))
+                    },{once:!0})
+                }else if(o_idx===t){
+                    e.classList.remove("is-exiting-left","is-exiting-right");
+                    e.removeAttribute("hidden");
+                    if(!u){"forward"===d?e.classList.add("prepare-enter-right"):e.classList.add("prepare-enter-left")}
+                    e.offsetWidth;
+                    e.classList.remove("prepare-enter-left","prepare-enter-right");
+                    e.classList.add("is-active");
+                    if(!u){setTimeout(()=>{const t=e.querySelector("h3");t&&t.focus()},0)}
+                }else{
+                    e.setAttribute("hidden",!0);
+                    e.classList.remove("is-active","is-exiting-left","is-exiting-right","prepare-enter-left","prepare-enter-right")
+                }
+            });
+            a.textContent='Passo '+(c)+' de '+i;
+            n.disabled=1===c;
+            r.disabled=c===i;
+            l=c
+        }
+        n.addEventListener('click',()=>{l>1&&s(l-2,"backward")});
+        r.addEventListener('click',()=>{l<i&&s(l,"forward")});
+        const d=e.closest(".interactive-guia-wrapper");
+        if(d){
+            // Se estiver dentro de um card preview, mostrar imediatamente
+            if(d.closest('.object-card-preview')){
+                d.classList.add("is-visible");
+            }else{
+                const t=new IntersectionObserver((t,e)=>{
+                    t.forEach(t=>{
+                        if(t.isIntersecting){
+                            t.target.classList.add("is-visible");
+                            e.unobserve(t.target)
+                        }
+                    })
+                },{threshold:.25});
+                t.observe(d)
+            }
+        }
+        s(0,"forward");
+        console.log('✅ Guia init completo!');
+    };
+    console.log('🚀 Script do guia carregado, readyState:', document.readyState);
+    if(document.readyState==='loading'){
+        document.addEventListener('DOMContentLoaded',init);
+    }else{
+        init();
+    }
+})();
+<\/script>`;
     }
 });

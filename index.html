@@ -6,35 +6,105 @@
     <title>Central de Componentes v6.2</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/modals.css">
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Central de Componentes Interativos</h1>
-            <p>Selecione, visualize e configure seu objeto (WCAG) para o Google Sites.</p>
-        </header>
+    <!-- Botão para abrir menu mobile -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">☰</button>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-        <section class="form-section">
-            <h2>1. Selecione o Tipo de Objeto</h2>
-            <div class="form-group">
-                <label for="object-selector">Tipo de Objeto Interativo</label>
-                <select id="object-selector">
-                    <option value="">-- Selecione uma opção --</option>
-                    <option value="accordion">Acordeão</option>
-                    <option value="destaque">Destaque</option>
-                    <option value="dragdrop">Drag & Drop (Categorias)</option>
-                    <option value="encontreerro">Encontre o erro</option> 
-                    <option value="flashcard">Flashcard Interativo</option>
-                    <option value="flipcard">Flip Cards</option>
-                    <option value="guia">Guia Sequencial</option>
-                    <option value="modal">Modal de Imagem</option>
-                    <option value="multiplechoice">Múltipla Escolha</option> 
-                    <option value="timeline">TimeLine</option>
-                                    
-                </select>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1 class="sidebar-logo" onclick="AppPages.goToHome()" style="cursor: pointer;" title="Voltar para início">
+                🎨 Central de Componentes
+            </h1>
+            <div class="sidebar-version">v6.2 - Sistema de Gestão</div>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar" id="user-avatar" title="Clique para alterar foto de perfil">👤</div>
+            <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+            <div class="user-name-sidebar" id="user-name-sidebar">Carregando...</div>
+            <div class="user-email" id="user-email">carregando...</div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-section-title">Edição Atual</div>
+                <div id="sidebar-object-indicator" style="padding: 0 20px;">
+                    <div style="padding: 12px; background: rgba(195, 235, 30, 0.1); border-radius: 8px; border: 1px solid rgba(195, 235, 30, 0.3); font-size: 0.9rem; color: var(--color-verde-tech);">
+                        <div style="opacity: 0.7; font-size: 0.75rem; margin-bottom: 4px;">📝 Editando:</div>
+                        <div id="sidebar-object-name" style="font-weight: 600;">Nenhum objeto carregado</div>
+                    </div>
+                </div>
             </div>
-        </section>
+
+            <div class="menu-section">
+                <div class="menu-section-title">Ações Rápidas</div>
+                <div class="menu-item" id="btn-new-object">
+                    <span class="menu-item-icon">🆕</span>
+                    <span>Novo Objeto</span>
+                </div>
+                <div class="menu-item" id="btn-save-object">
+                    <span class="menu-item-icon">💾</span>
+                    <span>Salvar Objeto</span>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-section-title">Biblioteca</div>
+                <div class="menu-item" id="btn-my-objects">
+                    <span class="menu-item-icon">📚</span>
+                    <span>Objetos Salvos</span>
+                    <span class="menu-item-badge" id="objects-count">0</span>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <div class="menu-section-title">Conta</div>
+                <div class="menu-item" id="btn-logout">
+                    <span class="menu-item-icon">🚪</span>
+                    <span>Sair da Conta</span>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Página Inicial: Galeria de Objetos -->
+            <div id="page-home" class="page active">
+                <header>
+                    <h1>Central de Componentes Interativos</h1>
+                    <p>Selecione, visualize e configure seu objeto (WCAG) para o Google Sites.</p>
+                </header>
+
+                <section class="form-section">
+                    <h2>Escolha o Tipo de Objeto</h2>
+                    <div id="object-type-gallery" class="object-gallery">
+                        <!-- Cards serão inseridos aqui via JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Página de Configuração -->
+            <div id="page-config" class="page">
+                <div class="page-header">
+                    <button class="btn-back" onclick="AppPages.goToHome()">
+                        ← Voltar
+                    </button>
+                    <div>
+                        <h1 id="config-page-title" style="margin: 0; color: var(--color-verde-tech);">Configurar Objeto</h1>
+                        <p id="config-page-subtitle" style="margin: 4px 0 0 0; opacity: 0.8;">Preencha os campos abaixo</p>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="object-selector" value="">
 
         <div id="panel-destaque" class="generator-panel" style="display: none;">
             <section class="form-section">
@@ -876,8 +946,55 @@
             </div>
         </div>
 
+            </div>
+            <!-- Fim da Página de Configuração -->
 
-    </div><script src="js/core.js"></script>
+        </div>
+    </main>
+
+    <!-- Modal de Salvar Objeto -->
+    <div id="modal-save-object" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>💾 Salvar Objeto</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="input-object-name">Nome do Objeto</label>
+                    <input type="text" id="input-object-name" placeholder="Ex: Quiz de JavaScript" required>
+                    <small>Digite um nome para identificar este objeto</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-cancel-save" class="btn-secondary">Cancelar</button>
+                <button id="btn-confirm-save" class="btn-primary">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Lista de Objetos -->
+    <div id="modal-objects-list" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>📚 Objetos Salvos (Compartilhados)</h2>
+                <button id="btn-close-list" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="objects-list" class="objects-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Verificar autenticação ANTES de carregar qualquer coisa
+        (function() {
+            if (!AuthManager.isAuthenticated()) {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+    <script src="js/core.js"></script>
     <script src="js/modules/accordion.js"></script>
     <script src="js/modules/destaque.js"></script>
     <script src="js/modules/dragdrop.js"></script>
@@ -888,6 +1005,7 @@
     <script src="js/modules/modal.js"></script>
     <script src="js/modules/timeline.js"></script>
     <script src="js/modules/multiplechoice.js"></script>
+    <script src="js/storage-manager.js"></script>
     
     <script>
         // Inicializa a aplicação

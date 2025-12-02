@@ -191,8 +191,97 @@ GeneratorCore.registerModule('dragdrop', {
             categories: categories,
             categoriesHTML: categoriesHTML,
             items: items,
-            corBotaoResetTexto: core.utils.getContrastColor(corDestaque)
+            corBotaoResetTexto: core.utils.getContrastColor(corDestaque),
+            rawCategories: categories,
+            rawItems: items
         };
+    },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do DragDrop:', data);
+        
+        setTimeout(() => {
+            const ariaField = document.getElementById('input-dragdrop-aria-label');
+            const audioField = document.getElementById('input-dragdrop-audiodescricao');
+            const bgField = document.getElementById('input-dragdrop-bg');
+            const corItemBgField = document.getElementById('input-dragdrop-item-bg');
+            const corDestaqueField = document.getElementById('input-dragdrop-cor-destaque');
+            
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabel);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            if (bgField) bgField.value = data.corFundo || '#FFFFFF';
+            if (corItemBgField) corItemBgField.value = data.corItemFundo || '#F8F9FA';
+            if (corDestaqueField) corDestaqueField.value = data.corDestaque || '#0A88F4';
+            
+            // Restaurar categorias
+            const categoriesField = document.getElementById('input-dragdrop-categories');
+            if (categoriesField && data.rawCategories) {
+                categoriesField.value = data.rawCategories.join(', ');
+            }
+            
+            // Restaurar itens
+            const itemsContainer = document.getElementById('dragdrop-items-container');
+            if (itemsContainer && data.rawItems && data.rawItems.length > 0) {
+                itemsContainer.innerHTML = '';
+                
+                data.rawItems.forEach((item, index) => {
+                    const bloco = document.createElement('div');
+                    bloco.className = 'dragdrop-item-bloco';
+                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; background-color: #fff;";
+                    
+                    bloco.innerHTML = `
+                        <div class="form-group">
+                            <label for="input-dragdrop-item-text-${index}">Texto do Item ${index + 1}</label>
+                            <input type="text" id="input-dragdrop-item-text-${index}" class="rich-text-enabled dragdrop-item-text" placeholder="Ex: JavaScript">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-dragdrop-item-category-${index}">Categoria do Item ${index + 1}</label>
+                            <input type="text" id="input-dragdrop-item-category-${index}" class="dragdrop-item-category" placeholder="Ex: Frontend">
+                        </div>
+                    `;
+                    
+                    itemsContainer.appendChild(bloco);
+                    
+                    const textField = document.getElementById(`input-dragdrop-item-text-${index}`);
+                    const categoryField = document.getElementById(`input-dragdrop-item-category-${index}`);
+                    
+                    if (textField) textField.value = item.text || '';
+                    if (categoryField) categoryField.value = item.category || '';
+                    
+                    if (index > 0) {
+                        const removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'dragdrop-remove-item';
+                        removeButton.innerHTML = '&times;';
+                        removeButton.title = `Remover Item ${index + 1}`;
+                        removeButton.style.cssText = "position: absolute; top: 10px; right: 10px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer;";
+                        
+                        removeButton.addEventListener('click', () => bloco.remove());
+                        bloco.appendChild(removeButton);
+                    }
+                });
+                
+                setTimeout(() => {
+                    itemsContainer.querySelectorAll('.rich-text-enabled').forEach(field => {
+                        if (!field.closest('.rich-text-wrapper')) {
+                            GeneratorCore.utils.enableRichText(field);
+                        }
+                    });
+                }, 100);
+            }
+            
+            console.log('✅ DragDrop restaurado');
+        }, 200);
     },
     
     // 3. createTemplate:

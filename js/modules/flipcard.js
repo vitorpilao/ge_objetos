@@ -109,6 +109,8 @@ GeneratorCore.registerModule('flipcard', {
             .map(input => (input.value.trim() !== '') ? `<li>${input.value}</li>` : null)
             .filter(item => item !== null)
             .join('\n');
+        const itemsArray = Array.from(document.querySelectorAll('.flipcard-item-input')).map(inp => inp.value);
+        
         return {
             audiodescricao: document.getElementById('input-flipcard-audiodescricao').value,
             uniqueId: `card-flipper-${Date.now().toString().slice(-6)}`,
@@ -122,8 +124,91 @@ GeneratorCore.registerModule('flipcard', {
             iconeAriaLabel: iconeSelect.options[iconeSelect.selectedIndex].getAttribute('data-label'),
             ariaLabelRegiao: document.getElementById('input-aria-label-flipcard').value,
             ariaLabelBotao: `${stripHTML(tituloFrenteRaw)}. Pressione para ver os objetivos.`,
-            listaItensHTML: listaItensHTML
+            listaItensHTML: listaItensHTML,
+            itemsArray: itemsArray,
+            iconeKey: iconeKey
         };
+    },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do Flipcard:', data);
+        console.log('📦 itemsArray:', data.itemsArray);
+        console.log('📦 Número de itens:', data.itemsArray?.length);
+        
+        setTimeout(() => {
+            const ariaField = document.getElementById('input-aria-label-flipcard');
+            const audioField = document.getElementById('input-flipcard-audiodescricao');
+            const corField = document.getElementById('input-cor-tema-flipcard');
+            const bgField = document.getElementById('input-cor-fundo-flipcard');
+            const iconeField = document.getElementById('input-icone-flipcard');
+            const tituloFrenteField = document.getElementById('input-titulo-frente-flipcard');
+            const descFrenteField = document.getElementById('input-descricao-frente-flipcard');
+            const tituloVersoField = document.getElementById('input-titulo-verso-flipcard');
+            
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabelRegiao);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            if (corField) corField.value = data.corTema || '#0A88F4';
+            if (bgField) bgField.value = data.corFundo || '#FFFFFF';
+            if (iconeField && data.iconeKey) iconeField.value = data.iconeKey;
+            restoreFieldWithWYSIWYG(tituloFrenteField, data.tituloFrente);
+            restoreFieldWithWYSIWYG(descFrenteField, data.descricaoFrente);
+            restoreFieldWithWYSIWYG(tituloVersoField, data.tituloVerso);
+            
+            const container = document.getElementById('flipcard-itens-container');
+            console.log('📦 Container encontrado:', container);
+            if (container && data.itemsArray && data.itemsArray.length > 0) {
+                container.innerHTML = '';
+                
+                data.itemsArray.forEach((item, index) => {
+                    const bloco = document.createElement('div');
+                    bloco.className = 'flipcard-item-bloco';
+                    
+                    bloco.innerHTML = `
+                        <div class="form-group">
+                            <label for="input-flipcard-item-${index}">Item ${index + 1}</label>
+                            <textarea id="input-flipcard-item-${index}" class="rich-text-enabled flipcard-item-input" placeholder="Digite o texto..."></textarea>
+                        </div>
+                    `;
+                    
+                    container.appendChild(bloco);
+                    
+                    const itemField = document.getElementById(`input-flipcard-item-${index}`);
+                    if (itemField) itemField.value = item || '';
+                    
+                    if (index > 0) {
+                        const removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'flipcard-remove-item';
+                        removeButton.innerHTML = '&times;';
+                        removeButton.title = `Remover Item ${index + 1}`;
+                        removeButton.style.cssText = "position: absolute; top: 10px; right: 10px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer;";
+                        
+                        removeButton.addEventListener('click', () => bloco.remove());
+                        bloco.appendChild(removeButton);
+                    }
+                });
+                
+                setTimeout(() => {
+                    container.querySelectorAll('.rich-text-enabled').forEach(field => {
+                        if (!field.closest('.rich-text-wrapper')) {
+                            GeneratorCore.utils.enableRichText(field);
+                        }
+                    });
+                }, 100);
+            }
+            
+            console.log('✅ Flipcard restaurado');
+        }, 200);
     },
 
     // 3. createTemplate: (CSS v5.9.2 + Correção de VLIBRAS)
@@ -220,12 +305,20 @@ html,body{
         </div>
     </div>
 </div>
-<script>document.addEventListener('DOMContentLoaded',()=>{
-    const t=document.querySelector(\`#${uniqueId}\`).closest(".interactive-card-wrapper");
-    if(t){const e=new IntersectionObserver((t,o)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");o.unobserve(t.target)}})},{threshold:.25});e.observe(t)}
-    
-    const e=document.getElementById("${uniqueId}");
-    if(!e)return;
+<script>(function(){
+    const init = () => {
+        const t=document.querySelector(\`#${uniqueId}\`).closest(".interactive-card-wrapper");
+        if(t){
+            if(t.closest('.object-card-preview')){
+                t.classList.add("is-visible");
+            }else{
+                const e=new IntersectionObserver((t,o)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");o.unobserve(t.target)}})},{threshold:.25});
+                e.observe(t)
+            }
+        }
+        
+        const e=document.getElementById("${uniqueId}");
+        if(!e)return;
     const o=e.querySelector(".card-front"),n=e.querySelector(".card-back");
     const r=()=>{
         const t="true"===e.getAttribute("aria-pressed");
@@ -255,6 +348,14 @@ html,body{
             r();
         }
     });
-});<\/script>`;
+    };
+    
+    // Executa imediatamente ou aguarda o DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();<\/script>`;
     }
 });

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Central de Componentes</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>🎨 Central de Componentes</h1>
+                <p>Faça login para acessar seus objetos interativos</p>
+            </div>
+            
+            <!-- Formulário de Login -->
+            <form id="form-login" class="auth-form">
+                <div class="form-group">
+                    <label for="login-email">E-mail</label>
+                    <input type="email" id="login-email" placeholder="seu@email.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Senha</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <div class="forgot-password-link">
+                    <a href="#" id="forgot-password-link">Esqueceu sua senha?</a>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <span class="btn-text">Entrar</span>
+                    <span class="btn-loader" style="display: none;">⏳</span>
+                </button>
+            </form>
+            
+            <div class="auth-divider">
+                <span>OU</span>
+            </div>
+            
+            <!-- Formulário de Registro -->
+            <form id="form-signup" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="signup-name">Nome Completo</label>
+                    <input type="text" id="signup-name" placeholder="João Silva" required autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">E-mail</label>
+                    <input type="email" id="signup-email" placeholder="seu@email.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Senha</label>
+                    <input type="password" id="signup-password" placeholder="Mínimo 6 caracteres" required minlength="6" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-primary">
+                    <span class="btn-text">Criar Conta</span>
+                    <span class="btn-loader" style="display: none;">⏳</span>
+                </button>
+            </form>
+            
+            <button id="toggle-auth" class="btn-link">
+                Não tem conta? <strong>Registre-se</strong>
+            </button>
+            
+            <div class="auth-footer">
+                <small>🔒 Sistema seguro de autenticação</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Recuperação de Senha -->
+    <div id="forgot-password-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Recuperar Senha</h2>
+                <button class="modal-close" id="close-forgot-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-forgot-password">
+                    <div class="form-group forgot-email-group">
+                        <label for="forgot-email">Digite seu e-mail cadastrado</label>
+                        <input type="email" id="forgot-email" class="forgot-email-input" placeholder="seu@email.com" required autocomplete="email">
+                    </div>
+                    <div id="forgot-message" class="message" style="display: none;"></div>
+                    <button type="submit" class="btn-primary btn-compact">
+                        <span class="btn-text">Enviar Link</span>
+                        <span class="btn-loader" style="display: none;">⏳</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

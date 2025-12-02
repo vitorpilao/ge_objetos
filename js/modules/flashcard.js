@@ -9,7 +9,7 @@ GeneratorCore.registerModule('flashcard', {
         const container = document.getElementById('flashcard-cards-container');
         
         const updateCardLabels = () => {
-            const allBlocks = container.querySelectorAll('.flashcard-bloco');
+            const allBlocks = container.querySelectorAll('.flashcard-bloco, .flashcard-card-bloco');
             allBlocks.forEach((bloco, index) => {
                 const cardNum = index + 1;
                 const frenteLabel = bloco.querySelector('label[for^="input-flashcard-frente-"]');
@@ -91,24 +91,36 @@ GeneratorCore.registerModule('flashcard', {
         const cardDataArray = [];
         const cardBlocos = document.querySelectorAll('.flashcard-bloco');
         
-        cardBlocos.forEach(bloco => {
-            const frenteInput = bloco.querySelector('.flashcard-frente-input');
-            const versoInput = bloco.querySelector('.flashcard-verso-input');
+        cardBlocos.forEach((bloco, idx) => {
             let frontVal = '';
             let backVal = '';
-            if (frenteInput) {
-                // Prioriza `value` — o `enableRichText` grava o conteúdo em `value`.
-                const rawVal = ('value' in frenteInput) ? (frenteInput.value || '').trim() : '';
-                if (rawVal) frontVal = rawVal;
-                else if (frenteInput.contentEditable === 'true') frontVal = (frenteInput.innerHTML || '').trim();
-                else frontVal = (frenteInput.textContent || '').trim();
+            
+            // Busca o editor WYSIWYG (criado pelo enableRichText)
+            const frenteEditor = bloco.querySelector('.form-group:nth-child(2) .wysiwyg-editor') || 
+                                 bloco.querySelector('.flashcard-frente-input.wysiwyg-editor') ||
+                                 bloco.querySelector('.flashcard-frente-input');
+            
+            const versoEditor = bloco.querySelector('.form-group:nth-child(3) .wysiwyg-editor') || 
+                                bloco.querySelector('.flashcard-verso-input.wysiwyg-editor') ||
+                                bloco.querySelector('.flashcard-verso-input');
+            
+            if (frenteEditor) {
+                // Se for um editor WYSIWYG, lê o innerHTML
+                if (frenteEditor.classList.contains('wysiwyg-editor') || frenteEditor.contentEditable === 'true') {
+                    frontVal = (frenteEditor.innerHTML || '').trim();
+                } else if ('value' in frenteEditor) {
+                    frontVal = (frenteEditor.value || '').trim();
+                }
             }
-            if (versoInput) {
-                const rawValB = ('value' in versoInput) ? (versoInput.value || '').trim() : '';
-                if (rawValB) backVal = rawValB;
-                else if (versoInput.contentEditable === 'true') backVal = (versoInput.innerHTML || '').trim();
-                else backVal = (versoInput.textContent || '').trim();
+            
+            if (versoEditor) {
+                if (versoEditor.classList.contains('wysiwyg-editor') || versoEditor.contentEditable === 'true') {
+                    backVal = (versoEditor.innerHTML || '').trim();
+                } else if ('value' in versoEditor) {
+                    backVal = (versoEditor.value || '').trim();
+                }
             }
+            
             if (frontVal || backVal) {
                 cardDataArray.push({ front: frontVal, back: backVal });
             }
@@ -132,8 +144,122 @@ GeneratorCore.registerModule('flashcard', {
             corHoverTexto: core.utils.getContrastColor(corHover),
             corFundo: corFundo,
             corTexto: core.utils.getContrastColor(corFundo),
-            cardDataJson: safeJsonString
+            cardDataJson: safeJsonString,
+            cardDataArray: cardDataArray
         };
+    },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do Flashcard:', data);
+        console.log('📦 cardDataArray:', data.cardDataArray);
+        console.log('📦 Número de cards:', data.cardDataArray?.length);
+        
+        setTimeout(() => {
+            const ariaField = document.getElementById('input-flashcard-aria-label');
+            const audioField = document.getElementById('input-flashcard-audiodescricao');
+            const corField = document.getElementById('input-flashcard-cor');
+            const corHoverField = document.getElementById('input-flashcard-cor-hover');
+            const bgField = document.getElementById('input-flashcard-bg');
+            
+            console.log('🔍 Campos encontrados:', {
+                ariaField: !!ariaField,
+                audioField: !!audioField,
+                corField: !!corField,
+                corHoverField: !!corHoverField,
+                bgField: !!bgField
+            });
+            
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabel);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            if (corField) corField.value = data.corDestaque || '#0A88F4';
+            if (corHoverField) corHoverField.value = data.corHover || '#FF7A00';
+            if (bgField) bgField.value = data.corFundo || '#FFFFFF';
+            
+            const container = document.getElementById('flashcard-cards-container');
+            if (container && data.cardDataArray && data.cardDataArray.length > 0) {
+                container.innerHTML = '';
+                
+                data.cardDataArray.forEach((card, index) => {
+                    console.log(`🔍 Processando card ${index}:`, card);
+                    // Suportar múltiplos formatos:
+                    // - Array: [frente, verso]
+                    // - Objeto PT: {frente, verso}
+                    // - Objeto EN: {front, back}
+                    let frente, verso;
+                    if (Array.isArray(card)) {
+                        frente = card[0];
+                        verso = card[1];
+                    } else {
+                        frente = card.frente || card.front;
+                        verso = card.verso || card.back;
+                    }
+                    
+                    const bloco = document.createElement('div');
+                    bloco.className = 'flashcard-bloco';
+                    
+                    bloco.innerHTML = `
+                        <div class="form-group">
+                            <label for="input-flashcard-frente-${index}">Frente do Card ${index + 1}</label>
+                            <input type="text" id="input-flashcard-frente-${index}" class="rich-text-enabled flashcard-frente-input" placeholder="Ex: <b>HTML5</b>">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-flashcard-verso-${index}">Verso do Card ${index + 1}</label>
+                            <textarea id="input-flashcard-verso-${index}" class="rich-text-enabled flashcard-verso-input" placeholder="A linguagem fundamental..."></textarea>
+                        </div>
+                    `;
+                    
+                    container.appendChild(bloco);
+                    
+                    const frenteField = document.getElementById(`input-flashcard-frente-${index}`);
+                    const versoField = document.getElementById(`input-flashcard-verso-${index}`);
+                    
+                    console.log(`📝 Card ${index} - Frente:`, frente);
+                    console.log(`📝 Card ${index} - Verso:`, verso);
+                    console.log(`🔍 Campos encontrados - Frente:`, !!frenteField, 'Verso:', !!versoField);
+                    
+                    if (frenteField) {
+                        frenteField.value = frente || '';
+                        console.log(`✅ Campo frente ${index} preenchido com:`, frenteField.value);
+                    }
+                    if (versoField) {
+                        versoField.value = verso || '';
+                        console.log(`✅ Campo verso ${index} preenchido com:`, versoField.value);
+                    }
+                    
+                    if (index > 0) {
+                        const removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'flashcard-remove-card';
+                        removeButton.innerHTML = '&times;';
+                        removeButton.title = `Remover Card ${index + 1}`;
+                        removeButton.style.cssText = "position: absolute; top: 10px; right: 10px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer;";
+                        
+                        removeButton.addEventListener('click', () => bloco.remove());
+                        bloco.appendChild(removeButton);
+                    }
+                });
+                
+                setTimeout(() => {
+                    container.querySelectorAll('.rich-text-enabled').forEach(field => {
+                        if (!field.closest('.rich-text-wrapper')) {
+                            GeneratorCore.utils.enableRichText(field);
+                        }
+                    });
+                }, 100);
+            }
+            
+            console.log('✅ Flashcard restaurado com', data.cardDataArray?.length || 0, 'cards');
+        }, 200);
     },
     
     // 3. createTemplate: (Nenhuma mudança necessária aqui)
@@ -193,11 +319,12 @@ html{height:100%}body{font-family:'Arial',sans-serif;background-color:transparen
         <div class="progress-indicator"></div>
     </div>
 </div>
-<script>document.addEventListener('DOMContentLoaded',()=>{
-    const t="${uniqueId}";
-    const e = JSON.parse('${cardDataJson}');
-    const o = document.getElementById(t);
-    if(!o)return;
+<script>(function(){
+    const init = () => {
+        const t="${uniqueId}";
+        const e = JSON.parse('${cardDataJson}');
+        const o = document.getElementById(t);
+        if(!o) return;
     const n=o.querySelector(".flash-card"),r=o.querySelector(".card-face-front"),a=o.querySelector(".card-face-back"),l=o.querySelector(".btn-flip"),c=o.querySelector(".btn-prev"),s=o.querySelector(".btn-next"),i=o.querySelector(".progress-indicator");
     let d=0,u=!1;
 
@@ -280,7 +407,21 @@ html{height:100%}body{font-family:'Arial',sans-serif;background-color:transparen
     c.addEventListener("click",()=>{d=(d-1+e.length)%e.length,p(d)}),
     p(d);
     const b=o.closest(".interactive-card-wrapper");
-    if(b){const t=new IntersectionObserver((t,e)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");e.unobserve(t.target)}})},{threshold:.25});t.observe(b)}
-});<\/script>`;
+    if(b){
+        if(b.closest('.object-card-preview')){
+            b.classList.add("is-visible");
+        }else{
+            const t=new IntersectionObserver((t,e)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");e.unobserve(t.target)}})},{threshold:.25});
+            t.observe(b)
+        }
+    }
+    };
+    // Executa imediatamente ou aguarda o DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();<\/script>`;
     }
 });

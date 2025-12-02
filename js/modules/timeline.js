@@ -98,15 +98,49 @@ GeneratorCore.registerModule('timeline', {
         const passoBlocos = document.querySelectorAll('.timeline-passo-bloco');
         
         passoBlocos.forEach(bloco => {
-            const abaInput = bloco.querySelector('.timeline-aba-input');
-            const tituloInput = bloco.querySelector('.timeline-titulo-input');
-            const descInput = bloco.querySelector('.timeline-desc-input');
+            const abaEditor = bloco.querySelector('.timeline-aba-input + .rich-text-wrapper .wysiwyg-editor') ||
+                             bloco.querySelector('.timeline-aba-input.wysiwyg-editor') ||
+                             bloco.querySelector('.timeline-aba-input');
+            const tituloEditor = bloco.querySelector('.timeline-titulo-input + .rich-text-wrapper .wysiwyg-editor') ||
+                                bloco.querySelector('.timeline-titulo-input.wysiwyg-editor') ||
+                                bloco.querySelector('.timeline-titulo-input');
+            const descEditor = bloco.querySelector('.timeline-desc-input + .rich-text-wrapper .wysiwyg-editor') ||
+                              bloco.querySelector('.timeline-desc-input.wysiwyg-editor') ||
+                              bloco.querySelector('.timeline-desc-input');
 
-            if (abaInput && tituloInput && descInput) {
+            let abaVal = '';
+            let tituloVal = '';
+            let descVal = '';
+            
+            if (abaEditor) {
+                if (abaEditor.classList.contains('wysiwyg-editor') || abaEditor.contentEditable === 'true') {
+                    abaVal = (abaEditor.innerHTML || '').trim();
+                } else if ('value' in abaEditor) {
+                    abaVal = (abaEditor.value || '').trim();
+                }
+            }
+            
+            if (tituloEditor) {
+                if (tituloEditor.classList.contains('wysiwyg-editor') || tituloEditor.contentEditable === 'true') {
+                    tituloVal = (tituloEditor.innerHTML || '').trim();
+                } else if ('value' in tituloEditor) {
+                    tituloVal = (tituloEditor.value || '').trim();
+                }
+            }
+            
+            if (descEditor) {
+                if (descEditor.classList.contains('wysiwyg-editor') || descEditor.contentEditable === 'true') {
+                    descVal = (descEditor.innerHTML || '').trim();
+                } else if ('value' in descEditor) {
+                    descVal = (descEditor.value || '').trim();
+                }
+            }
+
+            if (abaVal || tituloVal || descVal) {
                 dataArray.push([
-                    abaInput.value,    // Título Aba (agora com HTML)
-                    tituloInput.value, // Título Conteúdo
-                    descInput.value    // Descrição
+                    abaVal,    // Título Aba (agora com HTML)
+                    tituloVal, // Título Conteúdo
+                    descVal    // Descrição
                 ]);
             }
         });
@@ -155,8 +189,99 @@ GeneratorCore.registerModule('timeline', {
             corFundo: corFundo,
             corTextoPrincipal: corTextoPrincipal,
             corTextoSecundario: corTextoSecundario,
-            corBorda: corBorda
+            corBorda: corBorda,
+            dataArray: dataArray // Salvar array original para restauração
         };
+    },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do Timeline:', data);
+        
+        setTimeout(() => {
+            const ariaField = document.getElementById('input-timeline-aria-label');
+            const audioField = document.getElementById('input-timeline-audiodescricao');
+            const corField = document.getElementById('input-timeline-cor');
+            const bgField = document.getElementById('input-timeline-bg');
+            
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabel);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            if (corField) corField.value = data.corDestaque || '#0A88F4';
+            if (bgField) bgField.value = data.corFundo || '#FFFFFF';
+            
+            // Restaurar eventos da timeline
+            const container = document.getElementById('timeline-passos-container');
+            if (container && data.dataArray && data.dataArray.length > 0) {
+                container.innerHTML = '';
+                
+                data.dataArray.forEach((item, index) => {
+                    const [aba, titulo, desc] = item;
+                    
+                    const bloco = document.createElement('div');
+                    bloco.className = 'timeline-passo-bloco';
+                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; background-color: #fff;";
+                    
+                    bloco.innerHTML = `
+                        <div class="form-group">
+                            <label for="input-timeline-aba-${index}">Título da Aba ${index + 1}</label>
+                            <input type="text" id="input-timeline-aba-${index}" class="rich-text-enabled timeline-aba-input" placeholder="Ex: 1960s">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-timeline-titulo-${index}">Título do Conteúdo ${index + 1}</label>
+                            <input type="text" id="input-timeline-titulo-${index}" class="rich-text-enabled timeline-titulo-input" placeholder="Ex: A Crise do Software">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-timeline-desc-${index}">Descrição ${index + 1}</label>
+                            <textarea id="input-timeline-desc-${index}" class="rich-text-enabled timeline-desc-input" placeholder="O termo é cunhado na OTAN..."></textarea>
+                        </div>
+                    `;
+                    
+                    container.appendChild(bloco);
+                    
+                    // Restaurar valores
+                    const abaField = document.getElementById(`input-timeline-aba-${index}`);
+                    const tituloField = document.getElementById(`input-timeline-titulo-${index}`);
+                    const descField = document.getElementById(`input-timeline-desc-${index}`);
+                    
+                    if (abaField) abaField.value = aba || '';
+                    if (tituloField) tituloField.value = titulo || '';
+                    if (descField) descField.value = desc || '';
+                    
+                    // Botão remover (exceto primeiro)
+                    if (index > 0) {
+                        const removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'timeline-remove-passo';
+                        removeButton.innerHTML = '&times;';
+                        removeButton.title = `Remover Evento ${index + 1}`;
+                        removeButton.style.cssText = "position: absolute; top: 10px; right: 10px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer;";
+                        
+                        removeButton.addEventListener('click', () => bloco.remove());
+                        bloco.appendChild(removeButton);
+                    }
+                });
+                
+                // Reativar WYSIWYG
+                setTimeout(() => {
+                    container.querySelectorAll('.rich-text-enabled').forEach(field => {
+                        if (!field.closest('.rich-text-wrapper')) {
+                            GeneratorCore.utils.enableRichText(field);
+                        }
+                    });
+                }, 100);
+            }
+            
+            console.log('✅ Timeline restaurado com', data.dataArray?.length || 0, 'eventos');
+        }, 200);
     },
 
     // 3. createTemplate: (Mudei <p> para <div> na descrição para aceitar melhor o HTML)
@@ -183,7 +308,7 @@ html,body{margin:0;padding:0;background-color:transparent}
 .interactive-timeline-wrapper{opacity:0;transform:translateY(20px);transition:opacity .6s ease-out,transform .6s ease-out;padding:10px;box-sizing:border-box;width:100%}
 .interactive-timeline-wrapper.is-visible{opacity:1;transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){.interactive-timeline-wrapper{transition:opacity .4s ease-out;transform:none}}
-.timeline-stepper-wrapper{font-family:var(--font-secondary);background-color:var(--cor-fundo-card);border:1px solid var(--cor-borda-leve);border-radius:8px;overflow:hidden}
+.timeline-stepper-wrapper{font-family:var(--font-secondary);background-color:var(--cor-fundo-card);border:1px solid var(--cor-borda-leve);border-radius:8px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1)}
 .timeline-nav{display:flex;overflow-x:auto;border-bottom:2px solid var(--cor-borda-leve);-ms-overflow-style:none;scrollbar-width:none}
 .timeline-nav::-webkit-scrollbar{display:none}
 .timeline-tab{appearance:none;background:none;border:none;cursor:pointer;font-family:var(--font-primary);font-size:1.1rem;font-weight:700;color:var(--cor-texto-secundario);padding:14px 20px;margin:0;border-bottom:3px solid transparent;flex-shrink:0;transition:color .3s ease,border-color .3s ease,filter .3s ease}
@@ -202,6 +327,38 @@ html,body{margin:0;padding:0;background-color:transparent}
 .timeline-tab-text > *:first-child { margin-top: 0; }
 .timeline-tab-text > *:last-child { margin-bottom: 0; }
 
-</style><div class="interactive-timeline-wrapper" role="region" aria-label="${ariaLabel}"><div class="timeline-stepper-wrapper" id="${uniqueId}">${audiodescricaoHTML}<div class="timeline-nav" role="tablist" aria-label="Marcos da timeline">${tabsHTML}</div><div class="timeline-content-area">${panelsHTML}</div></div></div><script>document.addEventListener('DOMContentLoaded',()=>{const t="${uniqueId}",e=document.getElementById(t);if(!e)return;const o=e.querySelector(".timeline-nav"),n=Array.from(o.querySelectorAll(".timeline-tab")),r=e.querySelector(".timeline-content-area"),a=Array.from(r.querySelectorAll(".timeline-content"));function i(t){a.forEach(t=>{t.classList.remove("is-active"),t.addEventListener("transitionend",function e(){t.classList.contains("is-active")||(t.setAttribute("hidden",!0),t.removeEventListener("transitionend",e))})}),n.forEach(t=>{t.setAttribute("aria-selected","false"),t.setAttribute("tabindex","-1")}),t.setAttribute("aria-selected","true"),t.setAttribute("tabindex","0");const o=t.getAttribute("aria-controls"),r=e.querySelector(\`#\${o}\`);r&&(r.removeAttribute("hidden"),setTimeout(()=>{r.classList.add("is-active")},50)),t.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"})}o.addEventListener("click",t=>{const e=t.target.closest(".timeline-tab");e&&"true"!==e.getAttribute("aria-selected")&&i(e)}),o.addEventListener("keydown",t=>{let e=o.querySelector('[tabindex="0"]');if(!e)return;let r;const l=n.indexOf(e);if("ArrowRight"===t.key)t.preventDefault(),r=(l+1)%n.length;else if("ArrowLeft"===t.key)t.preventDefault(),r=(l-1+n.length)%n.length;else if("Home"===t.key)t.preventDefault(),r=0;else{if("End"!==t.key)return;t.preventDefault(),r=n.length-1}const c=n[r];c.focus(),i(c)});const l=e.closest(".interactive-timeline-wrapper");if(l){const t=new IntersectionObserver((t,e)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");e.unobserve(t.target)}})},{threshold:.25});t.observe(l)}});<\/script>`;
+</style><div class="interactive-timeline-wrapper" role="region" aria-label="${ariaLabel}"><div class="timeline-stepper-wrapper" id="${uniqueId}">${audiodescricaoHTML}<div class="timeline-nav" role="tablist" aria-label="Marcos da timeline">${tabsHTML}</div><div class="timeline-content-area">${panelsHTML}</div></div></div><script>
+(function(){
+    const init = () => {
+        const t="${uniqueId}",e=document.getElementById(t);
+        if(!e)return;
+        const o=e.querySelector(".timeline-nav"),n=Array.from(o.querySelectorAll(".timeline-tab")),r=e.querySelector(".timeline-content-area"),a=Array.from(r.querySelectorAll(".timeline-content"));
+        function i(t){
+            a.forEach(t=>{t.classList.remove("is-active"),t.addEventListener("transitionend",function e(){t.classList.contains("is-active")||(t.setAttribute("hidden",!0),t.removeEventListener("transitionend",e))})});
+            n.forEach(t=>{t.setAttribute("aria-selected","false"),t.setAttribute("tabindex","-1")});
+            t.setAttribute("aria-selected","true"),t.setAttribute("tabindex","0");
+            const o=t.getAttribute("aria-controls"),r=e.querySelector(\`#\${o}\`);
+            r&&(r.removeAttribute("hidden"),setTimeout(()=>{r.classList.add("is-active")},50));
+            t.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"})
+        }
+        o.addEventListener("click",t=>{const e=t.target.closest(".timeline-tab");e&&"true"!==e.getAttribute("aria-selected")&&i(e)});
+        o.addEventListener("keydown",t=>{let e=o.querySelector('[tabindex="0"]');if(!e)return;let r;const l=n.indexOf(e);if("ArrowRight"===t.key)t.preventDefault(),r=(l+1)%n.length;else if("ArrowLeft"===t.key)t.preventDefault(),r=(l-1+n.length)%n.length;else if("Home"===t.key)t.preventDefault(),r=0;else{if("End"!==t.key)return;t.preventDefault(),r=n.length-1}const c=n[r];c.focus(),i(c)});
+        const l=e.closest(".interactive-timeline-wrapper");
+        if(l){
+            if(l.closest('.object-card-preview')){
+                l.classList.add("is-visible");
+            }else{
+                const t=new IntersectionObserver((t,e)=>{t.forEach(t=>{if(t.isIntersecting){t.target.classList.add("is-visible");e.unobserve(t.target)}})},{threshold:.25});
+                t.observe(l)
+            }
+        }
+    };
+    if(document.readyState==='loading'){
+        document.addEventListener('DOMContentLoaded',init);
+    }else{
+        init();
+    }
+})();
+<\/script>`;
     }
 });

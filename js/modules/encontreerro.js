@@ -38,16 +38,31 @@ GeneratorCore.registerModule('encontreerro', {
             erros.push(input.value);
         });
 
-        const textoBase = document.getElementById('input-encontreerro-texto')?.value || '';
+        // Função auxiliar para ler de WYSIWYG ou input normal
+        const readFieldValue = (fieldId, defaultValue = '') => {
+            const field = document.getElementById(fieldId);
+            if (!field) return defaultValue;
+            
+            const wrapper = field.closest('.rich-text-wrapper');
+            if (wrapper) {
+                const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                if (wysiwyg) {
+                    return (wysiwyg.innerHTML || '').trim();
+                }
+            }
+            return field.value || defaultValue;
+        };
+
+        const textoBase = readFieldValue('input-encontreerro-texto', '');
         const corFundo = document.getElementById('input-encontreerro-bg')?.value || '#FFFFFF';
         const corDestaque = document.getElementById('input-encontreerro-cor')?.value || '#0A88F4';
         const corTexto = core.utils.getContrastColor(corFundo);
-        const feedbackCorrect = document.getElementById('input-encontreerro-feedback-correct')?.value || 'Parabéns! Você encontrou todos os erros.';
-        const feedbackIncorrect = document.getElementById('input-encontreerro-feedback-incorrect')?.value || 'Você não encontrou todos os erros. As palavras que faltaram estão destacadas em vermelho.';
-        const feedbackInitial = document.getElementById('input-encontreerro-feedback-initial')?.value || 'Clique nas palavras que você acha que estão erradas.';
-        const helpBtnText = document.getElementById('input-encontreerro-help-btn')?.value || 'Ajuda';
-        const helpActiveText = document.getElementById('input-encontreerro-help-text')?.value || 'As palavras suspeitas foram destacadas.';
-        const verifyBtnText = document.getElementById('input-encontreerro-verify-btn')?.value || 'Verificar';
+        const feedbackCorrect = readFieldValue('input-encontreerro-feedback-correct', 'Parabéns! Você encontrou todos os erros.');
+        const feedbackIncorrect = readFieldValue('input-encontreerro-feedback-incorrect', 'Você não encontrou todos os erros. As palavras que faltaram estão destacadas em vermelho.');
+        const feedbackInitial = readFieldValue('input-encontreerro-feedback-initial', 'Clique nas palavras que você acha que estão erradas.');
+        const helpBtnText = readFieldValue('input-encontreerro-help-btn', 'Ajuda');
+        const helpActiveText = readFieldValue('input-encontreerro-help-text', 'As palavras suspeitas foram destacadas.');
+        const verifyBtnText = readFieldValue('input-encontreerro-verify-btn', 'Verificar');
 
 
         return {
@@ -66,8 +81,73 @@ GeneratorCore.registerModule('encontreerro', {
             feedbackInitial,
             helpBtnText,
             helpActiveText,
-            verifyBtnText
+            verifyBtnText,
+            rawErros: erros
         };
+    },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do EncontreErro:', data);
+        
+        setTimeout(() => {
+            const ariaField = document.getElementById('input-encontreerro-aria-label');
+            const audioField = document.getElementById('input-encontreerro-audiodescricao');
+            const textoField = document.getElementById('input-encontreerro-texto');
+            const bgField = document.getElementById('input-encontreerro-bg');
+            const corField = document.getElementById('input-encontreerro-cor');
+            const feedbackCorrectField = document.getElementById('input-encontreerro-feedback-correct');
+            const feedbackIncorrectField = document.getElementById('input-encontreerro-feedback-incorrect');
+            const feedbackInitialField = document.getElementById('input-encontreerro-feedback-initial');
+            const helpBtnField = document.getElementById('input-encontreerro-help-btn');
+            const helpActiveField = document.getElementById('input-encontreerro-help-text');
+            const verifyBtnField = document.getElementById('input-encontreerro-verify-btn');
+            
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabel);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            restoreFieldWithWYSIWYG(textoField, data.textoBase);
+            if (bgField) bgField.value = data.corFundo || '#FFFFFF';
+            if (corField) corField.value = data.corDestaque || '#dc3545';
+            restoreFieldWithWYSIWYG(feedbackCorrectField, data.feedbackCorrect);
+            restoreFieldWithWYSIWYG(feedbackIncorrectField, data.feedbackIncorrect);
+            restoreFieldWithWYSIWYG(feedbackInitialField, data.feedbackInitial);
+            restoreFieldWithWYSIWYG(helpBtnField, data.helpBtnText);
+            restoreFieldWithWYSIWYG(helpActiveField, data.helpActiveText);
+            restoreFieldWithWYSIWYG(verifyBtnField, data.verifyBtnText);
+            
+            // Restaurar erros dinamicamente
+            const container = document.getElementById('encontreerro-erros-lista');
+            if (container && data.rawErros && Array.isArray(data.rawErros)) {
+                container.innerHTML = ''; // Limpa blocos existentes
+                
+                data.rawErros.forEach((erro, index) => {
+                    const bloco = document.createElement('div');
+                    bloco.className = 'encontreerro-bloco';
+                    bloco.innerHTML = `
+                        <div class="encontreerro-flex-group">
+                            <div class="form-group-textarea" style="flex:1; margin-right:8px;">
+                                <label for="input-encontreerro-${index}" style="font-weight:600; margin-bottom:4px;">Erro ${index + 1}</label>
+                                <input type="text" id="input-encontreerro-${index}" class="encontreerro-input" placeholder="Digite o texto com erro..." required style="padding:12px; border:1.5px solid var(--color-azul-moderno); border-radius:6px; font-size:1.05rem; font-family:var(--font-secondary); width:100%;" value="${erro}">
+                            </div>
+                            <button type="button" class="encontreerro-remove" title="Remover">&times;</button>
+                        </div>
+                    `;
+                    bloco.querySelector('.encontreerro-remove').onclick = () => bloco.remove();
+                    container.appendChild(bloco);
+                });
+            }
+            
+            console.log('✅ EncontreErro restaurado');
+        }, 200);
     },
 
     // Gera o HTML do preview
@@ -315,93 +395,101 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     </div>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('${uniqueId}');
-    if (!container) return;
+(function() {
+    const init = () => {
+        const container = document.getElementById('${uniqueId}');
+        if (!container) return;
 
-    // Entrada suave: adiciona a classe .is-visible quando o componente entra na viewport
-    try {
-        const obsTarget = container;
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    obsTarget.classList.add('is-visible');
-                    obs.unobserve(obsTarget);
-                }
-            });
-        }, { threshold: 0.15 });
-        observer.observe(obsTarget);
-    } catch (e) {
-        // Se IntersectionObserver não estiver disponível, mostra imediatamente
-        container.classList.add('is-visible');
-    }
-
-    const items = container.querySelectorAll('.encontreerro-item');
-    const feedback = container.querySelector('.encontreerro-feedback');
-    const resetBtn = container.querySelector('.encontreerro-reset-btn');
-    const helpBtn = container.querySelector('.encontreerro-help-btn');
-    const verifyBtn = container.querySelector('.encontreerro-verify-btn');
-    
-    const totalErros = items.length;
-
-    items.forEach(item => {
-        item.addEventListener('click', () => {
-            // Permite selecionar/desselecionar apenas se a verificação não foi feita
-            if (!container.classList.contains('verified')) {
-                item.classList.toggle('selected');
-            }
-        });
-    });
-
-    verifyBtn.addEventListener('click', () => {
-        container.classList.add('verified'); // Marca que a verificação foi feita
-        const selectedItems = container.querySelectorAll('.encontreerro-item.selected');
-
-        // Desabilita todos os itens para cliques futuros
-        items.forEach(item => item.setAttribute('aria-disabled', 'true'));
-
-        if (selectedItems.length === totalErros) {
-            // Caso de sucesso: todas as palavras corretas foram selecionadas
-            feedback.innerHTML = '${feedbackCorrect}';
-            container.classList.add('success-anim');
-            items.forEach(item => item.classList.add('correct'));
-        } else {
-            // Caso de erro: nem todas as palavras foram encontradas
-            feedback.innerHTML = '${feedbackIncorrect}';
-            items.forEach(item => {
-                if (item.classList.contains('selected')) {
-                    item.classList.add('correct'); // Marca as que acertou
-                } else {
-                    item.classList.add('missed'); // Marca as que errou
-                }
-            });
+        // Entrada suave: adiciona a classe .is-visible quando o componente entra na viewport
+        try {
+            const obsTarget = container;
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        obsTarget.classList.add('is-visible');
+                        obs.unobserve(obsTarget);
+                    }
+                });
+            }, { threshold: 0.15 });
+            observer.observe(obsTarget);
+        } catch (e) {
+            // Se IntersectionObserver não estiver disponível, mostra imediatamente
+            container.classList.add('is-visible');
         }
 
-        // Mostra o botão de reset e esconde (visualmente) o de verificar/ajuda
-        resetBtn.classList.add('visible');
-        verifyBtn.classList.add('hidden-preserve');
-        helpBtn.classList.add('hidden-preserve');
-    });
+        const items = container.querySelectorAll('.encontreerro-item');
+        const feedback = container.querySelector('.encontreerro-feedback');
+        const resetBtn = container.querySelector('.encontreerro-reset-btn');
+        const helpBtn = container.querySelector('.encontreerro-help-btn');
+        const verifyBtn = container.querySelector('.encontreerro-verify-btn');
+        
+        const totalErros = items.length;
 
-    helpBtn.addEventListener('click', () => {
-        container.classList.add('help-active');
-        feedback.innerHTML = '${helpActiveText}';
-        helpBtn.classList.add('hidden-preserve'); // Esconde visualmente após o uso, mantendo o espaço
-    });
-
-    resetBtn.addEventListener('click', () => {
-        container.classList.remove('verified', 'help-active', 'success-anim');
         items.forEach(item => {
-            item.classList.remove('selected', 'correct', 'missed');
-            item.removeAttribute('aria-disabled');
+            item.addEventListener('click', () => {
+                // Permite selecionar/desselecionar apenas se a verificação não foi feita
+                if (!container.classList.contains('verified')) {
+                    item.classList.toggle('selected');
+                }
+            });
         });
 
-        feedback.innerHTML = '${feedbackInitial}';
-        resetBtn.classList.remove('visible');
-        verifyBtn.classList.remove('hidden-preserve');
-        helpBtn.classList.remove('hidden-preserve');
-    });
-});
+        verifyBtn.addEventListener('click', () => {
+            container.classList.add('verified'); // Marca que a verificação foi feita
+            const selectedItems = container.querySelectorAll('.encontreerro-item.selected');
+
+            // Desabilita todos os itens para cliques futuros
+            items.forEach(item => item.setAttribute('aria-disabled', 'true'));
+
+            if (selectedItems.length === totalErros) {
+                // Caso de sucesso: todas as palavras corretas foram selecionadas
+                feedback.innerHTML = '${feedbackCorrect}';
+                container.classList.add('success-anim');
+                items.forEach(item => item.classList.add('correct'));
+            } else {
+                // Caso de erro: nem todas as palavras foram encontradas
+                feedback.innerHTML = '${feedbackIncorrect}';
+                items.forEach(item => {
+                    if (item.classList.contains('selected')) {
+                        item.classList.add('correct'); // Marca as que acertou
+                    } else {
+                        item.classList.add('missed'); // Marca as que errou
+                    }
+                });
+            }
+
+            // Mostra o botão de reset e esconde (visualmente) o de verificar/ajuda
+            resetBtn.classList.add('visible');
+            verifyBtn.classList.add('hidden-preserve');
+            helpBtn.classList.add('hidden-preserve');
+        });
+
+        helpBtn.addEventListener('click', () => {
+            container.classList.add('help-active');
+            feedback.innerHTML = '${helpActiveText}';
+            helpBtn.classList.add('hidden-preserve'); // Esconde visualmente após o uso, mantendo o espaço
+        });
+
+        resetBtn.addEventListener('click', () => {
+            container.classList.remove('verified', 'help-active', 'success-anim');
+            items.forEach(item => {
+                item.classList.remove('selected', 'correct', 'missed');
+                item.removeAttribute('aria-disabled');
+            });
+
+            feedback.innerHTML = '${feedbackInitial}';
+            resetBtn.classList.remove('visible');
+            verifyBtn.classList.remove('hidden-preserve');
+            helpBtn.classList.remove('hidden-preserve');
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
 </script>
 `;
     }

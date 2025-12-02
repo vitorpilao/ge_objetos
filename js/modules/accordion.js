@@ -74,12 +74,36 @@ GeneratorCore.registerModule('accordion', {
         const itemBlocos = document.querySelectorAll('.accordion-item-bloco');
         
         itemBlocos.forEach(bloco => {
-            const tituloInput = bloco.querySelector('.accordion-titulo-input');
-            const descInput = bloco.querySelector('.accordion-desc-input');
-            if (tituloInput && descInput && (tituloInput.value || descInput.value)) {
+            const tituloEditor = bloco.querySelector('.accordion-titulo-input + .rich-text-wrapper .wysiwyg-editor') ||
+                                 bloco.querySelector('.accordion-titulo-input.wysiwyg-editor') ||
+                                 bloco.querySelector('.accordion-titulo-input');
+            const descEditor = bloco.querySelector('.accordion-desc-input + .rich-text-wrapper .wysiwyg-editor') ||
+                               bloco.querySelector('.accordion-desc-input.wysiwyg-editor') ||
+                               bloco.querySelector('.accordion-desc-input');
+            
+            let tituloVal = '';
+            let descVal = '';
+            
+            if (tituloEditor) {
+                if (tituloEditor.classList.contains('wysiwyg-editor') || tituloEditor.contentEditable === 'true') {
+                    tituloVal = (tituloEditor.innerHTML || '').trim();
+                } else if ('value' in tituloEditor) {
+                    tituloVal = (tituloEditor.value || '').trim();
+                }
+            }
+            
+            if (descEditor) {
+                if (descEditor.classList.contains('wysiwyg-editor') || descEditor.contentEditable === 'true') {
+                    descVal = (descEditor.innerHTML || '').trim();
+                } else if ('value' in descEditor) {
+                    descVal = (descEditor.value || '').trim();
+                }
+            }
+            
+            if (tituloVal || descVal) {
                 itemDataArray.push({
-                    titulo: tituloInput.value,
-                    conteudo: descInput.value
+                    titulo: tituloVal,
+                    conteudo: descVal
                 });
             }
         });
@@ -97,8 +121,90 @@ GeneratorCore.registerModule('accordion', {
             corTexto: corTexto,
             corBorda: corBorda,
             audiodescricao: document.getElementById('input-accordion-audiodescricao').value,
-            itemsJson: safeJsonString
+            itemsJson: safeJsonString,
+            itemDataArray: itemDataArray
         };
+    },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do Accordion:', data);
+        
+        setTimeout(() => {
+            const ariaField = document.getElementById('input-accordion-aria-label');
+            const audioField = document.getElementById('input-accordion-audiodescricao');
+            const corField = document.getElementById('input-accordion-cor');
+            const bgField = document.getElementById('input-accordion-bg');
+            
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabel);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            if (corField) corField.value = data.corDestaque || '#0A88F4';
+            if (bgField) bgField.value = data.corFundo || '#FFFFFF';
+            
+            const container = document.getElementById('accordion-items-container');
+            if (container && data.itemDataArray && data.itemDataArray.length > 0) {
+                container.innerHTML = '';
+                
+                data.itemDataArray.forEach((item, index) => {
+                    // Suporta tanto formato objeto {titulo, conteudo} quanto array [titulo, desc]
+                    const titulo = item.titulo || (Array.isArray(item) ? item[0] : '');
+                    const desc = item.conteudo || (Array.isArray(item) ? item[1] : '');
+                    
+                    const bloco = document.createElement('div');
+                    bloco.className = 'accordion-item-bloco';
+                    
+                    bloco.innerHTML = `
+                        <div class="form-group">
+                            <label for="input-accordion-titulo-${index}">Título do Item ${index + 1}</label>
+                            <input type="text" id="input-accordion-titulo-${index}" class="rich-text-enabled accordion-titulo-input" placeholder="Ex: O que é IA?">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-accordion-desc-${index}">Descrição do Item ${index + 1}</label>
+                            <textarea id="input-accordion-desc-${index}" class="rich-text-enabled accordion-desc-input" placeholder="Inteligência Artificial é..."></textarea>
+                        </div>
+                    `;
+                    
+                    container.appendChild(bloco);
+                    
+                    const tituloField = document.getElementById(`input-accordion-titulo-${index}`);
+                    const descField = document.getElementById(`input-accordion-desc-${index}`);
+                    
+                    if (tituloField) tituloField.value = titulo || '';
+                    if (descField) descField.value = desc || '';
+                    
+                    if (index > 0) {
+                        const removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'accordion-remove-item';
+                        removeButton.innerHTML = '&times;';
+                        removeButton.title = `Remover Item ${index + 1}`;
+                        removeButton.style.cssText = "position: absolute; top: 10px; right: 10px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer;";
+                        
+                        removeButton.addEventListener('click', () => bloco.remove());
+                        bloco.appendChild(removeButton);
+                    }
+                });
+                
+                setTimeout(() => {
+                    container.querySelectorAll('.rich-text-enabled').forEach(field => {
+                        if (!field.closest('.rich-text-wrapper')) {
+                            GeneratorCore.utils.enableRichText(field);
+                        }
+                    });
+                }, 100);
+            }
+            
+            console.log('✅ Accordion restaurado com', data.itemDataArray?.length || 0, 'itens');
+        }, 200);
     },
     
     // 3. createTemplate: (Gera o código do componente)
@@ -132,6 +238,7 @@ html, body {
     margin: 10px auto;
     opacity: 0;
     transform: translateY(20px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
     transition: opacity .6s ease-out, transform .6s ease-out;
 }
 .accordion-wrapper.is-visible {
@@ -209,9 +316,10 @@ html, body {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById("${uniqueId}");
-    if (!container) return;
+(function(){
+    const init = () => {
+        const container = document.getElementById("${uniqueId}");
+        if (!container) return;
 
     // 1. Parse dos dados
     const itemsData = JSON.parse('${itemsJson}');
@@ -267,7 +375,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, { threshold: 0.1 });
     observer.observe(container);
-});
+    };
+    
+    // Executa imediatamente ou aguarda o DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
 </script>
 `;
     }

@@ -24,6 +24,89 @@ GeneratorCore.registerModule('destaque', {
         };
     },
 
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do Destaque:', data);
+        
+        // Aguardar um pouco para garantir que os campos existem
+        setTimeout(() => {
+            // Restaurar valores nos campos do formulário
+            const ariaField = document.getElementById('input-destaque-aria-label');
+            const tituloField = document.getElementById('input-destaque-titulo');
+            const corField = document.getElementById('input-destaque-cor');
+            const audioField = document.getElementById('input-destaque-audiodescricao');
+            const bgField = document.getElementById('input-destaque-bg');
+            const descricaoField = document.getElementById('input-destaque-descricao');
+            
+            console.log('🔍 Campos encontrados:', {
+                ariaField: !!ariaField,
+                tituloField: !!tituloField,
+                corField: !!corField,
+                audioField: !!audioField,
+                bgField: !!bgField,
+                descricaoField: !!descricaoField
+            });
+            
+            if (ariaField) {
+                // Se tem editor WYSIWYG, atualiza PRIMEIRO o editor
+                const wrapper = ariaField.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) {
+                        wysiwyg.innerHTML = data.ariaLabel || '';
+                        console.log('🎨 WYSIWYG ariaLabel atualizado:', data.ariaLabel);
+                    }
+                }
+                // DEPOIS atualiza o input
+                ariaField.value = data.ariaLabel || '';
+            }
+            
+            if (tituloField) {
+                // Se tem editor WYSIWYG, atualiza PRIMEIRO o editor
+                const wrapper = tituloField.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) {
+                        wysiwyg.innerHTML = data.titulo || '';
+                        console.log('🎨 WYSIWYG título atualizado:', data.titulo);
+                    }
+                }
+                // DEPOIS atualiza o input
+                tituloField.value = data.titulo || '';
+            }
+            
+            if (corField) corField.value = data.corDestaque || '#0A88F4';
+            if (audioField) audioField.value = data.audiodescricao || '';
+            if (bgField) bgField.value = data.corFundo || '#FFFFFF';
+            
+            // Restaurar descrição
+            if (descricaoField && data.descricaoHTML) {
+                const descricaoTexto = data.descricaoHTML
+                    .replace(/<p>/gi, '')
+                    .replace(/<\/p>/gi, '\n')
+                    .trim();
+                
+                // Se tem editor WYSIWYG, atualiza PRIMEIRO o editor
+                const wrapper = descricaoField.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) {
+                        wysiwyg.innerHTML = descricaoTexto.replace(/\n/g, '<br>');
+                        console.log('📝 WYSIWYG descrição atualizado:', descricaoTexto);
+                    }
+                }
+                
+                // DEPOIS atualiza o textarea
+                descricaoField.value = descricaoTexto;
+            }
+            
+            console.log('✅ Campos restaurados:', {
+                titulo: tituloField?.value,
+                descricao: descricaoField?.value,
+                ariaLabel: ariaField?.value
+            });
+        }, 200);
+    },
+
     createTemplate(data) {
         // Desestruturar as novas variáveis
         const { uniqueId, ariaLabel, titulo, descricaoHTML, corDestaque, corFundo, corTexto, audiodescricao } = data;

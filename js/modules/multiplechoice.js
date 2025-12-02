@@ -138,9 +138,21 @@ GeneratorCore.registerModule('multiplechoice', {
         const correctIndex = parseInt(checkedRadio.value, 10);
 
         const options = [];
-        const optionInputs = document.querySelectorAll('#multiplechoice-options-container textarea');
-        optionInputs.forEach(input => {
-            options.push(input.value);
+        const optionBlocos = document.querySelectorAll('.multiplechoice-option-bloco');
+        optionBlocos.forEach(bloco => {
+            const editor = bloco.querySelector('textarea + .rich-text-wrapper .wysiwyg-editor') ||
+                          bloco.querySelector('textarea.wysiwyg-editor') ||
+                          bloco.querySelector('textarea');
+            
+            let optionVal = '';
+            if (editor) {
+                if (editor.classList.contains('wysiwyg-editor') || editor.contentEditable === 'true') {
+                    optionVal = (editor.innerHTML || '').trim();
+                } else if ('value' in editor) {
+                    optionVal = (editor.value || '').trim();
+                }
+            }
+            options.push(optionVal);
         });
 
         const corFundo = document.getElementById('input-multiplechoice-bg').value;
@@ -164,6 +176,138 @@ GeneratorCore.registerModule('multiplechoice', {
             corDestaque: corDestaque,
             corDestaqueTexto: core.utils.getContrastColor(corDestaque)
         };
+    },
+
+    setFormData(data) {
+        console.log('🔄 Restaurando dados do Multiplechoice:', data);
+        
+        setTimeout(() => {
+            // Restaurar campos simples
+            const ariaField = document.getElementById('input-multiplechoice-aria-label');
+            const audioField = document.getElementById('input-multiplechoice-audiodescricao');
+            const titleField = document.getElementById('input-multiplechoice-title');
+            const questionField = document.getElementById('input-multiplechoice-question');
+            const corFundoField = document.getElementById('select-multiplechoice-bg');
+            const corDestaqueField = document.getElementById('select-multiplechoice-destaque');
+            const feedbackCorrectField = document.getElementById('input-multiplechoice-feedback-correct');
+            const feedbackIncorrectField = document.getElementById('input-multiplechoice-feedback-incorrect');
+            
+            // Restaurar campos com WYSIWYG
+            const restoreFieldWithWYSIWYG = (field, value) => {
+                if (!field || !value) return;
+                const wrapper = field.closest('.rich-text-wrapper');
+                if (wrapper) {
+                    const wysiwyg = wrapper.querySelector('.wysiwyg-editor');
+                    if (wysiwyg) wysiwyg.innerHTML = value;
+                }
+                field.value = value;
+            };
+            
+            restoreFieldWithWYSIWYG(ariaField, data.ariaLabel);
+            if (audioField) audioField.value = data.audiodescricao || '';
+            restoreFieldWithWYSIWYG(titleField, data.title);
+            restoreFieldWithWYSIWYG(questionField, data.question);
+            if (corFundoField) corFundoField.value = data.corFundo || '#FFFFFF';
+            if (corDestaqueField) corDestaqueField.value = data.corDestaque || '#0A88F4';
+            restoreFieldWithWYSIWYG(feedbackCorrectField, data.feedbackCorrect);
+            restoreFieldWithWYSIWYG(feedbackIncorrectField, data.feedbackIncorrect);
+            
+            // Restaurar opções
+            const container = document.getElementById('multiplechoice-options-container');
+            if (container && data.options && data.options.length > 0) {
+                // Limpar opções existentes
+                container.innerHTML = '';
+                
+                // Recriar opções
+                data.options.forEach((optionHTML, index) => {
+                    const bloco = document.createElement('div');
+                    bloco.className = 'multiplechoice-option-bloco';
+                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid var(--color-cinza-input, #ccc); border-radius: 6px; margin-bottom: 12px; background-color: var(--color-branco-puro, #fff);";
+                    
+                    const radioGroup = document.createElement('div');
+                    radioGroup.className = 'form-group-inline';
+                    radioGroup.innerHTML = `
+                        <input type="radio" 
+                               name="multiplechoice-correct" 
+                               id="multiplechoice-correct-${index}" 
+                               value="${index}"
+                               ${index === data.correctIndex ? 'checked' : ''}>
+                        <label class="radio-label" for="multiplechoice-correct-${index}">Resposta Correta?</label>
+                    `;
+                    
+                    const textareaGroup = document.createElement('div');
+                    textareaGroup.className = 'form-group-textarea';
+                    textareaGroup.innerHTML = `
+                        <label for="input-multiplechoice-option-${index}">Opção ${index + 1}</label>
+                        <textarea id="input-multiplechoice-option-${index}" 
+                                  class="rich-text-enabled multiplechoice-option-textarea" 
+                                  placeholder="Digite o texto da opção..."></textarea>
+                    `;
+                    
+                    bloco.appendChild(radioGroup);
+                    bloco.appendChild(textareaGroup);
+                    container.appendChild(bloco);
+                    
+                    // Restaurar valor do textarea
+                    const textarea = document.getElementById(`input-multiplechoice-option-${index}`);
+                    if (textarea) {
+                        // Converter HTML de volta para texto
+                        const optionText = optionHTML
+                            .replace(/<p>/gi, '')
+                            .replace(/<\/p>/gi, '\n')
+                            .trim();
+                        textarea.value = optionText;
+                    }
+                    
+                    // Adicionar botão de remover (exceto primeira opção)
+                    if (index > 0) {
+                        const removeButton = document.createElement('button');
+                        removeButton.type = 'button';
+                        removeButton.className = 'multiplechoice-remove-option';
+                        removeButton.innerHTML = '&times;';
+                        removeButton.title = `Remover Opção ${index + 1}`;
+                        removeButton.style.cssText = "position: absolute; top: 15px; right: 15px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; width: auto; height: auto; padding: 4px 10px; font-size: 0.8rem; font-weight: bold; cursor: pointer;";
+                        
+                        removeButton.addEventListener('click', () => {
+                            bloco.remove();
+                            // Reindexar opções restantes
+                            const allBlocks = container.querySelectorAll('.multiplechoice-option-bloco');
+                            allBlocks.forEach((b, i) => {
+                                const radio = b.querySelector('input[type="radio"]');
+                                const label = b.querySelector('.radio-label');
+                                const textarea = b.querySelector('textarea');
+                                const textareaLabel = b.querySelector('.form-group-textarea label');
+                                
+                                if (radio) {
+                                    radio.id = `multiplechoice-correct-${i}`;
+                                    radio.value = i;
+                                }
+                                if (label) label.setAttribute('for', `multiplechoice-correct-${i}`);
+                                if (textarea) textarea.id = `input-multiplechoice-option-${i}`;
+                                if (textareaLabel) {
+                                    textareaLabel.textContent = `Opção ${i + 1}`;
+                                    textareaLabel.setAttribute('for', `input-multiplechoice-option-${i}`);
+                                }
+                            });
+                        });
+                        
+                        bloco.appendChild(removeButton);
+                    }
+                });
+                
+                // Reativar WYSIWYG nos textareas
+                setTimeout(() => {
+                    const textareas = container.querySelectorAll('.rich-text-enabled');
+                    textareas.forEach(textarea => {
+                        if (!textarea.nextElementSibling || !textarea.nextElementSibling.classList.contains('rich-text-toolbar')) {
+                            GeneratorCore.utils.enableRichText(textarea);
+                        }
+                    });
+                }, 100);
+            }
+            
+            console.log('✅ Multiplechoice restaurado com', data.options?.length || 0, 'opções');
+        }, 200);
     },
 
     // 3. createTemplate: (ATUALIZADO)

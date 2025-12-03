@@ -30,8 +30,6 @@ const AuthManager = {
 
             const data = await response.json();
             
-            console.log('📝 Resposta do signup:', data);
-            
             if (!response.ok) {
                 throw new Error(data.message || 'Erro ao criar conta');
             }
@@ -55,8 +53,6 @@ const AuthManager = {
                     profilePictureUrl = userDataResult.user.profile_picture.url;
                 }
             }
-            
-            console.log('🔗 URL da foto extraída (signup):', profilePictureUrl);
             
             const completeUserData = {
                 id: userDataResult.user.id,
@@ -94,8 +90,6 @@ const AuthManager = {
 
             const data = await response.json();
             
-            console.log('🔐 Resposta do login:', data);
-            
             if (!response.ok) {
                 throw new Error(data.message || 'E-mail ou senha incorretos');
             }
@@ -127,8 +121,6 @@ const AuthManager = {
                 profile_picture: profilePictureUrl,
                 authToken: data.authToken
             };
-            
-            console.log('✅ Dados completos do usuário:', completeUserData);
             
             // Salvar sessão com dados completos
             this.createSession(completeUserData);

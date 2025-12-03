@@ -306,6 +306,16 @@ const ObjectManager = {
                 console.log('✅ Listener adicionado: Logout');
             }
             
+            // Editar nome do usuário - clicar no próprio nome
+            const userNameSidebar = document.getElementById('user-name-sidebar');
+            if (userNameSidebar) {
+                userNameSidebar.onclick = () => {
+                    console.log('✏️ Nome clicado para edição');
+                    this.showEditUsernamePrompt();
+                };
+                console.log('✅ Listener adicionado: Editar Nome (click no nome)');
+            }
+            
             // Modal de salvar
             const btnConfirmSave = document.getElementById('btn-confirm-save');
             const btnCancelSave = document.getElementById('btn-cancel-save');
@@ -1141,3 +1151,199 @@ if (document.readyState === 'loading') {
 } else {
     ProfilePictureManager.init();
 }
+
+// Adicionar métodos de edição de nome ao ObjectManager
+ObjectManager.showEditUsernamePrompt = function() {
+    const user = AuthManager.getCurrentUser();
+    const currentName = user.name || '';
+    const nameElement = document.getElementById('user-name-sidebar');
+    
+    if (!nameElement) return;
+    
+    // Verificar se já está editando (se já tem um input)
+    if (nameElement.querySelector('input')) {
+        return; // Já está editando, não fazer nada
+    }
+    
+    // Salvar HTML original
+    const originalHTML = nameElement.innerHTML;
+    
+    // Remover temporariamente o evento de click do elemento pai
+    const originalOnClick = nameElement.onclick;
+    nameElement.onclick = null;
+    
+    // Criar input inline
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentName;
+    input.className = 'rename-input-inline';
+    input.style.cssText = `
+        width: 100%;
+        padding: 6px 10px;
+        border: 2px solid var(--color-azul-moderno);
+        border-radius: 6px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        font-family: var(--font-primary);
+        background: rgba(10, 136, 244, 0.1);
+        color: white;
+        outline: none;
+    `;
+    
+    // Prevenir propagação de eventos do input
+    input.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    
+    input.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+    });
+    
+    // Substituir nome pelo input
+    nameElement.innerHTML = '';
+    nameElement.appendChild(input);
+    input.focus();
+    input.select();
+    
+    // Flag para evitar salvamentos duplicados
+    let isSaving = false;
+    
+    // Função para salvar
+    const saveRename = async () => {
+        // Prevenir múltiplos salvamentos
+        if (isSaving) return;
+        isSaving = true;
+        
+        const newName = input.value.trim();
+        
+        if (!newName) {
+            alert('O nome não pode estar vazio');
+            isSaving = false;
+            input.focus();
+            return;
+        }
+        
+        if (newName === currentName) {
+            // Sem mudanças, só restaurar
+            nameElement.innerHTML = originalHTML;
+            return;
+        }
+        
+        // Salvar novo nome
+        await this.updateUsername(newName);
+    };
+    
+    // Função para cancelar
+    const cancelRename = () => {
+        if (isSaving) return;
+        nameElement.innerHTML = originalHTML;
+        nameElement.onclick = originalOnClick;
+    };
+    
+    // Enter para salvar
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveRename();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelRename();
+        }
+    });
+    
+    // Perder foco salva
+    input.addEventListener('blur', () => {
+        setTimeout(saveRename, 100);
+    });
+};
+
+ObjectManager.updateUsername = async function(newName) {
+    const nameElement = document.getElementById('user-name-sidebar');
+    
+    try {
+        // Mostrar loading
+        if (nameElement) {
+            nameElement.innerHTML = '⏳ Salvando...';
+        }
+        
+        const authToken = AuthManager.getAuthToken();
+        
+        const response = await fetch(`${AuthManager.API_BASE_URL}/auth/me`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: newName
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Erro ao atualizar nome');
+        }
+        
+        const updatedUser = await response.json();
+        console.log('✅ Resposta do servidor:', updatedUser);
+        
+        // Se retornou apenas uma string (nome), usar com dados atuais
+        let userData;
+        if (typeof updatedUser === 'string') {
+            const currentUser = AuthManager.getCurrentUser();
+            userData = {
+                name: updatedUser,
+                email: currentUser.email,
+                profile_picture: currentUser.profile_picture
+            };
+        } else if (updatedUser && updatedUser.name) {
+            userData = {
+                name: updatedUser.name,
+                email: updatedUser.email,
+                profile_picture: updatedUser.profile_picture
+            };
+        } else {
+            throw new Error('Resposta inválida do servidor');
+        }
+        
+        // Atualizar localStorage
+        AuthManager.updateCurrentUser(userData);
+        
+        // Restaurar display com novo nome
+        if (nameElement) {
+            // Limpar conteúdo (remover input se existir)
+            nameElement.innerHTML = '';
+            nameElement.textContent = userData.name;
+            
+            // Restaurar atributos
+            nameElement.title = 'Clique para editar seu nome';
+            nameElement.onclick = () => {
+                ObjectManager.showEditUsernamePrompt();
+            };
+            
+            // Feedback visual de sucesso
+            nameElement.style.color = '#c3eb1e';
+            setTimeout(() => {
+                nameElement.style.color = '';
+            }, 1000);
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao atualizar nome:', error);
+        alert('Erro ao atualizar nome. Tente novamente.');
+        
+        // Restaurar nome original
+        const user = AuthManager.getCurrentUser();
+        if (nameElement && user) {
+            // Limpar conteúdo (remover input se existir)
+            nameElement.innerHTML = '';
+            nameElement.textContent = user.name;
+            
+            // Restaurar atributos
+            nameElement.title = 'Clique para editar seu nome';
+            nameElement.onclick = () => {
+                ObjectManager.showEditUsernamePrompt();
+            };
+        }
+    }
+};

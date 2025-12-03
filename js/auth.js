@@ -108,10 +108,17 @@ const AuthManager = {
             }
             
             // Combinar token com dados do usuário
-            // Extrair URL da imagem do objeto profile_picture
-            const profilePictureUrl = userDataResult.user.profile_picture?.url || 
-                                      userDataResult.user.profile_picture?.path || 
-                                      null;
+            // A foto pode vir como string (base64) ou objeto {url/path}
+            let profilePictureUrl = null;
+            if (userDataResult.user.profile_picture) {
+                if (typeof userDataResult.user.profile_picture === 'string') {
+                    profilePictureUrl = userDataResult.user.profile_picture;
+                } else {
+                    profilePictureUrl = userDataResult.user.profile_picture?.url || 
+                                       userDataResult.user.profile_picture?.path || 
+                                       null;
+                }
+            }
             
             const completeUserData = {
                 id: userDataResult.user.id,
@@ -372,28 +379,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeForgotModal = document.getElementById('close-forgot-modal');
     const formForgotPassword = document.getElementById('form-forgot-password');
     
-    // Abrir modal
-    forgotPasswordLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        forgotPasswordModal.style.display = 'flex';
-        document.getElementById('forgot-email').value = '';
-        document.getElementById('forgot-message').style.display = 'none';
-    });
-    
-    // Fechar modal
-    closeForgotModal.addEventListener('click', () => {
-        forgotPasswordModal.style.display = 'none';
-    });
-    
-    // Fechar ao clicar fora do modal
-    forgotPasswordModal.addEventListener('click', (e) => {
-        if (e.target === forgotPasswordModal) {
+    // Só adicionar eventos se os elementos existirem (estamos na página de login)
+    if (forgotPasswordLink && forgotPasswordModal && closeForgotModal && formForgotPassword) {
+        // Abrir modal
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            forgotPasswordModal.style.display = 'flex';
+            document.getElementById('forgot-email').value = '';
+            document.getElementById('forgot-message').style.display = 'none';
+        });
+        
+        // Fechar modal
+        closeForgotModal.addEventListener('click', () => {
             forgotPasswordModal.style.display = 'none';
-        }
-    });
-    
-    // Enviar link de recuperação
-    formForgotPassword.addEventListener('submit', async (e) => {
+        });
+        
+        // Fechar ao clicar fora do modal
+        forgotPasswordModal.addEventListener('click', (e) => {
+            if (e.target === forgotPasswordModal) {
+                forgotPasswordModal.style.display = 'none';
+            }
+        });
+        
+        // Enviar link de recuperação
+        formForgotPassword.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const email = document.getElementById('forgot-email').value;
@@ -455,5 +464,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btnText.style.display = 'inline';
             btnLoader.style.display = 'none';
         }
-    });
+        });
+    }
 });

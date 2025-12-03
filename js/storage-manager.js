@@ -337,14 +337,45 @@ const ObjectManager = {
     },
     
     // Atualizar display do usuário
-    updateUserDisplay() {
-        const user = AuthManager.getCurrentUser();
+    async updateUserDisplay() {
+        let user = AuthManager.getCurrentUser();
+        console.log('🔍 updateUserDisplay - Usuário:', user);
+        
+        // Se o nome estiver vazio, buscar dados atualizados do servidor
+        if (user && !user.name) {
+            console.log('⚠️ Nome vazio, buscando dados do servidor...');
+            const result = await AuthManager.fetchUserData();
+            if (result.success) {
+                // Atualizar sessão com dados completos
+                const profilePictureUrl = result.user.profile_picture?.url || 
+                                          result.user.profile_picture?.path ||
+                                          (typeof result.user.profile_picture === 'string' ? result.user.profile_picture : null);
+                
+                AuthManager.updateCurrentUser({
+                    name: result.user.name,
+                    email: result.user.email,
+                    profile_picture: profilePictureUrl
+                });
+                
+                user = AuthManager.getCurrentUser();
+                console.log('✅ Dados atualizados:', user);
+            }
+        }
         
         if (user) {
             // Sidebar
             const userNameSidebar = document.getElementById('user-name-sidebar');
             const userEmail = document.getElementById('user-email');
             const userAvatar = document.getElementById('user-avatar');
+            
+            console.log('📍 Elementos:', {
+                userNameSidebar: !!userNameSidebar,
+                userEmail: !!userEmail,
+                userAvatar: !!userAvatar,
+                userName: user.name,
+                userEmailValue: user.email,
+                profilePicture: user.profile_picture
+            });
             
             if (userNameSidebar) {
                 userNameSidebar.textContent = user.name || 'Nome não disponível';
@@ -1034,6 +1065,7 @@ const ProfilePictureManager = {
             
             // Enviar para Xano como JSON
             const authToken = AuthManager.getAuthToken();
+            
             const response = await fetch(`${AuthManager.API_BASE_URL}/auth/me`, {
                 method: 'PATCH',
                 headers: {
@@ -1055,9 +1087,12 @@ const ProfilePictureManager = {
             
             const updatedUser = await response.json();
             console.log('✅ Foto de perfil atualizada');
+            console.log('📦 Resposta do servidor:', updatedUser);
+            console.log('🖼️ Profile picture recebido:', updatedUser.profile_picture);
             
             // A imagem agora é base64, usar diretamente
             const imageUrl = updatedUser.profile_picture || base64;
+            console.log('🔗 URL final da imagem:', imageUrl);
             
             // Atualizar usuário no localStorage
             AuthManager.updateCurrentUser({
@@ -1065,6 +1100,8 @@ const ProfilePictureManager = {
                 email: updatedUser.email,
                 profile_picture: imageUrl
             });
+            
+            console.log('💾 Dados salvos no localStorage:', AuthManager.getCurrentUser());
             
             // Atualizar display
             if (userAvatar) {

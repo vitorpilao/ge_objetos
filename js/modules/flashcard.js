@@ -95,14 +95,29 @@ GeneratorCore.registerModule('flashcard', {
             let frontVal = '';
             let backVal = '';
             
-            // Busca o editor WYSIWYG (criado pelo enableRichText)
-            const frenteEditor = bloco.querySelector('.form-group:nth-child(2) .wysiwyg-editor') || 
-                                 bloco.querySelector('.flashcard-frente-input.wysiwyg-editor') ||
-                                 bloco.querySelector('.flashcard-frente-input');
+            // Card 1 (índice 0) tem estrutura diferente sem botão X
+            // Cards adicionados têm botão X, então o :nth-child é diferente
+            let frenteEditor, versoEditor;
             
-            const versoEditor = bloco.querySelector('.form-group:nth-child(3) .wysiwyg-editor') || 
-                                bloco.querySelector('.flashcard-verso-input.wysiwyg-editor') ||
-                                bloco.querySelector('.flashcard-verso-input');
+            if (idx === 0) {
+                // Primeiro card: sem botão X, então form-group é filho 1 e 2
+                frenteEditor = bloco.querySelector('.form-group:nth-child(1) .wysiwyg-editor') || 
+                               bloco.querySelector('.flashcard-frente-input.wysiwyg-editor') ||
+                               bloco.querySelector('.flashcard-frente-input');
+                
+                versoEditor = bloco.querySelector('.form-group:nth-child(2) .wysiwyg-editor') || 
+                              bloco.querySelector('.flashcard-verso-input.wysiwyg-editor') ||
+                              bloco.querySelector('.flashcard-verso-input');
+            } else {
+                // Cards adicionados: com botão X, então form-group é filho 2 e 3
+                frenteEditor = bloco.querySelector('.form-group:nth-child(2) .wysiwyg-editor') || 
+                               bloco.querySelector('.flashcard-frente-input.wysiwyg-editor') ||
+                               bloco.querySelector('.flashcard-frente-input');
+                
+                versoEditor = bloco.querySelector('.form-group:nth-child(3) .wysiwyg-editor') || 
+                              bloco.querySelector('.flashcard-verso-input.wysiwyg-editor') ||
+                              bloco.querySelector('.flashcard-verso-input');
+            }
             
             if (frenteEditor) {
                 // Se for um editor WYSIWYG, lê o innerHTML

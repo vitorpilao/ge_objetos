@@ -273,6 +273,103 @@ const GeneratorCore = {
         });
     },
 
+    // --- INICIALIZAR QUIZ MANUALMENTE (FALLBACK) ---
+    initQuizManually(wrapper) {
+        console.log('🔧 Inicializando quiz manualmente:', wrapper);
+        
+        const options = wrapper.querySelectorAll('.quiz-option');
+        const submitBtn = wrapper.querySelector('.quiz-submit-btn');
+        const feedbackArea = wrapper.querySelector('.quiz-feedback-area');
+        
+        console.log('📋 Elementos encontrados manualmente:');
+        console.log('  - Opções:', options.length);
+        console.log('  - Botão submit:', !!submitBtn);
+        console.log('  - Feedback area:', !!feedbackArea);
+        
+        if (!options.length || !submitBtn || !feedbackArea) {
+            console.error('❌ Elementos do quiz não encontrados');
+            return;
+        }
+        
+        // Extrair índice correto do dataset ou HTML
+        let correctIndex = 0;
+        options.forEach((opt, idx) => {
+            if (opt.classList.contains('correct') || opt.hasAttribute('data-correct')) {
+                correctIndex = idx;
+            }
+        });
+        
+        let selectedIndex = null;
+        
+        // Adicionar eventos às opções
+        options.forEach((option, index) => {
+            console.log(`🔗 Anexando evento manual à opção ${index}`);
+            
+            option.addEventListener('click', (e) => {
+                console.log('🖱️ CLICK MANUAL na opção detectado!', index);
+                e.stopPropagation();
+                
+                if (wrapper.classList.contains('answered')) {
+                    console.log('⏸️ Quiz já respondido');
+                    return;
+                }
+                
+                options.forEach(opt => {
+                    opt.classList.remove('selected');
+                    opt.setAttribute('aria-checked', 'false');
+                });
+                
+                option.classList.add('selected');
+                option.setAttribute('aria-checked', 'true');
+                selectedIndex = index;
+                submitBtn.disabled = false;
+                console.log('✅ Opção selecionada:', selectedIndex);
+            });
+        });
+        
+        // Adicionar evento ao botão submit
+        console.log('🔗 Anexando evento manual ao botão submit');
+        submitBtn.addEventListener('click', (e) => {
+            console.log('🖱️ CLICK MANUAL no botão submit!');
+            e.stopPropagation();
+            
+            if (selectedIndex === null || wrapper.classList.contains('answered')) {
+                console.log('⏸️ Não pode submeter');
+                return;
+            }
+            
+            wrapper.classList.add('answered');
+            submitBtn.disabled = true;
+            const isCorrect = (selectedIndex === correctIndex);
+            
+            options.forEach((opt, idx) => {
+                opt.classList.add('disabled');
+                if (idx === correctIndex) {
+                    opt.classList.add('correct');
+                } else {
+                    opt.classList.add('incorrect');
+                }
+            });
+            
+            if (isCorrect) {
+                feedbackArea.innerHTML = 'Correto! Parabéns!';
+                feedbackArea.classList.add('correct');
+            } else {
+                feedbackArea.innerHTML = 'Incorreto. Tente novamente!';
+                feedbackArea.classList.add('incorrect');
+            }
+            
+            console.log('✅ Quiz respondido. Correto?', isCorrect);
+        });
+        
+        // Ativar animação de visibilidade
+        setTimeout(() => {
+            wrapper.classList.add('is-visible');
+        }, 50);
+        
+        console.log('✅ Quiz manualmente inicializado');
+    },
+
     // --- GALERIA DE OBJETOS ---
     async initObjectGallery() {
         const objectTypes = [
@@ -384,23 +481,8 @@ const GeneratorCore = {
                 
                 previewDiv.innerHTML = isolatedHTML;
                 
-                console.log('Preview div criada:', previewDiv);
-                console.log('Conteúdo do preview:', previewDiv.innerHTML.substring(0, 200));
-                
-                // Adicionar ao DOM primeiro para que os scripts possam encontrar os elementos
-                card.appendChild(previewDiv);
-                
-                // Reexecutar scripts do demo após adicionar ao DOM
-                const scripts = previewDiv.querySelectorAll('script');
-                scripts.forEach((oldScript, idx) => {
-                    const newScript = document.createElement('script');
-                    newScript.textContent = oldScript.textContent;
-                    try {
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    } catch (err) {
-                        console.error(`Erro ao executar script do demo:`, err);
-                    }
-                });
+                console.log('📦 Preview div criada:', previewDiv);
+                console.log('📄 Conteúdo do preview:', previewDiv.innerHTML.substring(0, 200));
                 
                 const titleDiv = document.createElement('div');
                 titleDiv.className = 'object-card-title-wrapper';
@@ -410,18 +492,57 @@ const GeneratorCore = {
                 descDiv.className = 'object-card-description-wrapper';
                 descDiv.innerHTML = `<p class="object-card-description">${obj.description}</p>`;
                 
-                // Tornar preview interativo
+                // Tornar preview interativo - permite cliques nos elementos internos
                 previewDiv.style.pointerEvents = 'auto';
                 previewDiv.onclick = (e) => {
-                    e.stopPropagation(); // Não acionar o click do card
+                    console.log('🖱️ Click no previewDiv detectado');
+                    console.log('  - Target:', e.target);
+                    console.log('  - Target classes:', e.target.className);
+                    
+                    // Permitir interação com elementos interativos (botões, opções, etc)
+                    const isInteractive = e.target.closest('.quiz-option, .quiz-submit-btn, button, input, select, textarea, a, [role="button"], [role="radio"]');
+                    console.log('  - É interativo?', !!isInteractive);
+                    console.log('  - Elemento interativo:', isInteractive);
+                    
+                    if (!isInteractive) {
+                        console.log('  ⛔ Bloqueando propagação (não é interativo)');
+                        e.stopPropagation(); // Apenas bloquear se não for elemento interativo
+                    } else {
+                        console.log('  ✅ Permitindo propagação (elemento interativo)');
+                    }
                 };
                 
-                // Remover preview que foi adicionado antes e reordenar: título → preview → descrição
-                previewDiv.remove();
+                // Montar card: título → preview → descrição
                 card.appendChild(titleDiv);
                 card.appendChild(previewDiv);
                 card.appendChild(descDiv);
-                console.log('Card montado com título, preview e descrição');
+                console.log('✅ Card montado com título, preview e descrição');
+                
+                // Reexecutar scripts do demo APÓS adicionar ao DOM
+                console.log('🔄 Executando scripts do demo...');
+                const scripts = previewDiv.querySelectorAll('script');
+                console.log(`📜 Scripts encontrados: ${scripts.length}`);
+                scripts.forEach((oldScript, idx) => {
+                    console.log(`▶️ Executando script ${idx + 1}/${scripts.length}`);
+                    const newScript = document.createElement('script');
+                    newScript.textContent = oldScript.textContent;
+                    try {
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                        console.log(`✅ Script ${idx + 1} executado com sucesso`);
+                    } catch (err) {
+                        console.error(`❌ Erro ao executar script ${idx + 1}:`, err);
+                    }
+                });
+                console.log('✅ Todos os scripts executados');
+                
+                // FALLBACK: Se for multiplechoice, anexar eventos manualmente
+                const quizWrapper = previewDiv.querySelector('.quiz-wrapper');
+                if (quizWrapper) {
+                    console.log('🎮 Detectado quiz, anexando eventos manualmente...');
+                    setTimeout(() => {
+                        this.initQuizManually(quizWrapper);
+                    }, 100);
+                }
             } else {
                 // Card sem preview (fallback com ícone)
                 card.innerHTML = `
@@ -431,9 +552,22 @@ const GeneratorCore = {
                 `;
             }
 
-            card.addEventListener('click', () => {
-                // Navegar para página de configuração
-                AppPages.goToConfig(obj.id, obj.title);
+            card.addEventListener('click', (e) => {
+                console.log('🎴 Click no card detectado');
+                console.log('  - Target:', e.target);
+                console.log('  - Target classes:', e.target.className);
+                
+                // Não navegar se clicou em elemento interativo dentro do preview
+                const isInteractive = e.target.closest('.quiz-option, .quiz-submit-btn, .object-card-preview button, .object-card-preview input, .object-card-preview select, .object-card-preview textarea, .object-card-preview a, [role="button"], [role="radio"]');
+                console.log('  - É interativo no card?', !!isInteractive);
+                
+                if (!isInteractive) {
+                    console.log('  🚀 Navegando para configuração');
+                    // Navegar para página de configuração apenas se não for elemento interativo
+                    AppPages.goToConfig(obj.id, obj.title);
+                } else {
+                    console.log('  ⏸️ Navegação bloqueada (clique em elemento interativo)');
+                }
             });
 
             gallery.appendChild(card);

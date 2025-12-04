@@ -222,7 +222,7 @@ GeneratorCore.registerModule('multiplechoice', {
                 data.options.forEach((optionHTML, index) => {
                     const bloco = document.createElement('div');
                     bloco.className = 'multiplechoice-option-bloco';
-                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid var(--color-cinza-input, #ccc); border-radius: 6px; margin-bottom: 12px; background-color: var(--color-branco-puro, #fff);";
+                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid var(--color-cinza-input, #ccc); border-radius: 6px; margin-bottom: 12px; background-color: rgba(255, 255, 255, 0.05);";
                     
                     const radioGroup = document.createElement('div');
                     radioGroup.className = 'form-group-inline';
@@ -363,13 +363,14 @@ html, body {
     color: var(--quiz-cor-texto);
     border: 1px solid var(--quiz-cor-borda);
     border-radius: 8px;
-    padding: 24px;
-    max-width: 700px;
-    margin: 10px auto;
+    padding: 20px;
+    max-width: 100%;
+    margin: 0;
     opacity: 0;
     transform: translateY(20px);
     position: relative; /* Necessário para o posicionamento da celebração */
     transition: opacity .6s ease-out, transform .6s ease-out;
+    box-sizing: border-box;
 }
 .quiz-wrapper.is-visible {
     opacity: 1;
@@ -378,34 +379,34 @@ html, body {
 .quiz-title {
     font-family: var(--font-primary);
     font-weight: 600;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     line-height: 1.3;
-    margin: 0 0 16px 0;
+    margin: 0 0 12px 0;
 }
 .quiz-question {
     font-family: var(--font-primary);
     font-weight: 250;
-    font-size: 1.2rem;
+    font-size: 1rem;
     line-height: 1.4;
-    margin: 0 0 20px 0;
+    margin: 0 0 16px 0;
 }
 .quiz-options-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 .quiz-option {
     font-family: var(--font-secondary);
-    font-size: 1rem;
+    font-size: 0.9rem;
     text-align: left;
     width: 100%;
-    padding: 12px 16px;
-    border-radius: 6px; /* Adicionado para consistência */
+    padding: 10px 12px;
+    border-radius: 6px;
     border: 1px solid var(--quiz-cor-borda);
     background-color: #f0f0f0;
     color: var(--quiz-cor-texto);
     cursor: pointer;
-    box-sizing: border-box; /* Garante que padding e borda não aumentem a largura */
+    box-sizing: border-box;
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 .quiz-option:hover {
@@ -437,25 +438,26 @@ html, body {
 .quiz-submit-btn {
     font-family: var(--font-primary);
     font-weight: 700;
-    font-size: 1rem;
-    padding: 12px 24px;
+    font-size: 0.9rem;
+    padding: 10px 20px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     background-color: var(--quiz-cor-destaque);
     color: var(--quiz-cor-destaque-texto);
-    margin-top: 20px;
+    margin-top: 16px;
+    width: 100%;
 }
 .quiz-submit-btn:disabled {
     background-color: var(--quiz-cor-borda);
     cursor: not-allowed;
 }
 .quiz-feedback-area {
-    padding: 15px;
+    padding: 12px;
     border-radius: 6px;
-    margin-top: 20px;
+    margin-top: 16px;
     display: none;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     line-height: 1.5;
 }
 .quiz-feedback-area.correct {
@@ -472,8 +474,8 @@ html, body {
 }
 /* --- ESTILOS PARA CONFETES E MENSAGEM DE SUCESSO (do Drag&Drop) --- */
 .confetti-celebration {
-    position: fixed; /* Cobrir a viewport inteira */
-    inset: 0; /* top:0; right:0; bottom:0; left:0 */
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     display: flex;
@@ -483,7 +485,7 @@ html, body {
     background-color: rgba(0, 0, 0, 0.6);
     color: white;
     font-family: var(--font-primary);
-    font-size: 2.2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     text-align: center;
     z-index: 10;
@@ -491,7 +493,8 @@ html, body {
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s ease;
     pointer-events: none;
-    overflow: hidden; /* Impede que confetes causem scroll na viewport */
+    overflow: hidden;
+    border-radius: 8px;
 }
 .confetti-celebration.active {
     opacity: 1;
@@ -499,7 +502,8 @@ html, body {
     pointer-events: all;
 }
 .confetti-message {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    padding: 0 20px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     transform: translateY(-20px);
     opacity: 0;
@@ -507,13 +511,13 @@ html, body {
 }
 .confetti {
     position: absolute;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     background-color: #f00;
     border-radius: 50%;
     opacity: 0;
     animation: confetti-fall-quiz 3s linear forwards;
-    will-change: transform, opacity; /* Ajuda desempenho e evita repaints desnecessários */
+    will-change: transform, opacity;
 }
 @keyframes confetti-fall-quiz {
     0% {
@@ -555,48 +559,74 @@ html, body {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const wrapper = document.getElementById("${uniqueId}");
-    if (!wrapper) return;
-    
-    const options = wrapper.querySelectorAll('.quiz-option');
-    const submitBtn = wrapper.querySelector('.quiz-submit-btn');
-    const feedbackArea = wrapper.querySelector('.quiz-feedback-area');
-    const celebrationOverlay = document.getElementById('celebration-${uniqueId}');
-    
-    const correctIndex = ${correctIndex};
-    const feedbackCorrect = '${safeFeedbackCorrect}';
-    const feedbackIncorrect = '${safeFeedbackIncorrect}';
-    
-    let selectedIndex = null;
+(function() {
+    const initQuiz = () => {
+        console.log('🎯 Iniciando quiz:', "${uniqueId}");
+        
+        const wrapper = document.getElementById("${uniqueId}");
+        if (!wrapper) {
+            console.error('❌ Quiz wrapper not found:', "${uniqueId}");
+            return;
+        }
+        console.log('✅ Wrapper encontrado:', wrapper);
+        
+        const options = wrapper.querySelectorAll('.quiz-option');
+        const submitBtn = wrapper.querySelector('.quiz-submit-btn');
+        const feedbackArea = wrapper.querySelector('.quiz-feedback-area');
+        const celebrationOverlay = document.getElementById('celebration-${uniqueId}');
+        
+        console.log('📋 Elementos encontrados:');
+        console.log('  - Opções:', options.length);
+        console.log('  - Botão submit:', !!submitBtn);
+        console.log('  - Feedback area:', !!feedbackArea);
+        console.log('  - Celebration:', !!celebrationOverlay);
+        
+        if (!options.length || !submitBtn) {
+            console.error('❌ Quiz elements not found');
+            return;
+        }
+        
+        const correctIndex = ${correctIndex};
+        const feedbackCorrect = '${safeFeedbackCorrect}';
+        const feedbackIncorrect = '${safeFeedbackIncorrect}';
+        
+        let selectedIndex = null;
 
-    options.forEach(option => {
-        option.addEventListener('click', () => {
-            // Se o quiz já foi respondido, não faz nada.
-            if (wrapper.classList.contains('answered')) return; 
-
-            // Se o usuário está selecionando texto, não seleciona a opção.
-            const selection = window.getSelection();
-            if (selection.toString().length > 0 && option.contains(selection.anchorNode)) return;
+        options.forEach((option, index) => {
+            console.log(\`🎯 Anexando evento à opção \${index}\`, option);
             
-            options.forEach(opt => {
-                opt.classList.remove('selected');
-                opt.setAttribute('aria-checked', 'false');
+            option.addEventListener('click', (e) => {
+                console.log('🖱️ CLICK na opção detectado!', index);
+                console.log('  - Event:', e);
+                console.log('  - Target:', e.target);
+                console.log('  - CurrentTarget:', e.currentTarget);
+                e.stopPropagation();
+                
+                // Se o quiz já foi respondido, não faz nada.
+                if (wrapper.classList.contains('answered')) {
+                    console.log('⏸️ Quiz já respondido, ignorando');
+                    return;
+                }
+                
+                options.forEach(opt => {
+                    opt.classList.remove('selected');
+                    opt.setAttribute('aria-checked', 'false');
+                });
+                
+                option.classList.add('selected');
+                option.setAttribute('aria-checked', 'true');
+                selectedIndex = parseInt(option.dataset.index, 10);
+                submitBtn.disabled = false;
+                console.log('Option selected:', selectedIndex);
             });
-            
-            option.classList.add('selected');
-            option.setAttribute('aria-checked', 'true');
-            selectedIndex = parseInt(option.dataset.index, 10);
-            submitBtn.disabled = false;
-        });
 
-        option.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                option.click();
-            }
+            option.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    option.click();
+                }
+            });
         });
-    });
 
     // --- LÓGICA DOS CONFETES (do Drag&Drop) ---
     const createConfetti = () => {
@@ -615,14 +645,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const startConfetti = () => {
         celebrationOverlay.classList.add('active');
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 30; i++) {
             createConfetti();
         }
         setTimeout(() => celebrationOverlay.classList.remove('active'), 2500);
     };
 
-    submitBtn.addEventListener('click', () => {
-        if (selectedIndex === null || wrapper.classList.contains('answered')) return;
+    console.log('🔘 Anexando evento ao botão submit');
+    submitBtn.addEventListener('click', (e) => {
+        console.log('🖱️ CLICK no botão submit detectado!');
+        console.log('  - Event:', e);
+        console.log('  - selectedIndex:', selectedIndex);
+        console.log('  - answered:', wrapper.classList.contains('answered'));
+        e.stopPropagation();
+        
+        if (selectedIndex === null || wrapper.classList.contains('answered')) {
+            console.log('⏸️ Não pode submeter (nada selecionado ou já respondido)');
+            return;
+        }
 
         wrapper.classList.add('answered');
         submitBtn.disabled = true;
@@ -648,16 +688,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('is-visible');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-    observer.observe(wrapper);
-});
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        observer.observe(wrapper);
+    };
+    
+    // Executar imediatamente
+    console.log('📌 Document readyState:', document.readyState);
+    if (document.readyState === 'loading') {
+        console.log('⏳ Aguardando DOMContentLoaded...');
+        document.addEventListener('DOMContentLoaded', initQuiz);
+    } else {
+        console.log('✅ DOM já carregado, executando imediatamente');
+        initQuiz();
+    }
+    
+    // Tentar novamente após um pequeno delay (fallback)
+    setTimeout(() => {
+        console.log('⏰ Tentando inicializar quiz novamente (timeout)');
+        initQuiz();
+    }, 100);
+})();
 </script>
 `;
     }

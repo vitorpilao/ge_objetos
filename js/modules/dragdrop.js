@@ -224,63 +224,125 @@ GeneratorCore.registerModule('dragdrop', {
             if (corDestaqueField) corDestaqueField.value = data.corDestaque || '#0A88F4';
             
             // Restaurar categorias
-            const categoriesField = document.getElementById('input-dragdrop-categories');
-            if (categoriesField && data.rawCategories) {
-                categoriesField.value = data.rawCategories.join(', ');
+            const catList = document.getElementById('dragdrop-category-list');
+            const itemList = document.getElementById('dragdrop-items-container');
+            const itemTitle = document.getElementById('dragdrop-selected-category-name');
+            const itemAddBtn = document.getElementById('dragdrop-add-item');
+            
+            // Função auxiliar para mostrar itens de uma categoria
+            const showItemsForCategory = (categoryName, selectedEditor = null) => {
+                console.log('📂 Mostrando itens para categoria:', categoryName);
+                
+                // IMPORTANTE: Atualizar this.currentCategory para que o botão "Adicionar Item" funcione
+                this.currentCategory = categoryName;
+                
+                itemTitle.innerHTML = `"${categoryName}"`;
+                itemAddBtn.disabled = false;
+                
+                // Esconder todos os itens
+                const allItems = itemList.querySelectorAll('.dragdrop-item-bloco');
+                console.log('  📦 Total de itens:', allItems.length);
+                allItems.forEach(bloco => {
+                    bloco.style.display = 'none';
+                });
+                
+                // Mostrar apenas itens desta categoria
+                const categoryItems = itemList.querySelectorAll(`.dragdrop-item-bloco[data-category="${categoryName}"]`);
+                console.log('  ✅ Itens desta categoria:', categoryItems.length);
+                categoryItems.forEach(bloco => {
+                    bloco.style.display = 'block';
+                });
+                
+                catList.querySelectorAll('.wysiwyg-editor').forEach(editor => {
+                    editor.classList.remove('selected');
+                });
+                if (selectedEditor) {
+                    selectedEditor.classList.add('selected');
+                }
+            };
+            
+            if (catList && data.rawCategories && data.rawCategories.length > 0) {
+                console.log('📋 Restaurando', data.rawCategories.length, 'categorias:', data.rawCategories);
+                catList.innerHTML = '';
+                
+                data.rawCategories.forEach((categoryName, catIndex) => {
+                    console.log(`  ➕ Criando categoria ${catIndex + 1}:`, categoryName);
+                    
+                    const newCatBlock = document.createElement('div');
+                    newCatBlock.className = 'category-list-item';
+                    newCatBlock.innerHTML = `<input type="text" class="rich-text-enabled dragdrop-category-input" value="${categoryName}" style="display:none;"><button type="button" class="category-remove-btn" title="Remover Categoria">X</button>`;
+                    catList.appendChild(newCatBlock);
+                    
+                    const hiddenInput = newCatBlock.querySelector('.dragdrop-category-input');
+                    const editorElements = GeneratorCore.utils.enableRichText(hiddenInput);
+                    const categoryEditor = editorElements.editor;
+                    categoryEditor.dataset.name = categoryName;
+                    categoryEditor.innerHTML = categoryName;
+                    
+                    // Adicionar evento de clique para mostrar os itens desta categoria
+                    categoryEditor.addEventListener('click', () => {
+                        console.log('🖱️ Categoria clicada:', categoryName);
+                        showItemsForCategory(categoryName, categoryEditor);
+                    });
+                    
+                    // Adicionar evento de remoção
+                    const removeBtn = newCatBlock.querySelector('.category-remove-btn');
+                    removeBtn.addEventListener('click', () => {
+                        const catName = categoryEditor.dataset.name;
+                        if (confirm(`Deseja remover a categoria "${catName}" e todos os seus itens?`)) {
+                            itemList.querySelectorAll(`.dragdrop-item-bloco[data-category="${catName}"]`).forEach(item => item.remove());
+                            newCatBlock.remove();
+                            if (this.currentCategory === catName) {
+                                this.currentCategory = null;
+                                itemAddBtn.disabled = true;
+                                itemTitle.innerHTML = '(nenhuma selecionada)';
+                            }
+                        }
+                    });
+                    
+                    console.log('  ✅ Categoria criada e evento anexado');
+                });
             }
             
             // Restaurar itens
-            const itemsContainer = document.getElementById('dragdrop-items-container');
-            if (itemsContainer && data.rawItems && data.rawItems.length > 0) {
-                itemsContainer.innerHTML = '';
+            if (itemList && data.rawItems && data.rawItems.length > 0) {
+                console.log('📦 Restaurando', data.rawItems.length, 'itens');
+                itemList.innerHTML = '';
                 
                 data.rawItems.forEach((item, index) => {
-                    const bloco = document.createElement('div');
-                    bloco.className = 'dragdrop-item-bloco';
-                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; background-color: #fff;";
+                    console.log(`  ➕ Criando item ${index + 1}:`, item.text, 'para categoria:', item.category);
                     
-                    bloco.innerHTML = `
-                        <div class="form-group">
-                            <label for="input-dragdrop-item-text-${index}">Texto do Item ${index + 1}</label>
-                            <input type="text" id="input-dragdrop-item-text-${index}" class="rich-text-enabled dragdrop-item-text" placeholder="Ex: JavaScript">
-                        </div>
-                        <div class="form-group">
-                            <label for="input-dragdrop-item-category-${index}">Categoria do Item ${index + 1}</label>
-                            <input type="text" id="input-dragdrop-item-category-${index}" class="dragdrop-item-category" placeholder="Ex: Frontend">
-                        </div>
-                    `;
+                    const newBlock = document.createElement('div');
+                    newBlock.className = 'dragdrop-item-bloco';
+                    newBlock.dataset.category = item.category;
+                    newBlock.style.display = 'none'; // Esconder até selecionar categoria
                     
-                    itemsContainer.appendChild(bloco);
+                    newBlock.innerHTML = `<button type="button" class="dragdrop-item-remove-btn" title="Remover Item">X</button><div class="form-group"><label for="input-dragdrop-item-text-${index}">Texto do Item</label><input type="text" id="input-dragdrop-item-text-${index}" class="rich-text-enabled dragdrop-item-text" placeholder="Ex: Item" required style="display:none;"></div>`;
                     
-                    const textField = document.getElementById(`input-dragdrop-item-text-${index}`);
-                    const categoryField = document.getElementById(`input-dragdrop-item-category-${index}`);
+                    itemList.appendChild(newBlock);
                     
-                    if (textField) textField.value = item.text || '';
-                    if (categoryField) categoryField.value = item.category || '';
-                    
-                    if (index > 0) {
-                        const removeButton = document.createElement('button');
-                        removeButton.type = 'button';
-                        removeButton.className = 'dragdrop-remove-item';
-                        removeButton.innerHTML = '&times;';
-                        removeButton.title = `Remover Item ${index + 1}`;
-                        removeButton.style.cssText = "position: absolute; top: 10px; right: 10px; background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer;";
-                        
-                        removeButton.addEventListener('click', () => bloco.remove());
-                        bloco.appendChild(removeButton);
+                    const textInput = newBlock.querySelector(`#input-dragdrop-item-text-${index}`);
+                    if (textInput) {
+                        const editorElements = GeneratorCore.utils.enableRichText(textInput);
+                        const editor = editorElements.editor;
+                        editor.innerHTML = item.text || '';
+                        console.log('  ✅ Item criado com texto:', item.text);
                     }
                 });
                 
-                setTimeout(() => {
-                    itemsContainer.querySelectorAll('.rich-text-enabled').forEach(field => {
-                        if (!field.closest('.rich-text-wrapper')) {
-                            GeneratorCore.utils.enableRichText(field);
-                        }
-                    });
-                }, 100);
+                console.log('✅ Todos os itens restaurados');
             }
             
             console.log('✅ DragDrop restaurado');
+            
+            // Selecionar automaticamente a primeira categoria para mostrar os itens
+            setTimeout(() => {
+                const firstCategory = catList.querySelector('.wysiwyg-editor');
+                if (firstCategory) {
+                    console.log('🎯 Selecionando primeira categoria automaticamente');
+                    firstCategory.click();
+                }
+            }, 100);
         }, 200);
     },
     

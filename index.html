@@ -980,7 +980,58 @@
                 <button id="btn-close-list" class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
+                <!-- Filtros -->
+                <div class="modal-filters" style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label for="filter-type" style="display: block; margin-bottom: 4px; font-weight: 600;">🎯 Tipo de Objeto:</label>
+                        <select id="filter-type" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px; border: 1.5px solid var(--color-azul-moderno);">
+                            <option value="">Todos os tipos</option>
+                            <option value="accordion">Acordeão</option>
+                            <option value="destaque">Destaque</option>
+                            <option value="dragdrop">Drag & Drop</option>
+                            <option value="encontreerro">Encontre o Erro</option>
+                            <option value="flashcard">Flashcard</option>
+                            <option value="flipcard">Flip Card</option>
+                            <option value="guia">Guia Sequencial</option>
+                            <option value="modal">Modal de Imagem</option>
+                            <option value="multiplechoice">Múltipla Escolha</option>
+                            <option value="timeline">Timeline</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label for="filter-creator" style="display: block; margin-bottom: 4px; font-weight: 600;">👤 Criador:</label>
+                        <select id="filter-creator" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px; border: 1.5px solid var(--color-azul-moderno);">
+                            <option value="">Todos os criadores</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label for="filter-sort" style="display: block; margin-bottom: 4px; font-weight: 600;">📅 Ordenar por:</label>
+                        <select id="filter-sort" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px; border: 1.5px solid var(--color-azul-moderno);">
+                            <option value="newest">Mais recente primeiro</option>
+                            <option value="oldest">Mais antigo primeiro</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 0 0 auto;">
+                        <label style="display: block; margin-bottom: 4px; font-weight: 600; visibility: hidden;">&#8203;</label>
+                        <button id="btn-clear-filters" class="btn-action" style="padding: 8px 12px; background: #6c757d; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; font-size: 0.9rem; height: 20px;">
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Lista de objetos -->
                 <div id="objects-list" class="objects-grid"></div>
+                
+                <!-- Paginação -->
+                <div id="pagination-controls" class="pagination-controls" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 20px;">
+                    <button id="btn-prev-page" class="btn-action" style="padding: 8px 16px; background: var(--color-azul-moderno); border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600;">
+                        ← Anterior
+                    </button>
+                    <span id="page-info" style="font-weight: 600; color: var(--color-texto-primario);">Página 1</span>
+                    <button id="btn-next-page" class="btn-action" style="padding: 8px 16px; background: var(--color-azul-moderno); border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600;">
+                        Próxima →
+                    </button>
+                </div>
             </div>
         </div>
     </div>

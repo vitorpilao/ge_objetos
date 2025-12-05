@@ -406,7 +406,8 @@ html, body {
     transform: translateY(20px);
     transition: opacity .6s ease-out, transform .6s ease-out, box-shadow .3s ease-in-out;
     position: relative; 
-    overflow: hidden; 
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
 }
 .drag-wrapper.is-visible{
     opacity: 1;

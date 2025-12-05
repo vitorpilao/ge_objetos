@@ -588,34 +588,197 @@ const ObjectManager = {
         document.getElementById('modal-save-object').style.display = 'none';
     },
     
+    // Variáveis de controle de paginação e filtros
+    currentPage: 1,
+    itemsPerPage: 6,
+    currentFilter: {
+        type: '',
+        creator: '',
+        sort: 'newest'
+    },
+    allObjects: [],
+    
     // Mostrar lista de objetos
     async showObjectsList() {
         const user = AuthManager.getCurrentUser();
         // Busca TODOS os objetos do sistema (compartilhados entre usuários)
-        const objects = await StorageManager.getAllObjects();
+        this.allObjects = await StorageManager.getAllObjects();
         
-        console.log('📚 Objetos carregados:', objects);
-        console.log('📊 Total de objetos:', objects.length);
+        console.log('📚 Objetos carregados:', this.allObjects);
+        console.log('📊 Total de objetos:', this.allObjects.length);
         
-        if (objects.length > 0) {
-            console.log('🔍 Primeiro objeto (exemplo):', objects[0]);
+        if (this.allObjects.length > 0) {
+            console.log('🔍 Primeiro objeto (exemplo):', this.allObjects[0]);
         }
         
-        const container = document.getElementById('objects-list');
+        // Resetar página ao abrir modal
+        this.currentPage = 1;
+        this.currentFilter = { type: '', creator: '', sort: 'newest' };
         
-        if (objects.length === 0) {
+        // Popular filtro de criadores
+        this.populateCreatorFilter();
+        
+        // Renderizar lista
+        this.renderObjectsList();
+        
+        // Configurar eventos dos filtros
+        this.setupFilters();
+        
+        document.getElementById('modal-objects-list').style.display = 'flex';
+    },
+    
+    // Popular select de criadores
+    populateCreatorFilter() {
+        const creators = [...new Set(this.allObjects
+            .map(obj => obj.created_by)
+            .filter(creator => creator))];
+        
+        const select = document.getElementById('filter-creator');
+        select.innerHTML = '<option value="">Todos os criadores</option>' +
+            creators.map(creator => `<option value="${creator}">${creator}</option>`).join('');
+    },
+    
+    // Configurar eventos dos filtros
+    setupFilters() {
+        const typeFilter = document.getElementById('filter-type');
+        const creatorFilter = document.getElementById('filter-creator');
+        const sortFilter = document.getElementById('filter-sort');
+        const clearBtn = document.getElementById('btn-clear-filters');
+        const prevBtn = document.getElementById('btn-prev-page');
+        const nextBtn = document.getElementById('btn-next-page');
+        
+        // Remover eventos anteriores
+        typeFilter.replaceWith(typeFilter.cloneNode(true));
+        creatorFilter.replaceWith(creatorFilter.cloneNode(true));
+        sortFilter.replaceWith(sortFilter.cloneNode(true));
+        clearBtn.replaceWith(clearBtn.cloneNode(true));
+        prevBtn.replaceWith(prevBtn.cloneNode(true));
+        nextBtn.replaceWith(nextBtn.cloneNode(true));
+        
+        // Obter referências atualizadas
+        const newTypeFilter = document.getElementById('filter-type');
+        const newCreatorFilter = document.getElementById('filter-creator');
+        const newSortFilter = document.getElementById('filter-sort');
+        const newClearBtn = document.getElementById('btn-clear-filters');
+        const newPrevBtn = document.getElementById('btn-prev-page');
+        const newNextBtn = document.getElementById('btn-next-page');
+        
+        // Adicionar eventos
+        newTypeFilter.addEventListener('change', () => {
+            this.currentFilter.type = newTypeFilter.value;
+            this.currentPage = 1;
+            this.renderObjectsList();
+        });
+        
+        newCreatorFilter.addEventListener('change', () => {
+            this.currentFilter.creator = newCreatorFilter.value;
+            this.currentPage = 1;
+            this.renderObjectsList();
+        });
+        
+        newSortFilter.addEventListener('change', () => {
+            this.currentFilter.sort = newSortFilter.value;
+            this.currentPage = 1;
+            this.renderObjectsList();
+        });
+        
+        newClearBtn.addEventListener('click', () => {
+            this.currentFilter = { type: '', creator: '', sort: 'newest' };
+            this.currentPage = 1;
+            newTypeFilter.value = '';
+            newCreatorFilter.value = '';
+            newSortFilter.value = 'newest';
+            this.renderObjectsList();
+        });
+        
+        newPrevBtn.addEventListener('click', () => {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.renderObjectsList();
+            }
+        });
+        
+        newNextBtn.addEventListener('click', () => {
+            const filtered = this.getFilteredObjects();
+            const totalPages = Math.ceil(filtered.length / this.itemsPerPage);
+            if (this.currentPage < totalPages) {
+                this.currentPage++;
+                this.renderObjectsList();
+            }
+        });
+    },
+    
+    // Obter objetos filtrados e ordenados
+    getFilteredObjects() {
+        let filtered = this.allObjects.filter(obj => {
+            const matchType = !this.currentFilter.type || obj.tipo === this.currentFilter.type;
+            const matchCreator = !this.currentFilter.creator || obj.created_by === this.currentFilter.creator;
+            return matchType && matchCreator;
+        });
+        
+        // Ordenar por data
+        filtered.sort((a, b) => {
+            const dateA = new Date(a.created_at);
+            const dateB = new Date(b.created_at);
+            
+            if (this.currentFilter.sort === 'oldest') {
+                return dateA - dateB; // Mais antigo primeiro
+            } else {
+                return dateB - dateA; // Mais recente primeiro (padrão)
+            }
+        });
+        
+        return filtered;
+    },
+    
+    // Renderizar lista com paginação
+    renderObjectsList() {
+        const container = document.getElementById('objects-list');
+        const filtered = this.getFilteredObjects();
+        
+        if (filtered.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📦</div>
-                    <h3>Nenhum objeto salvo</h3>
-                    <p>Crie e salve o primeiro objeto interativo!</p>
+                    <h3>Nenhum objeto encontrado</h3>
+                    <p>Tente ajustar os filtros ou crie um novo objeto!</p>
                 </div>
             `;
-        } else {
-            container.innerHTML = objects.map(obj => this.renderObjectCard(obj)).join('');
+            document.getElementById('pagination-controls').style.display = 'none';
+            return;
         }
         
-        document.getElementById('modal-objects-list').style.display = 'flex';
+        // Calcular paginação
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = startIndex + this.itemsPerPage;
+        const paginatedObjects = filtered.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(filtered.length / this.itemsPerPage);
+        
+        // Renderizar cards
+        container.innerHTML = paginatedObjects.map(obj => this.renderObjectCard(obj)).join('');
+        
+        // Atualizar controles de paginação
+        document.getElementById('page-info').textContent = `Página ${this.currentPage} de ${totalPages} (${filtered.length} objetos)`;
+        document.getElementById('btn-prev-page').disabled = this.currentPage === 1;
+        document.getElementById('btn-next-page').disabled = this.currentPage === totalPages;
+        document.getElementById('pagination-controls').style.display = totalPages > 1 ? 'flex' : 'none';
+        
+        // Estilo para botões desabilitados
+        if (this.currentPage === 1) {
+            document.getElementById('btn-prev-page').style.opacity = '0.5';
+            document.getElementById('btn-prev-page').style.cursor = 'not-allowed';
+        } else {
+            document.getElementById('btn-prev-page').style.opacity = '1';
+            document.getElementById('btn-prev-page').style.cursor = 'pointer';
+        }
+        
+        if (this.currentPage === totalPages) {
+            document.getElementById('btn-next-page').style.opacity = '0.5';
+            document.getElementById('btn-next-page').style.cursor = 'not-allowed';
+        } else {
+            document.getElementById('btn-next-page').style.opacity = '1';
+            document.getElementById('btn-next-page').style.cursor = 'pointer';
+        }
     },
     
     // Renderizar card de objeto

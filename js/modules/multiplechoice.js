@@ -371,6 +371,7 @@ html, body {
     position: relative; /* Necessário para o posicionamento da celebração */
     transition: opacity .6s ease-out, transform .6s ease-out;
     box-sizing: border-box;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 .quiz-wrapper.is-visible {
     opacity: 1;

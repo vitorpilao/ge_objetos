@@ -370,6 +370,272 @@ const GeneratorCore = {
         console.log('✅ Quiz manualmente inicializado');
     },
 
+    // --- INICIALIZAR DRAGDROP MANUALMENTE (FALLBACK) ---
+    initDragDropManually(wrapper) {
+        console.log('🔧 Inicializando dragdrop manualmente');
+        
+        const itemBank = wrapper.querySelector('.item-bank');
+        const dropZones = wrapper.querySelectorAll('.drop-zone');
+        const allItems = wrapper.querySelectorAll('.drag-item');
+        const verifyButton = wrapper.querySelector('.drag-verify-btn');
+        
+        if (!itemBank || !verifyButton || allItems.length === 0) {
+            console.log('❌ Elementos necessários não encontrados');
+            return;
+        }
+        
+        console.log(`📦 Encontrados: ${allItems.length} itens, ${dropZones.length} zonas`);
+        
+        let draggedItem = null;
+        
+        // Eventos de drag para os itens
+        allItems.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                draggedItem = item;
+                item.classList.add('dragging');
+                item.setAttribute('aria-grabbed', 'true');
+                if (e.dataTransfer) {
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+            });
+            
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                item.setAttribute('aria-grabbed', 'false');
+                draggedItem = null;
+            });
+        });
+        
+        // Eventos de drop nas zonas
+        dropZones.forEach(zone => {
+            const inner = zone.querySelector('.drop-zone-inner');
+            
+            inner.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                zone.classList.add('drag-over');
+            });
+            
+            inner.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+            
+            inner.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                if (draggedItem) {
+                    inner.appendChild(draggedItem);
+                }
+            });
+        });
+        
+        // Permitir drop de volta no banco
+        itemBank.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        
+        itemBank.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (draggedItem) {
+                itemBank.appendChild(draggedItem);
+            }
+        });
+        
+        // Botão verificar
+        verifyButton.addEventListener('click', () => {
+            console.log('✅ Verificando respostas');
+            
+            let allCorrect = true;
+            let hasWrongItem = false;
+            
+            allItems.forEach(item => {
+                const correctCategory = item.dataset.correctCategory;
+                const currentZone = item.closest('.drop-zone');
+                
+                item.classList.remove('correct', 'incorrect');
+                
+                if (!currentZone) return;
+                
+                const currentCategory = currentZone.dataset.category;
+                
+                if (currentCategory === correctCategory) {
+                    item.classList.add('correct');
+                } else {
+                    item.classList.add('incorrect');
+                    hasWrongItem = true;
+                    allCorrect = false;
+                }
+            });
+            
+            const itemsInBank = itemBank.querySelectorAll('.drag-item').length;
+            if (itemsInBank > 0) {
+                allCorrect = false;
+            }
+            
+            if (hasWrongItem) {
+                setTimeout(() => {
+                    allItems.forEach(item => {
+                        item.classList.remove('correct', 'incorrect');
+                        itemBank.appendChild(item);
+                    });
+                }, 1000);
+            } else if (allCorrect) {
+                wrapper.classList.add('all-correct');
+                const celebration = wrapper.querySelector('.confetti-celebration');
+                if (celebration) {
+                    celebration.classList.add('active');
+                }
+            }
+        });
+        
+        // Ativar animação de visibilidade
+        setTimeout(() => {
+            wrapper.classList.add('is-visible');
+        }, 50);
+        
+        console.log('✅ DragDrop manualmente inicializado');
+    },
+
+    // FALLBACK: Inicializar EncontreErro manualmente quando inline script não executa
+    initEncontreErroManually(container) {
+        console.log('🎯 Inicializando EncontreErro manualmente...');
+
+        if (!container) {
+            console.error('❌ Container do EncontreErro não encontrado');
+            return;
+        }
+
+        // Entrada suave: adiciona a classe .is-visible quando o componente entra na viewport
+        try {
+            const obsTarget = container;
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        obsTarget.classList.add('is-visible');
+                        obs.unobserve(obsTarget);
+                    }
+                });
+            }, { threshold: 0.15 });
+            observer.observe(obsTarget);
+        } catch (e) {
+            // Se IntersectionObserver não estiver disponível, mostra imediatamente
+            container.classList.add('is-visible');
+        }
+
+        const items = container.querySelectorAll('.encontreerro-item');
+        const feedback = container.querySelector('.encontreerro-feedback');
+        const resetBtn = container.querySelector('.encontreerro-reset-btn');
+        const helpBtn = container.querySelector('.encontreerro-help-btn');
+        const verifyBtn = container.querySelector('.encontreerro-verify-btn');
+        
+        console.log('🔍 Elementos encontrados:', {
+            items: items.length,
+            feedback: !!feedback,
+            resetBtn: !!resetBtn,
+            helpBtn: !!helpBtn,
+            verifyBtn: !!verifyBtn
+        });
+        
+        if (!items.length || !feedback || !resetBtn || !helpBtn || !verifyBtn) {
+            console.error('❌ Elementos necessários do EncontreErro não encontrados');
+            console.log('Container HTML:', container.innerHTML);
+            return;
+        }
+
+        const totalErros = items.length;
+
+        // Extrair textos de feedback do HTML (já renderizados no template)
+        const feedbackInitial = feedback.innerHTML;
+        // Precisamos capturar os textos do template, mas como estão em variáveis JS,
+        // vamos usar atributos data- ou extrair do próprio HTML
+        const feedbackCorrect = container.dataset.feedbackCorrect || 'Parabéns! Você encontrou todos os erros.';
+        const feedbackIncorrect = container.dataset.feedbackIncorrect || 'Você não encontrou todos os erros. As palavras que faltaram estão destacadas em vermelho.';
+        const helpActiveText = container.dataset.helpActive || 'As palavras suspeitas foram destacadas.';
+
+        // Evento de click nos itens
+        items.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🖱️ Click no item:', item.textContent);
+                // Permite selecionar/desselecionar apenas se a verificação não foi feita
+                if (!container.classList.contains('verified')) {
+                    item.classList.toggle('selected');
+                    console.log('✅ Item selecionado/desmarcado');
+                } else {
+                    console.log('⏸️ Verificação já foi feita');
+                }
+            });
+        });
+
+        console.log('✅ Eventos anexados em', items.length, 'itens');
+
+        // Evento de verificar
+        verifyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔍 Botão verificar clicado');
+            container.classList.add('verified'); // Marca que a verificação foi feita
+            const selectedItems = container.querySelectorAll('.encontreerro-item.selected');
+
+            // Desabilita todos os itens para cliques futuros
+            items.forEach(item => item.setAttribute('aria-disabled', 'true'));
+
+            if (selectedItems.length === totalErros) {
+                // Caso de sucesso: todas as palavras corretas foram selecionadas
+                feedback.innerHTML = feedbackCorrect;
+                container.classList.add('success-anim');
+                items.forEach(item => item.classList.add('correct'));
+            } else {
+                // Caso de erro: nem todas as palavras foram encontradas
+                feedback.innerHTML = feedbackIncorrect;
+                items.forEach(item => {
+                    if (item.classList.contains('selected')) {
+                        item.classList.add('correct'); // Marca as que acertou
+                    } else {
+                        item.classList.add('missed'); // Marca as que errou
+                    }
+                });
+            }
+
+            // Mostra o botão de reset e esconde (visualmente) o de verificar/ajuda
+            resetBtn.classList.add('visible');
+            verifyBtn.classList.add('hidden-preserve');
+            helpBtn.classList.add('hidden-preserve');
+        });
+
+        // Evento de ajuda
+        helpBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('💡 Botão ajuda clicado');
+            container.classList.add('help-active');
+            feedback.innerHTML = helpActiveText;
+            helpBtn.classList.add('hidden-preserve'); // Esconde visualmente após o uso, mantendo o espaço
+        });
+
+        // Evento de reset
+        resetBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔄 Botão reset clicado');
+            container.classList.remove('verified', 'help-active', 'success-anim');
+            items.forEach(item => {
+                item.classList.remove('selected', 'correct', 'missed');
+                item.removeAttribute('aria-disabled');
+            });
+
+            feedback.innerHTML = feedbackInitial;
+            resetBtn.classList.remove('visible');
+            verifyBtn.classList.remove('hidden-preserve');
+            helpBtn.classList.remove('hidden-preserve');
+        });
+
+        console.log('✅ EncontreErro inicializado com sucesso manualmente');
+        console.log('📋 Feedbacks carregados:', { feedbackCorrect, feedbackIncorrect, helpActiveText });
+    },
+
     // --- GALERIA DE OBJETOS ---
     async initObjectGallery() {
         const objectTypes = [
@@ -500,7 +766,7 @@ const GeneratorCore = {
                     console.log('  - Target classes:', e.target.className);
                     
                     // Permitir interação com elementos interativos (botões, opções, etc)
-                    const isInteractive = e.target.closest('.quiz-option, .quiz-submit-btn, button, input, select, textarea, a, [role="button"], [role="radio"]');
+                    const isInteractive = e.target.closest('.quiz-option, .quiz-submit-btn, .drag-item, .drag-verify-btn, .drop-zone-inner, .encontreerro-item, .encontreerro-verify-btn, .encontreerro-help-btn, .encontreerro-reset-btn, .encontreerro-actions, .action-stack, button, input, select, textarea, a, [role="button"], [role="radio"]');
                     console.log('  - É interativo?', !!isInteractive);
                     console.log('  - Elemento interativo:', isInteractive);
                     
@@ -543,6 +809,24 @@ const GeneratorCore = {
                         this.initQuizManually(quizWrapper);
                     }, 100);
                 }
+
+                // FALLBACK: Se for dragdrop, anexar eventos manualmente
+                const dragWrapper = previewDiv.querySelector('.drag-wrapper');
+                if (dragWrapper) {
+                    console.log('🎯 Detectado dragdrop, anexando eventos manualmente...');
+                    setTimeout(() => {
+                        this.initDragDropManually(dragWrapper);
+                    }, 100);
+                }
+
+                // FALLBACK: Se for encontreerro, anexar eventos manualmente
+                const encontreErroWrapper = previewDiv.querySelector('.encontreerro-container');
+                if (encontreErroWrapper) {
+                    console.log('🔍 Detectado encontreerro, anexando eventos manualmente...');
+                    setTimeout(() => {
+                        this.initEncontreErroManually(encontreErroWrapper);
+                    }, 100);
+                }
             } else {
                 // Card sem preview (fallback com ícone)
                 card.innerHTML = `
@@ -558,7 +842,7 @@ const GeneratorCore = {
                 console.log('  - Target classes:', e.target.className);
                 
                 // Não navegar se clicou em elemento interativo dentro do preview
-                const isInteractive = e.target.closest('.quiz-option, .quiz-submit-btn, .object-card-preview button, .object-card-preview input, .object-card-preview select, .object-card-preview textarea, .object-card-preview a, [role="button"], [role="radio"]');
+                const isInteractive = e.target.closest('.quiz-option, .quiz-submit-btn, .drag-item, .drag-verify-btn, .drop-zone-inner, .encontreerro-item, .encontreerro-verify-btn, .encontreerro-help-btn, .encontreerro-reset-btn, .encontreerro-actions, .action-stack, .object-card-preview button, .object-card-preview input, .object-card-preview select, .object-card-preview textarea, .object-card-preview a, [role="button"], [role="radio"]');
                 console.log('  - É interativo no card?', !!isInteractive);
                 
                 if (!isInteractive) {
@@ -606,6 +890,11 @@ const AppPages = {
         document.getElementById('page-config').classList.remove('active');
         this.currentPage = 'home';
         this.currentObjectType = null;
+        
+        // Limpar o ID do objeto atual para não editar ao criar novo
+        if (typeof ObjectManager !== 'undefined' && ObjectManager.currentObjectId) {
+            ObjectManager.currentObjectId = null;
+        }
         
         // Limpar seleção dos cards
         document.querySelectorAll('.object-card').forEach(c => c.classList.remove('selected'));

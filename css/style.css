@@ -739,6 +739,195 @@ header p {
     transform: scale(0.98);
 }
 
+/* =====================================================
+   AJUSTES ESPECÍFICOS PARA DRAGDROP NO PREVIEW
+   ===================================================== */
+
+.object-card-preview .drag-wrapper {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 8px !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    border-radius: 4px !important;
+    overflow: visible !important;
+}
+
+.object-card-preview .item-bank-title {
+    font-size: 0.65rem !important;
+    margin-bottom: 4px !important;
+}
+
+.object-card-preview .item-bank {
+    padding: 5px !important;
+    min-height: 40px !important;
+    gap: 4px !important;
+    margin-bottom: 8px !important;
+    border-width: 1px !important;
+}
+
+.object-card-preview .drop-zones-container {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+    gap: 5px !important;
+}
+
+.object-card-preview .drop-zone {
+    border-radius: 4px !important;
+}
+
+.object-card-preview .drop-zone-title {
+    font-size: 0.6rem !important;
+    padding: 3px 5px !important;
+    line-height: 1.2 !important;
+}
+
+.object-card-preview .drop-zone-inner {
+    padding: 4px !important;
+    min-height: 35px !important;
+    gap: 3px !important;
+}
+
+.object-card-preview .drag-item {
+    font-size: 0.6rem !important;
+    padding: 3px 6px !important;
+    line-height: 1.2 !important;
+}
+
+.object-card-preview .drag-verify-btn {
+    font-size: 0.65rem !important;
+    padding: 4px 8px !important;
+    margin-top: 6px !important;
+}
+
+/* ===== ENCONTRE O ERRO: Estilos para card preview ===== */
+.object-card-preview .encontreerro-container {
+    padding: 10px !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    border-radius: 6px !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.object-card-preview .encontreerro-texto {
+    font-size: 0.7rem !important;
+    line-height: 1.5 !important;
+    padding: 8px !important;
+    margin-bottom: 8px !important;
+    border-radius: 4px !important;
+}
+
+.object-card-preview .encontreerro-item {
+    font-size: inherit !important;
+    padding: 2px 4px !important;
+    margin: -2px -4px !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    z-index: 2 !important;
+    position: relative !important;
+    transition: background-color 0.2s ease, color 0.2s ease !important;
+}
+
+.object-card-preview .encontreerro-item.selected {
+    background-color: var(--ee-cor-destaque) !important;
+    color: var(--ee-cor-destaque-texto) !important;
+    border-bottom-color: transparent !important;
+}
+
+.object-card-preview .encontreerro-item.correct {
+    background-color: var(--ee-cor-sucesso) !important;
+    color: white !important;
+    cursor: default !important;
+}
+
+.object-card-preview .encontreerro-item.missed {
+    background-color: var(--ee-cor-erro) !important;
+    color: white !important;
+}
+
+.object-card-preview .help-active .encontreerro-item {
+    border-bottom: 2px dotted var(--ee-cor-destaque) !important;
+}
+
+.object-card-preview .help-active .encontreerro-item:hover,
+.object-card-preview .help-active .encontreerro-item:focus {
+    background-color: var(--ee-cor-destaque) !important;
+    color: var(--ee-cor-destaque-texto) !important;
+}
+
+.object-card-preview .encontreerro-status {
+    gap: 6px !important;
+    margin-top: 6px !important;
+}
+
+.object-card-preview .encontreerro-feedback {
+    font-size: 0.6rem !important;
+    font-weight: 600 !important;
+}
+
+.object-card-preview .encontreerro-actions {
+    gap: 4px !important;
+    padding-right: 4px !important;
+}
+
+.object-card-preview .action-stack {
+    position: relative !important;
+    display: inline-block !important;
+    min-width: max-content !important;
+}
+
+.object-card-preview .encontreerro-help-btn {
+    font-size: 0.65rem !important;
+    cursor: pointer !important;
+    z-index: 2 !important;
+    position: relative !important;
+}
+
+.object-card-preview .action-stack .encontreerro-verify-btn {
+    font-size: 0.65rem !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.object-card-preview .action-stack .encontreerro-reset-btn {
+    font-size: 0.65rem !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 2 !important;
+    width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: opacity 0.3s, visibility 0.3s !important;
+}
+
+.object-card-preview .encontreerro-reset-btn.visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.object-card-preview .hidden-preserve {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.object-card-preview .encontreerro-container.success-anim::before {
+    font-size: 40px !important;
+    z-index: 999 !important;
+}
+
 /* Permitir estilos do preview mas isolar escopo */
 
 .object-card-preview .interactive-destaque-wrapper,

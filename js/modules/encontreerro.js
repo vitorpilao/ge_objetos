@@ -206,11 +206,12 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     color: var(--ee-cor-texto);
     border: 1px solid var(--ee-cor-borda);
     border-radius: 8px;
-    padding: 24px;
+    padding: 10px;
     position: relative; /* Para a animação de sucesso */
-    max-width: 750px;
-    margin: 10px auto;
+    max-width: 100%;
+    margin: 0;
     font-family: var(--font-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 /* Entrada suave do componente (fade + slide) */
 .encontreerro-container {
@@ -228,12 +229,12 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
 .encontreerro-texto {
     font-family: var(--font-code);
     background-color: rgba(0,0,0,0.2);
-    padding: 20px;
-    border-radius: 6px;
-    font-size: 1.1rem;
-    line-height: 1.8;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    line-height: 1.5;
     white-space: pre-wrap;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
 }
 .encontreerro-item {
     background-color: transparent;
@@ -303,21 +304,22 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
 .encontreerro-status {
     display: flex;
     align-items: center;
-    gap: 20px;
-    margin-top: 15px;
+    gap: 6px;
+    margin-top: 6px;
     justify-content: space-between; /* Espaça feedback e ações para extremos */
 }
 .encontreerro-feedback {
     font-weight: 600;
+    font-size: 0.6rem;
     flex: 1 1 auto; /* Ocupa o espaço restante, empurrando os botões para a direita */
 }
 .encontreerro-actions {
     display: flex;
-    gap: 10px;
+    gap: 4px;
     align-items: center;
     justify-content: flex-end; /* Garante os botões sempre alinhados à direita */
     flex: 0 0 auto; /* Não expande além do necessário */
-    padding-right: 16px; /* Espaço entre os botões e a margem direita do container */
+    padding-right: 4px; /* Espaço entre os botões e a margem direita do container */
 }
 .action-stack {
     position: relative;
@@ -333,7 +335,10 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     top: 0;
     left: 0;
     z-index: 2;
-    /*width: 100%; Garante que o botão de reset tenha a mesma largura do botão de verificar */
+    width: 100%; /* Garante que o botão de reset tenha a mesma largura do botão de verificar */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .encontreerro-help-btn {
     font-family: var(--font-primary);
@@ -343,14 +348,15 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     color: var(--ee-cor-destaque);
     cursor: pointer;
     text-decoration: underline;
+    font-size: 0.65rem;
 }
 .encontreerro-verify-btn {
     font-family: var(--font-primary);
     font-weight: 600;
-    font-size: 0.9rem;
-    padding: 8px 16px;
+    font-size: 0.65rem;
+    padding: 4px 8px;
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     background-color: var(--ee-cor-destaque);
     color: var(--ee-cor-destaque-texto);
@@ -358,10 +364,10 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
 .encontreerro-reset-btn {
     font-family: var(--font-primary);
     font-weight: 600;
-    font-size: 0.9rem;
-    padding: 8px 16px;
+    font-size: 0.65rem;
+    padding: 4px 8px;
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     background-color: var(--ee-cor-destaque);
     color: var(--ee-cor-destaque-texto);
@@ -380,7 +386,10 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
     pointer-events: none;
 }
 </style>
-<div class="encontreerro-container" id="${uniqueId}" role="group" aria-label="${ariaLabel}">
+<div class="encontreerro-container" id="${uniqueId}" role="group" aria-label="${ariaLabel}" 
+     data-feedback-correct="${feedbackCorrect.replace(/"/g, '&quot;')}" 
+     data-feedback-incorrect="${feedbackIncorrect.replace(/"/g, '&quot;')}" 
+     data-help-active="${helpActiveText.replace(/"/g, '&quot;')}">
     ${audiodescricaoHTML}
     <div class="encontreerro-texto">${textoDestacado}</div>
     <div class="encontreerro-status">
@@ -389,7 +398,7 @@ html, body { margin: 0; padding: 0; background-color: transparent; }
             <button class="encontreerro-help-btn">${helpBtnText}</button>
             <div class="action-stack">
                 <button class="encontreerro-verify-btn">${verifyBtnText}</button>
-                <button class="encontreerro-reset-btn">Tentar Novamente</button>
+                <button class="encontreerro-reset-btn">Tentar</button>
             </div>
         </div>
     </div>

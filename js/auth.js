@@ -16,6 +16,12 @@ const AuthManager = {
     // Registrar novo usuário via API Xano
     async signup(name, email, password) {
         try {
+            // Validar domínio de e-mail
+            const allowedDomain = '@faculdadeimpacta.com.br';
+            if (!email.toLowerCase().endsWith(allowedDomain)) {
+                throw new Error(`Cadastro permitido apenas para e-mails ${allowedDomain}`);
+            }
+            
             const response = await fetch(`${this.API_BASE_URL}/auth/signup`, {
                 method: 'POST',
                 headers: {

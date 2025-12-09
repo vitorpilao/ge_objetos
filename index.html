@@ -65,6 +65,10 @@
 
             <div class="menu-section">
                 <div class="menu-section-title">Conta</div>
+                <div class="menu-item" id="btn-admin-panel" style="display: none;">
+                    <span class="menu-item-icon">⚙️</span>
+                    <span>Painel Admin</span>
+                </div>
                 <div class="menu-item" id="btn-logout">
                     <span class="menu-item-icon">🚪</span>
                     <span>Sair da Conta</span>
@@ -1060,7 +1064,35 @@
     
     <script>
         // Inicializa a aplicação
-        document.addEventListener('DOMContentLoaded', () => GeneratorCore.init());
+        document.addEventListener('DOMContentLoaded', () => {
+            GeneratorCore.init();
+            
+            // Verificar se usuário é admin e mostrar botão
+            const user = AuthManager.getCurrentUser();
+            
+            // Lista de e-mails admin (fallback)
+            const adminEmails = [
+                'admin@impacta.com', 
+                'vitor@impacta.com',
+                'vitor.pilao@faculdadeimpacta.com.br'
+            ];
+            
+            // Verificar se é admin por role OU por e-mail
+            const isAdmin = user && (
+                user.role === 'admin' || 
+                adminEmails.includes(user.email.toLowerCase())
+            );
+            
+            if (isAdmin) {
+                const adminBtn = document.getElementById('btn-admin-panel');
+                if (adminBtn) {
+                    adminBtn.style.display = 'flex';
+                    adminBtn.addEventListener('click', () => {
+                        window.location.href = 'admin.html';
+                    });
+                }
+            }
+        });
     </script>
 
 </body>

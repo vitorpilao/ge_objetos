@@ -114,7 +114,7 @@ GeneratorCore.registerModule('multiplechoice', {
                 }
             } catch (err) {
                 console.error('[multiplechoice] erro geral no handler de adicionar opção:', err);
-                alert('Ocorreu um erro ao adicionar a opção. Veja o console para detalhes.');
+                try { GeneratorCore.showAppToast('Ocorreu um erro ao adicionar a opção. Veja o console para detalhes.', 'error'); } catch(e) { alert('Ocorreu um erro ao adicionar a opção. Veja o console para detalhes.'); }
             }
         });
 
@@ -131,7 +131,7 @@ GeneratorCore.registerModule('multiplechoice', {
         const checkedRadio = document.querySelector('input[name="multiplechoice-correct"]:checked');
 
         if (!checkedRadio) {
-            alert("Erro: Você precisa selecionar uma opção como a correta antes de visualizar.");
+            try { GeneratorCore.showAppToast('Erro: Você precisa selecionar uma opção como a correta antes de visualizar.', 'error'); } catch(e) { alert("Erro: Você precisa selecionar uma opção como a correta antes de visualizar."); }
             throw new Error("Validação do Múltipla Escolha falhou: Nenhuma resposta correta selecionada."); 
         }
 

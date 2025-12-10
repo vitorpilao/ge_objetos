@@ -110,7 +110,7 @@ GeneratorCore.registerModule('dragdrop', {
         // --- LÓGICA DOS ITENS (COLUNA B) ---
         itemAddBtn.addEventListener('click', () => {
             if (!this.currentCategory) {
-                alert('Por favor, selecione ou adicione uma categoria primeiro.');
+                try { GeneratorCore.showAppToast('Por favor, selecione ou adicione uma categoria primeiro.', 'error'); } catch(e) { alert('Por favor, selecione ou adicione uma categoria primeiro.'); }
                 return;
             }
 
@@ -287,16 +287,16 @@ GeneratorCore.registerModule('dragdrop', {
                     
                     // Adicionar evento de remoção
                     const removeBtn = newCatBlock.querySelector('.category-remove-btn');
-                    removeBtn.addEventListener('click', () => {
+                    removeBtn.addEventListener('click', async () => {
                         const catName = categoryEditor.dataset.name;
-                        if (confirm(`Deseja remover a categoria "${catName}" e todos os seus itens?`)) {
-                            itemList.querySelectorAll(`.dragdrop-item-bloco[data-category="${catName}"]`).forEach(item => item.remove());
-                            newCatBlock.remove();
-                            if (this.currentCategory === catName) {
-                                this.currentCategory = null;
-                                itemAddBtn.disabled = true;
-                                itemTitle.innerHTML = '(nenhuma selecionada)';
-                            }
+                        const confirmed = await GeneratorCore.showAppConfirm(`Deseja remover a categoria "${catName}" e todos os seus itens?`);
+                        if (!confirmed) return;
+                        itemList.querySelectorAll(`.dragdrop-item-bloco[data-category="${catName}"]`).forEach(item => item.remove());
+                        newCatBlock.remove();
+                        if (this.currentCategory === catName) {
+                            this.currentCategory = null;
+                            itemAddBtn.disabled = true;
+                            itemTitle.innerHTML = '(nenhuma selecionada)';
                         }
                     });
                     

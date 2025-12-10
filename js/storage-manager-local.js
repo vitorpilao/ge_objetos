@@ -453,11 +453,8 @@ const ObjectManager = {
             timeline: 'Timeline'
         };
         
-        const date = new Date(obj.created_at).toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
+        const safeDate = (d) => { try { const t = d ? new Date(d) : null; return (t && !isNaN(t.getTime())) ? t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'; } catch(e) { return 'N/A'; } };
+        const date = safeDate(obj.created_at);
             minute: '2-digit'
         });
         
@@ -568,8 +565,9 @@ const ObjectManager = {
     },
     
     // Deletar objeto
-    deleteObject(id) {
-        if (!confirm('Tem certeza que deseja excluir este objeto?')) return;
+    async deleteObject(id) {
+        const confirmed = await GeneratorCore.showAppConfirm('Tem certeza que deseja excluir este objeto?');
+        if (!confirmed) return;
         
         const user = AuthManager.getCurrentUser();
         
@@ -590,8 +588,11 @@ const ObjectManager = {
     },
     
     // Criar novo objeto (limpar formulário)
-    newObject() {
-        if (this.currentObjectId && !confirm('Descartar alterações atuais?')) return;
+    async newObject() {
+        if (this.currentObjectId) {
+            const confirmed = await GeneratorCore.showAppConfirm('Descartar alterações atuais?');
+            if (!confirmed) return;
+        }
         
         this.currentObjectId = null;
         this.currentObjectType = null;
@@ -636,8 +637,9 @@ const ObjectManager = {
     },
     
     // Logout
-    logout() {
-        if (!confirm('Deseja realmente sair?')) return;
+    async logout() {
+        const confirmed = await GeneratorCore.showAppConfirm('Deseja realmente sair?');
+        if (!confirmed) return;
         
         AuthManager.logout();
         window.location.href = 'login.html';

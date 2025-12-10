@@ -10,7 +10,8 @@ const AdminPanel = {
         
         // Verificar se usuário é admin
         if (!this.checkAdminPermission()) {
-            alert('Acesso negado! Você não tem permissão de administrador.');
+            // substituir alert por toast
+            try { window.AdminPanel.showToast('Acesso negado! Você não tem permissão de administrador.', 'error'); } catch(e) { console.warn('Toast indisponível'); }
             window.location.href = 'index.html';
             return;
         }
@@ -25,6 +26,31 @@ const AdminPanel = {
         await this.loadDashboardData();
         
         console.log('✅ Painel Admin iniciado com sucesso');
+    },
+
+    // Exibir um toast na tela (sucesso/erro/info)
+    showToast(message, type = 'info', duration = 3500) {
+        try {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            // Forçar uma reflow para animar
+            window.getComputedStyle(toast).opacity;
+            toast.classList.add('show');
+
+            // Remover após tempo
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        } catch (e) {
+            console.error('Erro ao mostrar toast:', e);
+        }
     },
     
     // Obter headers de autenticação
@@ -134,26 +160,33 @@ const AdminPanel = {
                 const objects = await this.fetchAllObjects();
                 const users = await this.fetchAllUsers();
                 
+                // Excluir objetos marcados como demo ao computar estatísticas / ranking
+                const nonDemoObjects = objects.filter(o => !o.demo);
                 const stats = {
                     total_users: users.length,
-                    total_objects: objects.length,
+                    total_objects: nonDemoObjects.length,
                     active_users: users.filter(u => u.is_active !== false).length,
                     object_types: {}
                 };
                 
-                // Contar tipos de objetos
-                objects.forEach(obj => {
+                // Contar tipos de objetos (apenas não-demo)
+                nonDemoObjects.forEach(obj => {
                     stats.object_types[obj.tipo] = (stats.object_types[obj.tipo] || 0) + 1;
                 });
                 
                 this.updateDashboardStats(stats);
                 
-                // Mostrar objetos recentes
+                // Mostrar objetos recentes (mantemos a lista completa, incluindo demos)
                 const recentObjects = objects
                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                     .slice(0, 5);
                 this.renderRecentObjects(recentObjects);
+
+                // Renderizar ranking dos 3 objetos mais criados (excluindo demos)
+                this.renderTopObjectsRanking(nonDemoObjects);
                 
+                // Adicionar ranking
+                this.renderTopObjectsRanking(objects);
                 return;
             }
             
@@ -164,8 +197,14 @@ const AdminPanel = {
             this.updateDashboardStats(stats);
             
             // Mostrar objetos recentes se disponível
-            if (stats.recent_objects && stats.recent_objects.length > 0) {
+                if (stats.recent_objects && stats.recent_objects.length > 0) {
                 this.renderRecentObjects(stats.recent_objects);
+                // Supondo que `stats` já retorna um objeto com `object_types` e `recent_objects`; preferimos usar `objects` do Xano para ranking
+                const objectsForRanking = stats.recent_objects && stats.recent_objects.length > 0 ? stats.recent_objects : objects;
+                this.renderTopObjectsRanking(
+                    // Garantir que filtramos demo
+                    (objectsForRanking || []).filter(o => !o.demo)
+                );
             } else {
                 // Buscar objetos recentes manualmente
                 const objects = await this.fetchAllObjects();
@@ -173,6 +212,7 @@ const AdminPanel = {
                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                     .slice(0, 5);
                 this.renderRecentObjects(recentObjects);
+                this.renderTopObjectsRanking(nonDemoObjects);
             }
             
             console.log('✅ Dashboard carregado:', stats);
@@ -222,12 +262,9 @@ const AdminPanel = {
             timeline: 'Timeline'
         };
         
+        const safeDate = (d) => { try { const t = d ? new Date(d) : null; return (t && !isNaN(t.getTime())) ? t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'; } catch(e) { return 'N/A'; } };
         tbody.innerHTML = objects.map(obj => {
-            const date = new Date(obj.created_at).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
+            const date = safeDate(obj.created_at);
             
             return `
                 <tr>
@@ -237,6 +274,44 @@ const AdminPanel = {
                     <td>${date}</td>
                 </tr>
             `;
+        }).join('');
+    },
+    
+    // Renderizar ranking dos 3 objetos mais criados
+    renderTopObjectsRanking(objects) {
+        const container = document.getElementById('top-objects-list');
+        if (!container) return;
+        if (!objects || objects.length === 0) {
+            container.innerHTML = '<div class="empty-state">Nenhum objeto encontrado</div>';
+            return;
+        }
+        // Contar tipos de objetos
+        const typeCount = {};
+        objects.forEach(obj => {
+            typeCount[obj.tipo] = (typeCount[obj.tipo] || 0) + 1;
+        });
+        // Ordenar tipos por quantidade
+        const sortedTypes = Object.entries(typeCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3);
+        const typeLabels = {
+            accordion: 'Acordeão',
+            destaque: 'Destaque',
+            dragdrop: 'Drag & Drop',
+            encontreerro: 'Encontre o Erro',
+            flashcard: 'Flashcard',
+            flipcard: 'Flip Card',
+            guia: 'Guia Sequencial',
+            modal: 'Modal de Imagem',
+            multiplechoice: 'Múltipla Escolha',
+            timeline: 'Timeline'
+        };
+        container.innerHTML = sortedTypes.map(([tipo, count], idx) => {
+            return `<div class="top-object-item">
+                <span class="top-object-rank">${idx + 1}º</span>
+                <span class="top-object-type">${typeLabels[tipo] || tipo}</span>
+                <span class="top-object-count">${count} criados</span>
+            </div>`;
         }).join('');
     },
     
@@ -410,11 +485,21 @@ const AdminPanel = {
             console.log('📦 Carregando objetos...');
             
             const objects = await this.fetchAllObjects();
+            // guardar cache dos objetos para filtros/ordenacao/busca
+            this.objectsList = objects || [];
             
-            this.renderObjectsList(objects);
+            // Render objects filtered by demo status
+            // Recuperar estado do toggle de demo (persistido no localStorage)
+            const persisted = localStorage.getItem('showDemoObjects');
+            this.showDemoObjects = (persisted === null) ? true : (persisted === 'true');
+            // Atualizar UI do switch (se presente)
+            const toggle = document.getElementById('show-demo-toggle');
+            if (toggle) toggle.checked = this.showDemoObjects;
+            this.renderObjectsList(this.applyDemoFilter(objects));
             
             // Configurar busca
             this.setupObjectSearch(objects);
+            this.setupObjectFilter();
             
             // Configurar ordenação
             this.setupObjectSorting(objects);
@@ -432,7 +517,7 @@ const AdminPanel = {
         if (objects.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="empty-state">
+                    <td colspan="7" class="empty-state">
                         <div class="empty-icon">📦</div>
                         <div>Nenhum objeto encontrado</div>
                     </td>
@@ -454,10 +539,13 @@ const AdminPanel = {
             timeline: 'Timeline'
         };
         
-        tbody.innerHTML = objects.map(obj => {
-            const created = new Date(obj.created_at).toLocaleDateString('pt-BR');
-            const updated = new Date(obj.updated_at).toLocaleDateString('pt-BR');
-            
+        // Aplicar filtro demo antes de renderizar
+        const visibleObjects = this.applyDemoFilter(objects);
+
+        const safeDate = (d) => { try { const t = d ? new Date(d) : null; return (t && !isNaN(t.getTime())) ? t.toLocaleDateString('pt-BR') : 'N/A'; } catch(e) { return 'N/A'; } };
+        tbody.innerHTML = (visibleObjects).map(obj => {
+            const created = safeDate(obj.created_at);
+            const updated = safeDate(obj.updated_at);
             return `
                 <tr>
                     <td><strong>${obj.nome}</strong></td>
@@ -465,6 +553,10 @@ const AdminPanel = {
                     <td>${obj.created_by || 'N/A'}</td>
                     <td>${created}</td>
                     <td>${updated}</td>
+                    <td class="demo-cell">
+                        <input type="checkbox" ${obj.demo ? 'checked' : ''} onchange="AdminPanel.toggleDemoStatus(${obj.id}, this.checked, this)" title="Marcar como Demo">
+                        <span class="checkbox-spinner" style="display:none;"></span>
+                    </td>
                     <td>
                         <button class="btn-icon" onclick="AdminPanel.viewObject(${obj.id})" title="Visualizar">👁️</button>
                         <button class="btn-icon" onclick="AdminPanel.editObject(${obj.id})" title="Editar">✏️</button>
@@ -487,9 +579,25 @@ const AdminPanel = {
                        obj.tipo.toLowerCase().includes(query) ||
                        (obj.created_by || '').toLowerCase().includes(query);
             });
-            
-            this.renderObjectsList(filtered);
+            this.renderObjectsList(this.applyDemoFilter(filtered));
         });
+    },
+
+    // Configurar filtro de demo (switch)
+    setupObjectFilter() {
+        const toggle = document.getElementById('show-demo-toggle');
+        if (!toggle) return;
+
+        // Atualizar estado inicial
+        this.showDemoObjects = toggle.checked;
+
+        toggle.onchange = (e) => {
+            this.showDemoObjects = e.target.checked;
+            try { localStorage.setItem('showDemoObjects', String(this.showDemoObjects)); } catch (err) { console.warn('Não foi possível salvar preferência de demo no localStorage:', err); }
+            // Renderizar com novo filtro usando cache de objetos
+            const objects = this.objectsList || [];
+            this.renderObjectsList(this.applyDemoFilter(objects));
+        };
     },
     
     // Configurar ordenação de objetos
@@ -517,9 +625,9 @@ const AdminPanel = {
                 // Adicionar classe ao header atual
                 header.classList.add(`sort-${currentSort.order}`);
                 
-                // Ordenar e renderizar
+                // Ordenar e renderizar com filtro demo aplicado
                 const sorted = this.sortObjects(objects, field, currentSort.order);
-                this.renderObjectsList(sorted);
+                this.renderObjectsList(this.applyDemoFilter(sorted));
             });
         });
     },
@@ -530,11 +638,17 @@ const AdminPanel = {
             let aVal = a[field];
             let bVal = b[field];
             
-            // Tratar valores nulos
-            if (!aVal) aVal = '';
-            if (!bVal) bVal = '';
+            // Tratar valores nulos (preservar booleans)
+            if (aVal === null || aVal === undefined) aVal = '';
+            if (bVal === null || bVal === undefined) bVal = '';
             
-            // Conversão para comparação
+            // Tratamento especial para valores booleanos (ex: demo)
+            if (field === 'demo' || typeof aVal === 'boolean' || typeof bVal === 'boolean') {
+                aVal = aVal ? 1 : 0;
+                bVal = bVal ? 1 : 0;
+            }
+
+            // Conversão para comparação (strings)
             if (typeof aVal === 'string') {
                 aVal = aVal.toLowerCase();
                 bVal = bVal.toLowerCase();
@@ -544,6 +658,14 @@ const AdminPanel = {
             if (aVal > bVal) return order === 'asc' ? 1 : -1;
             return 0;
         });
+    },
+
+    // Aplicar filtro para mostrar/ocultar objetos demo
+    applyDemoFilter(objects) {
+        if (!objects || !Array.isArray(objects)) return [];
+        const show = this.showDemoObjects !== false; // default true
+        if (show) return objects;
+        return objects.filter(o => !o.demo);
     },
     
     // Buscar todos os objetos
@@ -567,9 +689,24 @@ const AdminPanel = {
             }
             
             const data = await response.json();
-            console.log('📦 Objetos recebidos:', data);
-            
-            return data.content || data || [];
+            console.log('📦 Objetos recebidos (raw):', data);
+
+            // Normalizar a lista de objetos e garantir que o campo `demo` exista e seja boolean
+            const rawList = data.content || data || [];
+            const normalized = (Array.isArray(rawList) ? rawList : []).map(item => ({
+                // preservar todas as propriedades originais
+                ...item,
+                // garantir que `demo` seja boolean (fallback false)
+                // Tentar detectar campos possíveis com status demo (demo, is_demo, isDemo)
+                demo: !!(item.demo || item.is_demo || item.isDemo || item.isDemoFlag || item.is_demo_flag || item.demo_flag),
+                // garantir campos de data para evitar erros de parsing
+                created_at: item.created_at || item.createdAt || item.created || null,
+                updated_at: item.updated_at || item.updatedAt || item.updated || null
+            }));
+
+            console.log('📦 Objetos normalizados:', normalized.map(o => ({ id: o.id, demo: o.demo })));
+
+            return normalized;
         } catch (error) {
             console.error('❌ Erro ao buscar objetos:', error);
             return [];
@@ -732,6 +869,7 @@ const AdminPanel = {
                 'usuario': 'Membro'
             };
             
+            const safeDate = (d) => { try { const t = d ? new Date(d) : null; return (t && !isNaN(t.getTime())) ? t.toLocaleString('pt-BR') : 'N/A'; } catch(e) { return 'N/A'; } };
             const details = `
 📋 Detalhes do Usuário
 
@@ -740,28 +878,29 @@ Nome: ${user.name}
 E-mail: ${user.email}
 Função: ${roleLabels[user.role] || user.role}
 Status: ${user.is_active ? 'Ativo' : 'Inativo'}
-Criado em: ${new Date(user.created_at).toLocaleString('pt-BR')}
-Último acesso: ${user.last_login ? new Date(user.last_login).toLocaleString('pt-BR') : 'Nunca'}
+Criado em: ${safeDate(user.created_at)}
+Último acesso: ${user.last_login ? safeDate(user.last_login) : 'Nunca'}
             `.trim();
             
-            alert(details);
+            this.showToast(details, 'info', 8000);
         } catch (error) {
-            alert('Erro ao carregar detalhes do usuário: ' + error.message);
+            this.showToast('Erro ao carregar detalhes do usuário: ' + error.message, 'error');
         }
     },
     
     async toggleUserStatus(userId, currentStatus) {
         const action = currentStatus ? 'desativar' : 'ativar';
-        
-        if (!confirm(`Deseja ${action} este usuário?`)) return;
-        
+        const msg = `Deseja ${action} este usuário?`;
         try {
+            const confirmed = await GeneratorCore.showAppConfirm(msg);
+            if (!confirmed) return;
+
             await this.updateUser(userId, { is_active: !currentStatus });
-            alert(`Usuário ${action === 'desativar' ? 'desativado' : 'ativado'} com sucesso!`);
+            this.showToast(`Usuário ${!currentStatus ? 'ativado' : 'desativado'} com sucesso!`, 'success');
             await this.loadUsersData();
             await this.loadDashboardData();
         } catch (error) {
-            alert('Erro ao alterar status do usuário: ' + error.message);
+            this.showToast('Erro ao atualizar status do usuário: ' + (error.message || error), 'error');
         }
     },
     
@@ -796,29 +935,30 @@ Criado em: ${new Date(user.created_at).toLocaleString('pt-BR')}
                 role: newRole
             });
             
-            alert('Usuário atualizado com sucesso!');
+            this.showToast('Usuário atualizado com sucesso!', 'success');
             await this.loadUsersData();
         } catch (error) {
-            alert('Erro ao atualizar usuário: ' + error.message);
+            this.showToast('Erro ao atualizar usuário: ' + error.message, 'error');
         }
     },
     
     async deleteUserConfirm(userId) {
         // Método legado mantido como fallback
         // Agora usa openDeleteModal() por padrão
-        const softDelete = confirm('Deseja DESATIVAR (OK) ou DELETAR PERMANENTEMENTE (Cancelar)?\n\nOK = Desativar\nCancelar = Deletar permanentemente');
+        const softDelete = await GeneratorCore.showAppConfirm('Deseja DESATIVAR (OK) ou DELETAR PERMANENTEMENTE (Cancelar)?\n\nOK = Desativar\nCancelar = Deletar permanentemente');
         
         const action = softDelete ? 'desativar' : 'deletar permanentemente';
         
-        if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
+        const confirmed = await GeneratorCore.showAppConfirm(`Tem certeza que deseja ${action} este usuário?`);
+        if (!confirmed) return;
         
         try {
             await this.deleteUser(userId, softDelete);
-            alert(`Usuário ${softDelete ? 'desativado' : 'deletado'} com sucesso!`);
+            this.showToast(`Usuário ${softDelete ? 'desativado' : 'deletado'} com sucesso!`, 'success');
             await this.loadUsersData();
             await this.loadDashboardData();
         } catch (error) {
-            alert('Erro ao deletar usuário: ' + error.message);
+            this.showToast('Erro ao deletar usuário: ' + error.message, 'error');
         }
     },
     
@@ -856,11 +996,11 @@ Criado em: ${new Date(user.created_at).toLocaleString('pt-BR')}
                 is_active: true
             });
             
-            alert('Usuário criado com sucesso!');
+            this.showToast('Usuário criado com sucesso!', 'success');
             await this.loadUsersData();
             await this.loadDashboardData();
         } catch (error) {
-            alert('Erro ao criar usuário: ' + error.message);
+            this.showToast('Erro ao criar usuário: ' + error.message, 'error');
         }
     },
     
@@ -874,22 +1014,70 @@ Criado em: ${new Date(user.created_at).toLocaleString('pt-BR')}
     },
     
     async deleteObject(id) {
-        if (!confirm('Tem certeza que deseja excluir este objeto?')) return;
+        const confirmed = await GeneratorCore.showAppConfirm('Tem certeza que deseja excluir este objeto?');
+        if (!confirmed) return;
         
         try {
             const response = await fetch(`${StorageManager.API_BASE_URL}/objeto_interativo/${id}`, {
                 method: 'DELETE',
-                headers: StorageManager.getAuthHeaders()
+                headers: StorageManager.getHeaders()
             });
             
             if (!response.ok) throw new Error('Erro ao excluir objeto');
             
-            alert('Objeto excluído com sucesso!');
+            this.showToast('Objeto excluído com sucesso!', 'success');
             await this.loadObjectsData();
             await this.loadDashboardData();
         } catch (error) {
             console.error('❌ Erro ao excluir objeto:', error);
-            alert('Erro ao excluir objeto: ' + error.message);
+            this.showToast('Erro ao excluir objeto: ' + error.message, 'error');
+        }
+    },
+
+    // Alternar status 'demo' de um objeto
+    async toggleDemoStatus(objectId, isDemo, el = null) {
+        try {
+            if (el) el.disabled = true;
+            // mostrar spinner ao lado do checkbox
+            let spinner = null;
+            try { spinner = el.nextElementSibling; } catch(e) { spinner = null; }
+            if (spinner) { spinner.style.display = 'inline-block'; el.style.display = 'none'; }
+            console.log(`🔁 Atualizando demo=${isDemo} para objeto ${objectId}...`);
+            // Desabilitar o checkbox visualmente enquanto atualiza (se possível)
+            // Usamos o payload de patch para atualizar apenas campo demo
+            const response = await fetch(`${StorageManager.API_BASE_URL}/objeto_interativo/${objectId}`, {
+                method: 'PATCH',
+                headers: StorageManager.getHeaders(),
+                body: JSON.stringify({ is_demo: isDemo })
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                let errorMessage = 'Erro ao atualizar status Demo';
+                try {
+                    const json = JSON.parse(text);
+                    errorMessage = json.error || json.message || errorMessage;
+                } catch (e) {
+                    errorMessage = text || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            console.log(`✅ Demo atualizado para objeto ${objectId}: demo=${isDemo}`);
+            // Atualizar lista de objetos e dashboard
+            await this.loadObjectsData();
+            await this.loadDashboardData();
+            if (spinner) { spinner.style.display = 'none'; el.style.display = 'inline-block'; }
+            if (el) el.disabled = false;
+            this.showToast('Demo atualizado com sucesso!', 'success');
+        } catch (error) {
+            console.error('❌ Erro ao atualizar demo:', error);
+            this.showToast('Erro ao atualizar ' + (isDemo ? 'marcação de Demo' : 'desmarcar Demo') + ': ' + error.message, 'error', 6000);
+            // Recarregar a lista para garantir estado consistente
+            await this.loadObjectsData();
+        } finally {
+            if (spinner) { spinner.style.display = 'none'; el.style.display = 'inline-block'; }
+            if (el) el.disabled = false;
         }
     },
 
@@ -1020,24 +1208,27 @@ Criado em: ${new Date(user.created_at).toLocaleString('pt-BR')}
             const message = isSoftDelete 
                 ? 'Usuário desativado com sucesso!' 
                 : 'Usuário deletado permanentemente!';
-            alert(message);
+            this.showToast(message, 'success');
             
             this.closeDeleteModal();
             await this.loadUsersData();
             await this.loadDashboardData();
         } catch (error) {
-            alert('Erro ao deletar usuário: ' + error.message);
+            this.showToast('Erro ao deletar usuário: ' + error.message, 'error');
         }
     },
     
     // Logout
-    logout() {
-        if (confirm('Deseja sair do painel admin?')) {
-            AuthManager.logout();
-            window.location.href = 'login.html';
-        }
+    async logout() {
+        const confirmed = await GeneratorCore.showAppConfirm('Deseja sair do painel admin?');
+        if (!confirmed) return;
+        AuthManager.logout();
+        window.location.href = 'login.html';
     }
 };
+
+// Tornar global para permitir chamadas via inline event handlers (ex: onclick="AdminPanel.*")
+window.AdminPanel = AdminPanel;
 
 // Inicializar quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {

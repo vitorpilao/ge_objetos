@@ -68,6 +68,56 @@
 .quiz-wrapper {
     position: relative;
 }
+/* Toasts */
+#toast-container {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 11000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+.toast {
+    min-width: 220px;
+    max-width: 380px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: auto;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.toast.success { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+.toast.error { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.toast.info { background: linear-gradient(90deg, #3498db, #2980b9); }
+/* ...existing code... */
+
+/* Checkbox spinner */
+.checkbox-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.18);
+    border-top-color: rgba(255,255,255,0.9);
+    animation: spinner 0.6s linear infinite;
+    vertical-align: middle;
+}
+.demo-cell {
+    position: relative;
+}
+@keyframes spinner {
+    to { transform: rotate(360deg); }
+}
 /* --- ESTILOS PARA CONFETES E MENSAGEM DE SUCESSO (Múltipla Escolha) --- */
 .confetti-celebration {
     position: absolute;
@@ -881,5 +931,127 @@ button[type="submit"]:hover {
 .multiplechoice-remove-option:hover {
     opacity: 1;
     transform: scale(1.05);
+}
+
+/* --- Novos Estilos para o Painel de Estatísticas e Objetos (Dashboard) --- */
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+    max-width: 100vw;
+    box-sizing: border-box;
+    background: linear-gradient(135deg, #1a1d29 0%, #2d3142 100%);
+    overflow-x: hidden;
+}
+.admin-main {
+    flex: 1;
+    padding: 0;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+.dashboard-flex-row {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-bottom: 30px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.dashboard-main-column {
+    flex: 2 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+.stats-grid {
+    width: 100%;
+}
+.dashboard-ranking-panel {
+    width: 100%;
+}
+.dashboard-objects-panel {
+    flex: 1 1 420px;
+    min-width: 320px;
+    max-width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.dashboard-objects-panel .data-table {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.dashboard-objects-panel .table-content {
+    flex: 1;
+    overflow-x: auto;
+    max-width: 100%;
+}
+.dashboard-objects-panel table {
+    min-width: 0;
+    width: 100%;
+    table-layout: auto;
+}
+@media (max-width: 1100px) {
+    .dashboard-flex-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .dashboard-main-column {
+        width: 100%;
+        gap: 24px;
+    }
+    .dashboard-objects-panel {
+        max-width: 100%;
+        min-width: 0;
+        height: auto;
+    }
+}
+
+/* --- Estilos do Painel de Ranking --- */
+.dashboard-ranking-panel {
+    flex: 1 1 320px;
+    min-width: 320px;
+    max-width: 420px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+#top-objects-list {
+    padding: 24px;
+}
+.top-object-item {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+    background: rgba(10,136,244,0.07);
+    border-radius: 8px;
+    padding: 12px 18px;
+}
+.top-object-rank {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0a88f4;
+    margin-right: 8px;
+}
+.top-object-type {
+    font-weight: 600;
+    color: #fff;
+}
+.top-object-count {
+    color: #ffc107;
+    font-weight: 600;
+    margin-left: auto;
+    font-size: 1.1rem;
 }
 

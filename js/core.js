@@ -197,7 +197,8 @@ const GeneratorCore = {
                     elements.outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } catch (err) {
                     console.error(`[GeneratorCore] Erro ao GERAR componente ${type}:`, err);
-                    alert(`Ocorreu um erro ao gerar o componente ${type}. Verifique o console.`);
+                    // Usar toast global quando disponível
+                    try { GeneratorCore.showAppToast(`Ocorreu um erro ao gerar o componente ${type}. Verifique o console.`, 'error'); } catch(e) { alert(`Ocorreu um erro ao gerar o componente ${type}. Verifique o console.`); }
                 }
             });
             this.utils.setupCopyButton(`copy-button-${type}`, `output-code-${type}`);
@@ -207,6 +208,120 @@ const GeneratorCore = {
             }
         } catch (err) {
             console.error(`[GeneratorCore] Erro fatal ao REGISTRAR módulo ${type}:`, err);
+        }
+    },
+
+    // Função global de toast para o app (usável por módulos)
+    showAppToast(message, type = 'info', duration = 3500) {
+        try {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.setAttribute('aria-live', 'polite');
+                container.setAttribute('aria-atomic', 'true');
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            // start animation
+            window.getComputedStyle(toast).opacity;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        } catch (e) {
+            // Fallback: usa alert se algo falhar
+            console.error('Erro ao criar toast:', e, message);
+            try { GeneratorCore.showAppToast(message, 'success'); } catch(e) { alert(message); }
+        }
+    },
+
+    // Mostrar modal de confirmação reutilizável; retorna Promise<boolean>
+    showAppConfirm(titleOrMessage, maybeMessage) {
+        return new Promise((resolve) => {
+            try {
+                let title = 'Confirmar';
+                let message = '';
+                if (maybeMessage) {
+                    title = titleOrMessage;
+                    message = maybeMessage;
+                } else {
+                    message = titleOrMessage;
+                }
+
+                let modal = document.getElementById('confirm-modal');
+                if (!modal) {
+                    console.warn('confirm-modal não encontrado. Fallback para confirm()');
+                    const result = confirm(message);
+                    resolve(result);
+                    return;
+                }
+
+                const titleEl = modal.querySelector('#confirm-modal-title');
+                const bodyEl = modal.querySelector('#confirm-modal-message');
+                const okBtn = modal.querySelector('#confirm-modal-ok');
+                const cancelBtn = modal.querySelector('#confirm-modal-cancel');
+                const closeBtn = modal.querySelector('#confirm-modal-close');
+
+                if (titleEl) titleEl.textContent = title;
+                if (bodyEl) bodyEl.textContent = message;
+
+                modal.style.display = 'flex';
+
+                const cleanup = () => {
+                    modal.style.display = 'none';
+                    okBtn.removeEventListener('click', onOk);
+                    cancelBtn.removeEventListener('click', onCancel);
+                    closeBtn.removeEventListener('click', onCancel);
+                };
+
+                const onOk = () => { cleanup(); resolve(true); };
+                const onCancel = () => { cleanup(); resolve(false); };
+
+                okBtn.addEventListener('click', onOk);
+                cancelBtn.addEventListener('click', onCancel);
+                closeBtn.addEventListener('click', onCancel);
+            } catch (err) {
+                console.error('Erro no showAppConfirm:', err);
+                resolve(false);
+            }
+        });
+    },
+
+    // Mostrar modal simples com conteúdo - title + html/text
+    showAppModal(title, contentHtml) {
+        try {
+            let modal = document.getElementById('app-modal');
+            if (!modal) {
+                console.warn('app-modal não encontrado. Fallback para alert.');
+                alert(contentHtml);
+                return;
+            }
+
+            const titleEl = modal.querySelector('#app-modal-title');
+            const bodyEl = modal.querySelector('#app-modal-body');
+            const closeBtn = modal.querySelector('#app-modal-close');
+            const closeBtn2 = modal.querySelector('#app-modal-close-btn');
+
+            if (titleEl) titleEl.textContent = title || '';
+            if (bodyEl) bodyEl.innerHTML = contentHtml || '';
+
+            const closeHandler = () => {
+                modal.style.display = 'none';
+                closeBtn.removeEventListener('click', closeHandler);
+                closeBtn2.removeEventListener('click', closeHandler);
+            };
+
+            modal.style.display = 'flex';
+            closeBtn.addEventListener('click', closeHandler);
+            closeBtn2.addEventListener('click', closeHandler);
+        } catch (err) {
+            console.error('Erro no showAppModal:', err);
+            alert(contentHtml);
         }
     },
 

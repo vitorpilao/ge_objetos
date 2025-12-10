@@ -798,13 +798,8 @@ const ObjectManager = {
             timeline: 'Timeline'
         };
         
-        const date = new Date(obj.created_at).toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        const safeDate = (d) => { try { const t = d ? new Date(d) : null; return (t && !isNaN(t.getTime())) ? t.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'}) : 'N/A'; } catch(e) { return 'N/A'; } };
+        const date = safeDate(obj.created_at);
         
         console.log('📅 Data formatada:', date);
         console.log('👤 Created by:', obj.created_by);
@@ -1050,7 +1045,8 @@ const ObjectManager = {
     
     // Deletar objeto
     async deleteObject(id) {
-        if (!confirm('Tem certeza que deseja excluir este objeto?')) return;
+        const confirmed = await GeneratorCore.showAppConfirm('Tem certeza que deseja excluir este objeto?');
+        if (!confirmed) return;
         
         const user = AuthManager.getCurrentUser();
         
@@ -1071,8 +1067,11 @@ const ObjectManager = {
     },
     
     // Criar novo objeto (limpar formulário)
-    newObject() {
-        if (this.currentObjectId && !confirm('Descartar alterações atuais?')) return;
+    async newObject() {
+        if (this.currentObjectId) {
+            const confirmed = await GeneratorCore.showAppConfirm('Descartar alterações atuais?');
+            if (!confirmed) return;
+        }
         
         this.currentObjectId = null;
         this.currentObjectType = null;
@@ -1118,8 +1117,9 @@ const ObjectManager = {
     },
     
     // Logout
-    logout() {
-        if (!confirm('Deseja realmente sair?')) return;
+    async logout() {
+        const confirmed = await GeneratorCore.showAppConfirm('Deseja realmente sair?');
+        if (!confirmed) return;
         
         AuthManager.logout();
         window.location.href = 'login.html';
@@ -1212,13 +1212,13 @@ const ProfilePictureManager = {
         try {
             // Validar tipo de arquivo
             if (!file.type.startsWith('image/')) {
-                alert('Por favor, selecione uma imagem válida.');
+                try { GeneratorCore.showAppToast('Por favor, selecione uma imagem válida.', 'error'); } catch(e) { alert('Por favor, selecione uma imagem válida.'); }
                 return;
             }
             
             // Validar tamanho (máx 500KB)
             if (file.size > 500 * 1024) {
-                alert('A imagem deve ter no máximo 500KB.');
+                try { GeneratorCore.showAppToast('A imagem deve ter no máximo 500KB.', 'error'); } catch(e) { alert('A imagem deve ter no máximo 500KB.'); }
                 return;
             }
             
@@ -1283,11 +1283,11 @@ const ProfilePictureManager = {
                 userAvatar.textContent = '';
             }
             
-            alert('Foto de perfil atualizada com sucesso!');
+            try { GeneratorCore.showAppToast('Foto de perfil atualizada com sucesso!', 'success'); } catch(e) { alert('Foto de perfil atualizada com sucesso!'); }
             
         } catch (error) {
             console.error('❌ Erro ao fazer upload da foto:', error);
-            alert('Erro ao atualizar foto de perfil. Tente novamente.');
+            try { GeneratorCore.showAppToast('Erro ao atualizar foto de perfil. Tente novamente.', 'error'); } catch(e) { alert('Erro ao atualizar foto de perfil. Tente novamente.'); }
             
             // Restaurar avatar
             const userAvatar = document.getElementById('user-avatar');
@@ -1380,7 +1380,7 @@ ObjectManager.showEditUsernamePrompt = function() {
         const newName = input.value.trim();
         
         if (!newName) {
-            alert('O nome não pode estar vazio');
+            try { GeneratorCore.showAppToast('O nome não pode estar vazio', 'error'); } catch(e) { alert('O nome não pode estar vazio'); }
             isSaving = false;
             input.focus();
             return;
@@ -1493,7 +1493,7 @@ ObjectManager.updateUsername = async function(newName) {
         
     } catch (error) {
         console.error('❌ Erro ao atualizar nome:', error);
-        alert('Erro ao atualizar nome. Tente novamente.');
+        try { GeneratorCore.showAppToast('Erro ao atualizar nome. Tente novamente.', 'error'); } catch(e) { alert('Erro ao atualizar nome. Tente novamente.'); }
         
         // Restaurar nome original
         const user = AuthManager.getCurrentUser();

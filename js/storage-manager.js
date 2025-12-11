@@ -256,7 +256,7 @@ const ObjectManager = {
             if (btnNew) {
                 btnNew.onclick = () => {
                     console.log('🆕 Botão Novo clicado');
-                    this.newObject();
+                    this.newObject(btnNew);
                 };
                 console.log('✅ Listener adicionado: Novo');
             }
@@ -301,7 +301,7 @@ const ObjectManager = {
             if (btnLogout) {
                 btnLogout.onclick = () => {
                     console.log('🚪 Botão Logout clicado');
-                    this.logout();
+                    this.logout(btnLogout);
                 };
                 console.log('✅ Listener adicionado: Logout');
             }
@@ -585,7 +585,8 @@ const ObjectManager = {
     
     // Fechar modal de salvar
     closeSaveModal() {
-        document.getElementById('modal-save-object').style.display = 'none';
+        const modal = document.getElementById('modal-save-object');
+        if (modal) modal.style.display = 'none';
     },
     
     // Variáveis de controle de paginação e filtros
@@ -835,7 +836,7 @@ const ObjectManager = {
                     <button onclick="ObjectManager.duplicateObject(${obj.id})" class="btn-action btn-duplicate">
                         📋 Duplicar
                     </button>
-                    <button onclick="ObjectManager.deleteObject(${obj.id})" class="btn-action btn-delete">
+                    <button onclick="ObjectManager.deleteObject(${obj.id}, this)" class="btn-action btn-delete">
                         🗑️ Excluir
                     </button>
                 </div>
@@ -1044,8 +1045,8 @@ const ObjectManager = {
     },
     
     // Deletar objeto
-    async deleteObject(id) {
-        const confirmed = await GeneratorCore.showAppConfirm('Tem certeza que deseja excluir este objeto?');
+    async deleteObject(id, triggerEl = null) {
+        const confirmed = await GeneratorCore.showAppConfirm('Tem certeza que deseja excluir este objeto?', { triggerEl });
         if (!confirmed) return;
         
         const user = AuthManager.getCurrentUser();
@@ -1063,14 +1064,21 @@ const ObjectManager = {
             this.updateObjectsCount();
         } catch (error) {
             showToast('Erro ao excluir: ' + error.message, 'error');
+        } finally {
+            if (triggerEl) GeneratorCore.clearButtonSpinner(triggerEl);
         }
     },
     
     // Criar novo objeto (limpar formulário)
-    async newObject() {
+    async newObject(triggerEl = null) {
         if (this.currentObjectId) {
-            const confirmed = await GeneratorCore.showAppConfirm('Descartar alterações atuais?');
+            const confirmed = await GeneratorCore.showAppConfirm('Descartar alterações atuais?', { triggerEl });
             if (!confirmed) return;
+            try {
+                // proceed
+            } finally {
+                if (triggerEl) GeneratorCore.clearButtonSpinner(triggerEl);
+            }
         }
         
         this.currentObjectId = null;
@@ -1117,12 +1125,15 @@ const ObjectManager = {
     },
     
     // Logout
-    async logout() {
-        const confirmed = await GeneratorCore.showAppConfirm('Deseja realmente sair?');
+    async logout(triggerEl = null) {
+        const confirmed = await GeneratorCore.showAppConfirm('Deseja realmente sair?', { triggerEl });
         if (!confirmed) return;
-        
-        AuthManager.logout();
-        window.location.href = 'login.html';
+        try {
+            AuthManager.logout();
+            window.location.href = 'login.html';
+        } finally {
+            if (triggerEl) GeneratorCore.clearButtonSpinner(triggerEl);
+        }
     },
     
     // Fechar lista de objetos

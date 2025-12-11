@@ -61,6 +61,17 @@ const AdminPanel = {
             'Authorization': `Bearer ${authToken}`
         };
     },
+
+    // Helper para escapar texto para evitar XSS quando injetamos HTML manualmente
+    escapeHtml(str) {
+        if (!str && str !== 0) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    },
     
     // Verificar permissão de admin
     checkAdminPermission() {
@@ -392,7 +403,7 @@ const AdminPanel = {
                     <td>${lastAccess}</td>
                     <td>
                         <button class="btn-icon" onclick="AdminPanel.viewUserDetails(${user.id})" title="Ver detalhes">👁️</button>
-                        <button class="btn-icon" onclick="AdminPanel.toggleUserStatus(${user.id}, ${user.is_active})" title="Ativar/Desativar">🔄</button>
+                        <button class="btn-icon" onclick="AdminPanel.toggleUserStatus(${user.id}, ${user.is_active}, this)" title="Ativar/Desativar">🔄</button>
                         <button class="btn-icon" onclick="AdminPanel.editUserModal(${user.id})" title="Editar usuário">✏️</button>
                         <button class="btn-icon" onclick="AdminPanel.openDeleteModal(${user.id}, '${user.name || 'N/A'}')" title="Excluir usuário">🗑️</button>
                     </td>
@@ -560,7 +571,7 @@ const AdminPanel = {
                     <td>
                         <button class="btn-icon" onclick="AdminPanel.viewObject(${obj.id})" title="Visualizar">👁️</button>
                         <button class="btn-icon" onclick="AdminPanel.editObject(${obj.id})" title="Editar">✏️</button>
-                        <button class="btn-icon" onclick="AdminPanel.deleteObject(${obj.id})" title="Excluir">🗑️</button>
+                        <button class="btn-icon" onclick="AdminPanel.deleteObject(${obj.id}, this)" title="Excluir">🗑️</button>
                     </td>
                 </tr>
             `;
@@ -815,7 +826,8 @@ const AdminPanel = {
     },
     
     // Deletar usuário
-    async deleteUser(userId, softDelete = true) {
+    async deleteUser(userId, softDelete = true, triggerEl = null) {
+        if (triggerEl) try { GeneratorCore._setButtonSpinner(triggerEl, true); } catch(e) { console.warn(e); }
         try {
             // API exige o parâmetro soft_delete sempre (true ou false)
             const url = `${this.API_BASE_URL}/admin/users/${userId}?soft_delete=${softDelete}`;
@@ -853,6 +865,8 @@ const AdminPanel = {
         } catch (error) {
             console.error('❌ Erro ao deletar usuário:', error);
             throw error;
+        } finally {
+            if (triggerEl) try { GeneratorCore.clearButtonSpinner(triggerEl); } catch(e) { console.warn(e); }
         }
     },
     
@@ -870,30 +884,195 @@ const AdminPanel = {
             };
             
             const safeDate = (d) => { try { const t = d ? new Date(d) : null; return (t && !isNaN(t.getTime())) ? t.toLocaleString('pt-BR') : 'N/A'; } catch(e) { return 'N/A'; } };
-            const details = `
-📋 Detalhes do Usuário
 
-ID: ${user.id}
-Nome: ${user.name}
-E-mail: ${user.email}
-Função: ${roleLabels[user.role] || user.role}
-Status: ${user.is_active ? 'Ativo' : 'Inativo'}
-Criado em: ${safeDate(user.created_at)}
-Último acesso: ${user.last_login ? safeDate(user.last_login) : 'Nunca'}
-            `.trim();
-            
-            this.showToast(details, 'info', 8000);
+            // Pequeno helper para escapar texto antes de inserir no modal
+            const escapeHtml = (str) => {
+                if (!str && str !== 0) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            };
+
+            // Detectar possível URL de avatar/foto (raw) - priorizar profile_picture
+            let avatarUrlRaw = null;
+            if (user.profile_picture) {
+                if (typeof user.profile_picture === 'string') avatarUrlRaw = user.profile_picture;
+                else if (user.profile_picture.path) avatarUrlRaw = user.profile_picture.path;
+                else if (user.profile_picture.url) avatarUrlRaw = user.profile_picture.url;
+            }
+            avatarUrlRaw = avatarUrlRaw || user.avatar || user.avatar_url || user.photo || user.photo_url || user.profile_image || user.picture || user.image || null;
+            const initials = (name) => {
+                if (!name) return '';
+                return name.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
+            };
+
+            // Normalizar a URL do avatar (se for relative, prefixar com origin)
+            const normalizeAvatar = (raw) => {
+                if (!raw) return null;
+                if (String(raw).startsWith('data:')) return raw;
+                if (/^https?:\/\//i.test(raw)) return raw;
+                try { return window.location.origin + (raw.startsWith('/') ? raw : ('/' + raw)); } catch(e) { return raw; }
+            };
+
+            let avatarCandidate = normalizeAvatar(avatarUrlRaw);
+            // fallback para ui-avatars se não houver imagem
+            if (!avatarCandidate && (user.name || user.email)) {
+                const nameParam = encodeURIComponent((user.name || user.email).trim());
+                avatarCandidate = `https://ui-avatars.com/api/?name=${nameParam}&size=200&background=0A88F4&color=ffffff&rounded=true`;
+            }
+
+            // Preload the avatar to detect load/error and choose fallback proactively
+            const preloadAvatar = (url, fallback) => new Promise((resolve) => {
+                if (!url) return resolve(fallback);
+                try {
+                    const img = new Image();
+                    img.onload = () => resolve(url);
+                    img.onerror = () => resolve(fallback);
+                    img.src = url;
+                } catch (e) {
+                    resolve(fallback);
+                }
+            });
+
+            // Try to make the background transparent for non-transparent images using canvas
+            const makeBackgroundTransparent = (src, tolerance = 40) => new Promise((resolve) => {
+                if (!src) return resolve(src);
+                // If already a PNG data URL or has transparency, we cannot know without processing;
+                // We'll attempt only for images that can be drawn to canvas with crossOrigin.
+                try {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous';
+                    img.onload = () => {
+                        try {
+                            // Avoid huge canvases; scale down if necessary
+                            const maxSize = 400;
+                            let w = img.naturalWidth;
+                            let h = img.naturalHeight;
+                            let scale = 1;
+                            if (w > maxSize) { scale = maxSize / w; w = Math.round(w * scale); h = Math.round(h * scale); }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+                            let imageData;
+                            try { imageData = ctx.getImageData(0, 0, w, h); } catch (err) { return resolve(src); }
+                            const data = imageData.data;
+                            // Sample four corners and compute average background color
+                            const sample = (x, y) => {
+                                const i = (y * w + x) * 4;
+                                return { r: data[i], g: data[i+1], b: data[i+2] };
+                            };
+                            const corners = [sample(0,0), sample(w-1,0), sample(0,h-1), sample(w-1,h-1)];
+                            const avg = corners.reduce((acc, c) => ({ r: acc.r + c.r, g: acc.g + c.g, b: acc.b + c.b }), { r: 0, g: 0, b: 0 });
+                            avg.r = Math.round(avg.r / corners.length);
+                            avg.g = Math.round(avg.g / corners.length);
+                            avg.b = Math.round(avg.b / corners.length);
+                            // Change alpha for pixels close to avg color
+                            let changed = 0;
+                            const tol = tolerance;
+                            for (let p = 0; p < data.length; p += 4) {
+                                const dr = Math.abs(data[p] - avg.r);
+                                const dg = Math.abs(data[p+1] - avg.g);
+                                const db = Math.abs(data[p+2] - avg.b);
+                                const distance = Math.sqrt(dr * dr + dg * dg + db * db);
+                                if (distance <= tol) {
+                                    // Make pixel transparent
+                                    data[p+3] = 0;
+                                    changed++;
+                                }
+                            }
+                            if (changed === 0) return resolve(src);
+                            ctx.putImageData(imageData, 0, 0);
+                            const transparentDataUrl = canvas.toDataURL('image/png');
+                            return resolve(transparentDataUrl);
+                        } catch (err) {
+                            return resolve(src);
+                        }
+                    };
+                    img.onerror = () => resolve(src);
+                    img.src = src;
+                } catch (err) { return resolve(src); }
+            });
+
+            const finalAvatarUrl = await preloadAvatar(avatarCandidate, `https://ui-avatars.com/api/?name=${encodeURIComponent((user.name||user.email||'U').trim())}&size=200&background=0A88F4&color=ffffff&rounded=true`);
+            console.log('🔍 finalAvatarUrl resolved:', finalAvatarUrl);
+
+            // Try to convert background to transparent (best-effort). If it fails, fallback to finalAvatarUrl.
+            let processedAvatarUrl = finalAvatarUrl;
+            try {
+                processedAvatarUrl = await makeBackgroundTransparent(finalAvatarUrl, 44);
+                if (processedAvatarUrl && processedAvatarUrl !== finalAvatarUrl) {
+                    console.log('🔍 Avatar processed with transparent background');
+                } else {
+                    console.log('🔍 Avatar unchanged by transparency processing');
+                }
+            } catch (err) { console.warn('🔍 Avatar transparency processing failed', err); processedAvatarUrl = finalAvatarUrl; }
+
+            console.log('🔍 viewUserDetails user payload:', user);
+            console.log('🔍 avatarCandidate for user', user.id, avatarCandidate);
+
+            // Use background-image on wrapper to mimic sidebar avatar behavior and avoid square overlay
+            const bgUrl = escapeHtml(processedAvatarUrl);
+            const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent((user.name||user.email||'U').trim())}&size=200&background=0A88F4&color=ffffff&rounded=true`;
+            const avatarImgHtml = `
+                <div class="avatar-wrapper" style="width:110px;height:110px;background-image: url('${bgUrl}'); background-size: cover; background-position: center;">
+                    <img class="avatar-img" style="width:110px;height:110px;object-fit:cover;display:block;" src="${escapeHtml(bgUrl)}" alt="${escapeHtml(user.name || user.email || '')}" onerror="this.style.display='none'; this.parentElement.style.backgroundImage='url(${escapeHtml(fallbackUrl)})'" onload="this.style.display='block'" />
+                </div>`;
+
+            const contentHtml = `
+                <div style="display:flex;gap:16px;align-items:flex-start;">
+                    <div class="avatar-col">
+                        ${avatarImgHtml}
+                    </div>
+                    <div style="flex:1;min-width:200px;">
+                        <p><strong>ID:</strong> ${escapeHtml(user.id)}</p>
+                        <p><strong>Nome:</strong> ${escapeHtml(user.name || 'N/A')}</p>
+                        <p><strong>E-mail:</strong> ${escapeHtml(user.email || 'N/A')}</p>
+                        <p><strong>Função:</strong> ${escapeHtml(roleLabels[user.role] || user.role || 'N/A')}</p>
+                        <p><strong>Status:</strong> ${user.is_active ? 'Ativo' : 'Inativo'}</p>
+                        <p><strong>Criado em:</strong> ${escapeHtml(safeDate(user.created_at))}</p>
+                        <p><strong>Último acesso:</strong> ${user.last_login ? escapeHtml(safeDate(user.last_login)) : 'Nunca'}</p>
+                    </div>
+                </div>
+            `;
+
+            // Mostrar modal com conteúdo rico (imagem + texto)
+            try {
+                GeneratorCore.showAppModal('📋 Detalhes do Usuário', contentHtml);
+                // Small debug to ensure the wrapper/img sizes are as expected
+                setTimeout(() => {
+                    try {
+                        const modal = document.getElementById('app-modal');
+                        if (!modal) return;
+                        const wrapper = modal.querySelector('.avatar-wrapper');
+                        const imgEl = modal.querySelector('.avatar-img');
+                        if (wrapper) console.log('🔍 avatar wrapper offset', wrapper.offsetWidth, wrapper.offsetHeight, wrapper.style.width, wrapper.style.height);
+                        if (imgEl) console.log('🔍 avatar img offset', imgEl.offsetWidth, imgEl.offsetHeight, imgEl.style.width, imgEl.style.height);
+                    } catch (err) { console.warn('Avatar debug error:', err); }
+                }, 50);
+            } catch (e) {
+                // Fallback para toast (pre-wrap já permite quebras)
+                const details = `\n📋 Detalhes do Usuário\n\nID: ${user.id}\nNome: ${user.name}\nE-mail: ${user.email}\nFunção: ${roleLabels[user.role] || user.role}\nStatus: ${user.is_active ? 'Ativo' : 'Inativo'}\nCriado em: ${safeDate(user.created_at)}\nÚltimo acesso: ${user.last_login ? safeDate(user.last_login) : 'Nunca'}`;
+                this.showToast(details, 'info', 8000);
+            }
         } catch (error) {
             this.showToast('Erro ao carregar detalhes do usuário: ' + error.message, 'error');
         }
     },
     
-    async toggleUserStatus(userId, currentStatus) {
+    async toggleUserStatus(userId, currentStatus, triggerEl = null) {
         const action = currentStatus ? 'desativar' : 'ativar';
         const msg = `Deseja ${action} este usuário?`;
         try {
-            const confirmed = await GeneratorCore.showAppConfirm(msg);
+            const confirmed = await GeneratorCore.showAppConfirm(msg, { triggerEl });
             if (!confirmed) return;
+
+            // Ensure the triggering button displays spinner while updating
+            if (triggerEl) try { GeneratorCore._setButtonSpinner(triggerEl, true); } catch(e) { console.warn('Erro ao setar spinner no botão:', e); }
 
             await this.updateUser(userId, { is_active: !currentStatus });
             this.showToast(`Usuário ${!currentStatus ? 'ativado' : 'desativado'} com sucesso!`, 'success');
@@ -901,23 +1080,15 @@ Criado em: ${safeDate(user.created_at)}
             await this.loadDashboardData();
         } catch (error) {
             this.showToast('Erro ao atualizar status do usuário: ' + (error.message || error), 'error');
+        } finally {
+            if (triggerEl) try { GeneratorCore.clearButtonSpinner(triggerEl); } catch(e) { console.warn('Erro ao limpar spinner do botão:', e); }
         }
     },
     
     async editUserModal(userId) {
         try {
             const user = await this.fetchUser(userId);
-            
-            const newName = prompt('Nome:', user.name);
-            if (!newName || newName === user.name) return;
-            
-            const newEmail = prompt('E-mail:', user.email);
-            if (!newEmail) return;
-            
-            const newRoleInput = prompt('Função (member/admin):', user.role || 'member');
-            if (!newRoleInput) return;
-            
-            // Mapear para valores aceitos pela API
+
             const roleMap = {
                 'member': 'member',
                 'membro': 'member',
@@ -926,19 +1097,89 @@ Criado em: ${safeDate(user.created_at)}
                 'editor': 'member',
                 'admin': 'admin'
             };
-            
-            const newRole = roleMap[newRoleInput.toLowerCase()] || user.role || 'member';
-            
-            await this.updateUser(userId, {
-                name: newName,
-                email: newEmail,
-                role: newRole
-            });
-            
-            this.showToast('Usuário atualizado com sucesso!', 'success');
-            await this.loadUsersData();
+
+            const roleOptions = ['member', 'editor', 'admin'].map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`).join('');
+
+            const content = `
+                <form id="edit-user-form" style="display:flex;flex-direction:column;gap:12px;">
+                    <div class="form-group">
+                        <label for="edit-user-name">Nome</label>
+                        <input id="edit-user-name" name="name" type="text" value="${this.escapeHtml(user.name || '')}" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-user-email">E-mail</label>
+                        <input id="edit-user-email" name="email" type="email" value="${this.escapeHtml(user.email || '')}" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-user-role">Função</label>
+                        <select id="edit-user-role" name="role">
+                            ${roleOptions}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input id="edit-user-active" name="is_active" type="checkbox" ${user.is_active !== false ? 'checked' : ''} /> Ativo
+                        </label>
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+                        <button type="button" id="edit-user-cancel" class="btn-secondary">Cancelar</button>
+                        <button type="submit" id="edit-user-save" class="btn-primary">Salvar</button>
+                    </div>
+                </form>
+            `;
+
+            GeneratorCore.showAppModal('✏️ Editar Usuário', content);
+
+            // Attach event listeners after modal is displayed
+            const form = document.getElementById('edit-user-form');
+            const cancelBtn = document.getElementById('edit-user-cancel');
+            const saveBtn = document.getElementById('edit-user-save');
+            if (cancelBtn) cancelBtn.onclick = () => { document.getElementById('app-modal').style.display = 'none'; };
+            if (form) form.onsubmit = (e) => this.submitEditUserForm(e, userId, saveBtn);
+            // Focus the first input
+            setTimeout(() => {
+                const nameEl = document.getElementById('edit-user-name');
+                if (nameEl) nameEl.focus();
+            }, 50);
+
         } catch (error) {
-            this.showToast('Erro ao atualizar usuário: ' + error.message, 'error');
+            this.showToast('Erro ao abrir modal de edição: ' + (error.message || error), 'error');
+        }
+    },
+
+    async submitEditUserForm(e, userId, saveBtn) {
+        try {
+            e.preventDefault();
+            if (saveBtn) try { GeneratorCore._setButtonSpinner(saveBtn, true); } catch (err) { console.warn(err); }
+
+            const nameEl = document.getElementById('edit-user-name');
+            const emailEl = document.getElementById('edit-user-email');
+            const roleEl = document.getElementById('edit-user-role');
+            const activeEl = document.getElementById('edit-user-active');
+
+            const name = (nameEl && nameEl.value) ? nameEl.value.trim() : '';
+            const email = (emailEl && emailEl.value) ? emailEl.value.trim() : '';
+            const role = (roleEl && roleEl.value) ? roleEl.value : 'member';
+            const is_active = !!(activeEl && activeEl.checked);
+
+            if (!name) { this.showToast('Nome é obrigatório.', 'error'); return; }
+            if (!email) { this.showToast('E-mail é obrigatório.', 'error'); return; }
+            // Basic email validation
+            const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            if (!emailValid) { this.showToast('E-mail inválido.', 'error'); return; }
+
+            await this.updateUser(userId, { name, email, role, is_active });
+            this.showToast('Usuário atualizado com sucesso!', 'success');
+            // Close modal
+            const modal = document.getElementById('app-modal');
+            if (modal) modal.style.display = 'none';
+
+            await this.loadUsersData();
+            await this.loadDashboardData();
+        } catch (error) {
+            this.showToast('Erro ao atualizar usuário: ' + (error.message || error), 'error');
+        } finally {
+            if (saveBtn) try { GeneratorCore.clearButtonSpinner(saveBtn); } catch (err) { console.warn(err); }
         }
     },
     
@@ -1013,8 +1254,8 @@ Criado em: ${safeDate(user.created_at)}
         window.location.href = `index.html?edit=${id}`;
     },
     
-    async deleteObject(id) {
-        const confirmed = await GeneratorCore.showAppConfirm('Tem certeza que deseja excluir este objeto?');
+    async deleteObject(id, triggerEl = null) {
+        const confirmed = await GeneratorCore.showAppConfirm('Tem certeza que deseja excluir este objeto?', { triggerEl });
         if (!confirmed) return;
         
         try {
@@ -1031,6 +1272,8 @@ Criado em: ${safeDate(user.created_at)}
         } catch (error) {
             console.error('❌ Erro ao excluir objeto:', error);
             this.showToast('Erro ao excluir objeto: ' + error.message, 'error');
+        } finally {
+            if (triggerEl) GeneratorCore.clearButtonSpinner(triggerEl);
         }
     },
 
@@ -1203,7 +1446,8 @@ Criado em: ${safeDate(user.created_at)}
         }
         
         try {
-            await this.deleteUser(this.currentDeleteUserId, isSoftDelete);
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            await this.deleteUser(this.currentDeleteUserId, isSoftDelete, confirmBtn);
             
             const message = isSoftDelete 
                 ? 'Usuário desativado com sucesso!' 
@@ -1219,11 +1463,15 @@ Criado em: ${safeDate(user.created_at)}
     },
     
     // Logout
-    async logout() {
-        const confirmed = await GeneratorCore.showAppConfirm('Deseja sair do painel admin?');
+    async logout(triggerEl = null) {
+        const confirmed = await GeneratorCore.showAppConfirm('Deseja sair do painel admin?', { triggerEl });
         if (!confirmed) return;
-        AuthManager.logout();
-        window.location.href = 'login.html';
+        try {
+            AuthManager.logout();
+            window.location.href = 'login.html';
+        } finally {
+            if (triggerEl) GeneratorCore.clearButtonSpinner(triggerEl);
+        }
     }
 };
 

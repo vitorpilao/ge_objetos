@@ -215,8 +215,8 @@ Todos os 6 endpoints foram integrados no `admin-panel.js`:
   - `deleteUser(userId, softDelete)`
 - Implementadas ações de usuário:
   - `viewUserDetails(userId)`
-  - `toggleUserStatus(userId, currentStatus)`
-  - `editUserModal(userId)`
+   - `toggleUserStatus(userId, currentStatus, triggerEl)` — aceita `triggerEl` opcional para exibir spinner no botão que acionou a ação
+   - `editUserModal(userId)` — opened via a modal form (replace previous prompt-based flow)
   - `deleteUserConfirm(userId)`
   - `createUserModal()`
 - Atualizado `renderUsersList()` para incluir coluna de função

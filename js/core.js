@@ -241,12 +241,18 @@ const GeneratorCore = {
     },
 
     // Mostrar modal de confirmação reutilizável; retorna Promise<boolean>
+    // Uso: showAppConfirm(message) OR showAppConfirm(title, message) OR showAppConfirm(message, options)
+    // Se options.triggerEl for passado, o botão terá um spinner adicionado ao confirmarmos
     showAppConfirm(titleOrMessage, maybeMessage) {
         return new Promise((resolve) => {
             try {
                 let title = 'Confirmar';
                 let message = '';
-                if (maybeMessage) {
+                let options = {};
+                if (maybeMessage && typeof maybeMessage === 'object') {
+                    message = titleOrMessage;
+                    options = maybeMessage;
+                } else if (maybeMessage) {
                     title = titleOrMessage;
                     message = maybeMessage;
                 } else {
@@ -279,8 +285,16 @@ const GeneratorCore = {
                     closeBtn.removeEventListener('click', onCancel);
                 };
 
-                const onOk = () => { cleanup(); resolve(true); };
+                const doOk = () => { cleanup(); resolve(true); };
                 const onCancel = () => { cleanup(); resolve(false); };
+
+                const onOk = () => {
+                    // if triggerEl provided, show spinner while calling code performs action
+                    if (options && options.triggerEl) {
+                        try { GeneratorCore._setButtonSpinner(options.triggerEl, true); } catch (err) { console.warn('Erro ao ativar spinner no botão:', err); }
+                    }
+                    doOk();
+                };
 
                 okBtn.addEventListener('click', onOk);
                 cancelBtn.addEventListener('click', onCancel);
@@ -324,6 +338,33 @@ const GeneratorCore = {
             alert(contentHtml);
         }
     },
+
+    // Internal helper to toggle a spinner on a button
+    _setButtonSpinner(el, enable = true) {
+        try {
+            if (!el) return;
+            if (typeof el === 'string') el = document.querySelector(el);
+            if (!el) return;
+            if (enable) {
+                if (el.dataset && el.dataset.originalHtml === undefined) {
+                    el.dataset.originalHtml = el.innerHTML;
+                }
+                el.disabled = true;
+                el.classList.add('disabled');
+                el.innerHTML = `<span class="btn-spinner"><span class="spinner-circle"></span></span>`;
+            } else {
+                if (el.dataset && el.dataset.originalHtml !== undefined) {
+                    el.innerHTML = el.dataset.originalHtml;
+                    delete el.dataset.originalHtml;
+                }
+                el.disabled = false;
+                el.classList.remove('disabled');
+            }
+        } catch (e) { console.warn('Erro em _setButtonSpinner:', e); }
+    },
+
+    // Public helper to clear previously set spinner on a button
+    clearButtonSpinner(el) { try { this._setButtonSpinner(el, false); } catch (e) { console.warn('Erro em clearButtonSpinner', e); } },
 
     // --- MODAL DE DEMO INTERATIVO ---
     showDemoModal(demo, title) {

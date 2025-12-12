@@ -101,9 +101,9 @@
     opacity: 1;
     transform: translateY(0) scale(1);
 }
-.toast.success { background: linear-gradient(90deg, #2ecc71, #27ae60); }
-.toast.error { background: linear-gradient(90deg, #e74c3c, #c0392b); }
-.toast.info { background: linear-gradient(90deg, #3498db, #2980b9); }
+.toast.success { background: white; color: black; }
+.toast.error { background: white; color: black; }
+.toast.info { background: white; color: black; }
 /* Para toasts que usam estrutura com ícone e mensagem (ex: auth-local.js) */
 .toast .toast-message { white-space: pre-wrap; overflow-wrap: anywhere; }
 /* ...existing code... */

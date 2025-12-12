@@ -807,18 +807,25 @@ const AdminPanel = {
     // Atualizar usuário
     async updateUser(userId, userData) {
         try {
+            console.log('🔄 Atualizando usuário:', userId, userData);
             const response = await fetch(`${this.API_BASE_URL}/admin/users/${userId}`, {
                 method: 'PATCH',
                 headers: this.getAuthHeaders(),
-                body: JSON.stringify(userData)
+                body: JSON.stringify({ updates_set: userData })
             });
             
+            console.log('📡 Resposta da API:', response.status, response.statusText);
+            
             if (!response.ok) {
-                const error = await response.json();
+                const errorText = await response.text();
+                console.error('❌ Erro na resposta:', errorText);
+                const error = await response.json().catch(() => ({ error: errorText }));
                 throw new Error(error.error || 'Erro ao atualizar usuário');
             }
             
-            return await response.json();
+            const result = await response.json();
+            console.log('✅ Usuário atualizado:', result);
+            return result;
         } catch (error) {
             console.error('❌ Erro ao atualizar usuário:', error);
             throw error;
@@ -1068,17 +1075,26 @@ const AdminPanel = {
         const action = currentStatus ? 'desativar' : 'ativar';
         const msg = `Deseja ${action} este usuário?`;
         try {
+            console.log('🔄 Iniciando toggle status:', userId, 'de', currentStatus, 'para', !currentStatus);
             const confirmed = await GeneratorCore.showAppConfirm(msg, { triggerEl });
-            if (!confirmed) return;
+            if (!confirmed) {
+                console.log('❌ Usuário cancelou a operação');
+                return;
+            }
 
             // Ensure the triggering button displays spinner while updating
             if (triggerEl) try { GeneratorCore._setButtonSpinner(triggerEl, true); } catch(e) { console.warn('Erro ao setar spinner no botão:', e); }
 
             await this.updateUser(userId, { is_active: !currentStatus });
+            console.log('✅ Status atualizado no banco');
             this.showToast(`Usuário ${!currentStatus ? 'ativado' : 'desativado'} com sucesso!`, 'success');
+            
+            console.log('🔄 Recarregando dados...');
             await this.loadUsersData();
             await this.loadDashboardData();
+            console.log('✅ Dados recarregados');
         } catch (error) {
+            console.error('❌ Erro no toggleUserStatus:', error);
             this.showToast('Erro ao atualizar status do usuário: ' + (error.message || error), 'error');
         } finally {
             if (triggerEl) try { GeneratorCore.clearButtonSpinner(triggerEl); } catch(e) { console.warn('Erro ao limpar spinner do botão:', e); }

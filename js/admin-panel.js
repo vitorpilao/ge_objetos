@@ -1098,21 +1098,21 @@ const AdminPanel = {
                 'admin': 'admin'
             };
 
-            const roleOptions = ['member', 'editor', 'admin'].map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`).join('');
+            const roleOptions = ['member', 'admin'].map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`).join('');
 
             const content = `
                 <form id="edit-user-form" style="display:flex;flex-direction:column;gap:12px;">
                     <div class="form-group">
                         <label for="edit-user-name">Nome</label>
-                        <input id="edit-user-name" name="name" type="text" value="${this.escapeHtml(user.name || '')}" required />
+                        <input id="edit-user-name" name="name" type="text" class="form-control" value="${this.escapeHtml(user.name || '')}" required />
                     </div>
                     <div class="form-group">
                         <label for="edit-user-email">E-mail</label>
-                        <input id="edit-user-email" name="email" type="email" value="${this.escapeHtml(user.email || '')}" required />
+                        <input id="edit-user-email" name="email" type="email" class="form-control" value="${this.escapeHtml(user.email || '')}" required />
                     </div>
                     <div class="form-group">
                         <label for="edit-user-role">Função</label>
-                        <select id="edit-user-role" name="role">
+                        <select id="edit-user-role" name="role" class="form-control">
                             ${roleOptions}
                         </select>
                     </div>
@@ -1246,8 +1246,43 @@ const AdminPanel = {
     },
     
     // Ações de objeto
-    viewObject(id) {
-        window.open(`preview.html?id=${id}`, '_blank');
+    async viewObject(id) {
+        try {
+            console.log('🔍 Buscando objeto para visualização:', id);
+            const response = await fetch(`${StorageManager.API_BASE_URL}/objeto_interativo/${id}`, {
+                headers: StorageManager.getHeaders()
+            });
+
+            if (!response.ok) {
+                console.error('❌ Resposta da API falhou:', response.status, response.statusText);
+                throw new Error('Objeto não encontrado');
+            }
+
+            const obj = await response.json();
+            console.log('📦 Objeto recebido:', obj);
+            const htmlContent = obj.código_html || obj.codigo_html || '<p>HTML não disponível</p>';
+            console.log('📄 HTML do objeto:', htmlContent);
+
+            // Adicionar estrutura HTML básica com charset UTF-8 para corrigir acentos
+            const fullHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualização do Objeto</title>
+</head>
+<body>
+    ${htmlContent}
+</body>
+</html>`;
+
+            // Criar um blob com o HTML e abrir em nova aba
+            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('❌ Erro ao visualizar objeto:', error);
+            this.showToast('Erro ao visualizar objeto: ' + error.message, 'error');
+        }
     },
     
     async editObject(id) {

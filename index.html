@@ -71,9 +71,9 @@
         }
 
         input, select, textarea {
-            background: rgba(255, 255, 255, 0.1);
+            background: white !important;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            color: black !important;
         }
 
         input::placeholder, textarea::placeholder {
@@ -88,6 +88,23 @@
         .btn-secondary {
             background: rgba(255, 255, 255, 0.1);
             color: white;
+        }
+
+        /* Mobile menu toggle */
+        .mobile-menu-toggle {
+            display: none;
+        }
+
+        /* Estilos específicos para o modal de objetos salvos */
+        #modal-objects-list .form-group label {
+            color: black !important;
+        }
+
+        #modal-objects-list input,
+        #modal-objects-list select,
+        #modal-objects-list textarea {
+            background: white !important;
+            color: black !important;
         }
 
         /* Responsividade para admin */

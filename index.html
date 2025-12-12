@@ -1158,8 +1158,8 @@
             </div>
             <div class="modal-body">
                 <!-- Filtros -->
-                <div class="modal-filters" style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                <div class="modal-filters" style="display: flex; gap: 12px; margin-bottom: 20px;">
+                    <div class="form-group" style="flex: 1;">
                         <label for="filter-type" style="display: block; margin-bottom: 4px; font-weight: 600;">🎯 Tipo de Objeto:</label>
                         <select id="filter-type" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px; border: 1.5px solid var(--color-azul-moderno);">
                             <option value="">Todos os tipos</option>
@@ -1175,22 +1175,21 @@
                             <option value="timeline">Timeline</option>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                    <div class="form-group" style="flex: 1;">
                         <label for="filter-creator" style="display: block; margin-bottom: 4px; font-weight: 600;">👤 Criador:</label>
                         <select id="filter-creator" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px; border: 1.5px solid var(--color-azul-moderno);">
                             <option value="">Todos os criadores</option>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                    <div class="form-group" style="flex: 1;">
                         <label for="filter-sort" style="display: block; margin-bottom: 4px; font-weight: 600;">📅 Ordenar por:</label>
                         <select id="filter-sort" class="form-control" style="width: 100%; padding: 8px; border-radius: 6px; border: 1.5px solid var(--color-azul-moderno);">
                             <option value="newest">Mais recente primeiro</option>
                             <option value="oldest">Mais antigo primeiro</option>
                         </select>
                     </div>
-                    <div class="form-group" style="flex: 0 0 auto;">
-                        <label style="display: block; margin-bottom: 4px; font-weight: 600; visibility: hidden;">&#8203;</label>
-                        <button id="btn-clear-filters" class="btn-action" style="padding: 8px 12px; background: #6c757d; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; font-size: 0.9rem; height: 20px;">
+                    <div class="form-group" style="flex: 0 0 15%; display: flex; align-items: end;">
+                        <button id="btn-clear-filters" class="btn-action" style="width: 100%; padding: 8px 12px; background: #6c757d; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 600; font-size: 0.9rem; height: 20px;">
                             Limpar
                         </button>
                     </div>

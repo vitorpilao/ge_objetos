@@ -86,6 +86,10 @@ const AuthManager = {
                 throw new Error('Senha incorreta');
             }
             
+            // Atualizar last_login
+            user.last_login = new Date().toISOString();
+            this.saveUsers(users);
+            
             // Criar sessão
             const session = this.createSession(user);
             

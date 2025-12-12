@@ -107,6 +107,29 @@ const AuthManager = {
                 throw new Error('Erro ao buscar dados do usuário');
             }
             
+            // Atualizar last_login no banco
+            try {
+                const updateResponse = await fetch(`${this.API_BASE_URL}/auth/me`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${data.authToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        last_login: new Date().toISOString()
+                    })
+                });
+                
+                if (updateResponse.ok) {
+                    console.log('✅ Last login atualizado com sucesso');
+                    setTimeout(() => console.log('🔄 Verifique o banco de dados para confirmar'), 1000);
+                } else {
+                    console.warn('⚠️ Falha ao atualizar last_login:', updateResponse.status, updateResponse.statusText);
+                }
+            } catch (error) {
+                console.error('❌ Erro ao atualizar last_login:', error.message);
+            }
+            
             // Combinar token com dados do usuário
             // A foto pode vir como string (base64) ou objeto {url/path}
             let profilePictureUrl = null;

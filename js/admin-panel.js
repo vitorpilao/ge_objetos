@@ -1290,25 +1290,89 @@ const AdminPanel = {
     },
     
     async deleteObject(id, triggerEl = null) {
-        const confirmed = await GeneratorCore.showAppConfirm('Tem certeza que deseja excluir este objeto?', { triggerEl });
-        if (!confirmed) return;
-        
         try {
+            // Buscar o objeto para obter o nome
             const response = await fetch(`${StorageManager.API_BASE_URL}/objeto_interativo/${id}`, {
-                method: 'DELETE',
                 headers: StorageManager.getHeaders()
             });
             
-            if (!response.ok) throw new Error('Erro ao excluir objeto');
+            if (!response.ok) throw new Error('Objeto não encontrado');
             
-            this.showToast('Objeto excluído com sucesso!', 'success');
-            await this.loadObjectsData();
-            await this.loadDashboardData();
+            const obj = await response.json();
+            const objectName = obj.nome || 'Objeto sem nome';
+            
+            return new Promise((resolve) => {
+                const content = `
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="margin-bottom: 20px; font-size: 1.1rem;">Tem certeza que deseja excluir o objeto <strong>"${this.escapeHtml(objectName)}"</strong>?</p>
+                        <p style="margin-bottom: 20px; color: #666; font-size: 0.9rem;">Esta ação não pode ser desfeita.</p>
+                        <div style="margin-bottom: 20px;">
+                            <label for="delete-name" style="display: block; margin-bottom: 8px; font-weight: 600;">Digite o nome do objeto para confirmar:</label>
+                            <input id="delete-name" type="text" class="form-control" placeholder="Nome do objeto" style="width: 100%; text-align: center;" />
+                        </div>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button id="delete-confirm" class="btn-primary" style="background: #dc3545; border-color: #dc3545;" disabled>Excluir</button>
+                            <button id="delete-cancel" class="btn-secondary">Cancelar</button>
+                        </div>
+                    </div>
+                `;
+
+                GeneratorCore.showAppModal('🗑️ Excluir Objeto', content);
+
+                // Attach event listeners
+                const confirmBtn = document.getElementById('delete-confirm');
+                const cancelBtn = document.getElementById('delete-cancel');
+                const nameInput = document.getElementById('delete-name');
+
+                const closeModal = () => {
+                    document.getElementById('app-modal').style.display = 'none';
+                    resolve(false);
+                };
+
+                if (cancelBtn) cancelBtn.onclick = closeModal;
+
+                // Enable/disable confirm button based on input
+                if (nameInput) {
+                    nameInput.oninput = () => {
+                        confirmBtn.disabled = nameInput.value.trim() !== objectName;
+                    };
+                }
+
+                if (confirmBtn) confirmBtn.onclick = async () => {
+                    if (nameInput.value.trim() !== objectName) {
+                        this.showToast('Nome do objeto incorreto. Exclusão cancelada.', 'error');
+                        return;
+                    }
+                    
+                    document.getElementById('app-modal').style.display = 'none';
+                    
+                    // Add spinner to triggerEl if provided
+                    if (triggerEl) GeneratorCore._setButtonSpinner(triggerEl);
+                    
+                    try {
+                        const delResponse = await fetch(`${StorageManager.API_BASE_URL}/objeto_interativo/${id}`, {
+                            method: 'DELETE',
+                            headers: StorageManager.getHeaders()
+                        });
+                        
+                        if (!delResponse.ok) throw new Error('Erro ao excluir objeto');
+                        
+                        this.showToast('Objeto excluído com sucesso!', 'success');
+                        await this.loadObjectsData();
+                        await this.loadDashboardData();
+                    } catch (error) {
+                        console.error('❌ Erro ao excluir objeto:', error);
+                        this.showToast('Erro ao excluir objeto: ' + error.message, 'error');
+                    } finally {
+                        if (triggerEl) GeneratorCore.clearButtonSpinner(triggerEl);
+                    }
+                    
+                    resolve(true);
+                };
+            });
         } catch (error) {
-            console.error('❌ Erro ao excluir objeto:', error);
-            this.showToast('Erro ao excluir objeto: ' + error.message, 'error');
-        } finally {
-            if (triggerEl) GeneratorCore.clearButtonSpinner(triggerEl);
+            console.error('❌ Erro ao buscar objeto para exclusão:', error);
+            this.showToast('Erro ao preparar exclusão: ' + error.message, 'error');
         }
     },
 

@@ -1221,45 +1221,78 @@ const AdminPanel = {
     },
     
     async createUserModal() {
-        const name = prompt('Nome do usuário:');
-        if (!name) return;
-        
-        const email = prompt('E-mail:');
-        if (!email) return;
-        
-        const password = prompt('Senha:');
-        if (!password) return;
-        
-        const roleInput = prompt('Função (member/admin):', 'member');
-        if (!roleInput) return;
-        
-        // Mapear para valores aceitos pela API
-        const roleMap = {
-            'member': 'member',
-            'membro': 'member',
-            'usuario': 'member',
-            'user': 'member',
-            'editor': 'member',
-            'admin': 'admin'
+        const modal = document.getElementById('create-user-modal');
+        const form = document.getElementById('create-user-form');
+        const closeBtn = document.getElementById('create-user-modal-close');
+        const cancelBtn = document.getElementById('create-user-modal-cancel');
+        const submitBtn = document.getElementById('create-user-modal-submit');
+
+        // Reset form
+        form.reset();
+
+        // Show modal
+        modal.style.display = 'flex';
+
+        // Close modal function
+        const closeModal = () => {
+            modal.style.display = 'none';
         };
-        
-        const role = roleMap[roleInput.toLowerCase()] || 'member';
-        
-        try {
-            await this.createUser({
-                name,
-                email,
-                password,
-                role,
-                is_active: true
-            });
-            
-            this.showToast('Usuário criado com sucesso!', 'success');
-            await this.loadUsersData();
-            await this.loadDashboardData();
-        } catch (error) {
-            this.showToast('Erro ao criar usuário: ' + error.message, 'error');
-        }
+
+        // Event listeners
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // Close on overlay click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Submit handler
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('user-name').value.trim();
+            const email = document.getElementById('user-email').value.trim();
+            const password = document.getElementById('user-password').value.trim();
+            const role = document.getElementById('user-role').value;
+
+            if (!name || !email || !password) {
+                this.showToast('Todos os campos são obrigatórios!', 'error');
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Criando...';
+
+                await this.createUser({
+                    name,
+                    email,
+                    password,
+                    role,
+                    is_active: true
+                });
+
+                this.showToast('Usuário criado com sucesso!', 'success');
+                await this.loadUsersData();
+                await this.loadDashboardData();
+                closeModal();
+            } catch (error) {
+                this.showToast('Erro ao criar usuário: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Criar Usuário';
+            }
+        };
+
+        // Remove previous listeners to avoid duplicates
+        submitBtn.removeEventListener('click', handleSubmit);
+        submitBtn.addEventListener('click', handleSubmit);
+
+        form.removeEventListener('submit', handleSubmit);
+        form.addEventListener('submit', handleSubmit);
     },
     
     // Ações de objeto

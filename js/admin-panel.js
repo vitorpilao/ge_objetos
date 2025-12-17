@@ -152,6 +152,9 @@ const AdminPanel = {
             case 'objects':
                 await this.loadObjectsData();
                 break;
+            case 'settings':
+                this.initSettings();
+                break;
         }
     },
     
@@ -1622,6 +1625,211 @@ const AdminPanel = {
             if (triggerEl) GeneratorCore.clearButtonSpinner(triggerEl);
         }
     }
+};
+
+// ========== CONFIGURAÇÕES DO SISTEMA ==========
+
+AdminPanel.loadSettings = async function() {
+    try {
+        console.log('🔧 Carregando configurações do sistema...');
+
+        // Carregar configurações salvas ou usar padrões
+        const savedSettings = localStorage.getItem('systemSettings');
+        const settings = savedSettings ? JSON.parse(savedSettings) : this.getDefaultSettings();
+
+        // Aplicar configurações aos campos do formulário
+        this.applySettingsToForm(settings);
+
+        // Aplicar configurações ao CSS
+        this.applySettingsToCSS(settings);
+
+        console.log('✅ Configurações carregadas com sucesso');
+    } catch (error) {
+        console.error('❌ Erro ao carregar configurações:', error);
+        this.showToast('Erro ao carregar configurações', 'error');
+    }
+};
+
+AdminPanel.getDefaultSettings = function() {
+    return {
+        colors: {
+            'color-cinza-tech': '#030200',
+            'color-branco-puro': '#FFFFFF',
+            'color-azul-moderno': '#0A88F4',
+            'color-azul-profundo': '#00011E',
+            'color-verde-tech': '#C3EB1E',
+            'color-laranja-quente': '#FF7A00'
+        },
+        fonts: {
+            'font-primary': "'Montserrat', 'Arial', sans-serif",
+            'font-secondary': "'Arial', 'Montserrat', sans-serif"
+        }
+    };
+};
+
+AdminPanel.applySettingsToForm = function(settings) {
+    // Aplicar cores
+    Object.keys(settings.colors).forEach(colorKey => {
+        const colorInput = document.getElementById(colorKey);
+        if (colorInput) {
+            colorInput.value = settings.colors[colorKey];
+            
+            // Atualizar campo hex correspondente
+            const colorGroup = colorInput.closest('.color-input-group');
+            if (colorGroup) {
+                const hexField = colorGroup.querySelector('.color-hex');
+                if (hexField) {
+                    hexField.value = settings.colors[colorKey];
+                }
+            }
+        }
+    });
+
+    // Aplicar fontes
+    Object.keys(settings.fonts).forEach(fontKey => {
+        const fontSelect = document.getElementById(fontKey);
+        if (fontSelect) {
+            fontSelect.value = settings.fonts[fontKey];
+        }
+    });
+};
+
+AdminPanel.applySettingsToCSS = function(settings) {
+    const root = document.documentElement;
+
+    // Aplicar variáveis CSS de cores
+    Object.keys(settings.colors).forEach(colorKey => {
+        root.style.setProperty(`--${colorKey}`, settings.colors[colorKey]);
+    });
+
+    // Aplicar variáveis CSS de fontes
+    Object.keys(settings.fonts).forEach(fontKey => {
+        root.style.setProperty(`--${fontKey}`, settings.fonts[fontKey]);
+    });
+};
+
+AdminPanel.saveSettings = async function() {
+    try {
+        console.log('💾 Salvando configurações...');
+
+        const settings = this.collectSettingsFromForm();
+
+        // Salvar no localStorage
+        localStorage.setItem('systemSettings', JSON.stringify(settings));
+
+        // Aplicar configurações imediatamente
+        this.applySettingsToCSS(settings);
+
+        // Mostrar status de sucesso
+        this.showSettingsStatus('Configurações salvas com sucesso!', 'success');
+
+        console.log('✅ Configurações salvas com sucesso');
+    } catch (error) {
+        console.error('❌ Erro ao salvar configurações:', error);
+        this.showSettingsStatus('Erro ao salvar configurações', 'error');
+    }
+};
+
+AdminPanel.collectSettingsFromForm = function() {
+    const settings = {
+        colors: {},
+        fonts: {}
+    };
+
+    // Coletar cores
+    const colorInputs = document.querySelectorAll('input[type="color"]');
+    colorInputs.forEach(input => {
+        settings.colors[input.id] = input.value;
+    });
+
+    // Coletar fontes
+    const fontSelects = document.querySelectorAll('select[id^="font-"]');
+    fontSelects.forEach(select => {
+        settings.fonts[select.id] = select.value;
+    });
+
+    return settings;
+};
+
+AdminPanel.resetSettings = function() {
+    try {
+        console.log('🔄 Restaurando configurações padrão...');
+
+        const defaultSettings = this.getDefaultSettings();
+
+        // Aplicar configurações padrão ao formulário
+        this.applySettingsToForm(defaultSettings);
+
+        // Aplicar configurações padrão ao CSS
+        this.applySettingsToCSS(defaultSettings);
+
+        // Remover do localStorage
+        localStorage.removeItem('systemSettings');
+
+        // Mostrar status
+        this.showSettingsStatus('Configurações restauradas para o padrão!', 'info');
+
+        console.log('✅ Configurações restauradas');
+    } catch (error) {
+        console.error('❌ Erro ao restaurar configurações:', error);
+        this.showSettingsStatus('Erro ao restaurar configurações', 'error');
+    }
+};
+
+AdminPanel.previewSettings = function() {
+    try {
+        console.log('👁️ Aplicando preview das configurações...');
+
+        const settings = this.collectSettingsFromForm();
+        this.applySettingsToCSS(settings);
+
+        this.showSettingsStatus('Preview aplicado! Clique em "Salvar" para manter as alterações.', 'info');
+    } catch (error) {
+        console.error('❌ Erro ao aplicar preview:', error);
+        this.showSettingsStatus('Erro ao aplicar preview', 'error');
+    }
+};
+
+AdminPanel.showSettingsStatus = function(message, type) {
+    const statusDiv = document.getElementById('settings-status');
+    if (!statusDiv) return;
+
+    statusDiv.textContent = message;
+    statusDiv.className = `settings-status ${type}`;
+    statusDiv.style.display = 'block';
+
+    // Esconder automaticamente após 5 segundos
+    setTimeout(() => {
+        statusDiv.style.display = 'none';
+    }, 5000);
+};
+
+AdminPanel.initSettings = function() {
+    // Adicionar event listeners aos campos de cor
+    const colorInputs = document.querySelectorAll('input[type="color"]');
+    colorInputs.forEach(input => {
+        input.addEventListener('input', (e) => {
+            const colorGroup = e.target.closest('.color-input-group');
+            if (colorGroup) {
+                const hexField = colorGroup.querySelector('.color-hex');
+                if (hexField) {
+                    hexField.value = e.target.value;
+                }
+            }
+        });
+    });
+
+    // Adicionar event listeners aos botões
+    const saveBtn = document.getElementById('save-settings');
+    const resetBtn = document.getElementById('reset-settings');
+    const previewBtn = document.getElementById('preview-settings');
+
+    if (saveBtn) saveBtn.addEventListener('click', () => this.saveSettings());
+    if (resetBtn) resetBtn.addEventListener('click', () => this.resetSettings());
+    if (previewBtn) previewBtn.addEventListener('click', () => this.previewSettings());
+
+    // Carregar configurações
+    this.loadSettings();
 };
 
 // Tornar global para permitir chamadas via inline event handlers (ex: onclick="AdminPanel.*")

@@ -19,6 +19,8 @@
             backdrop-filter: blur(10px);
             border-right: 1px solid rgba(255, 255, 255, 0.1);
             padding: 30px 20px;
+            position: relative;
+            transition: transform 0.3s ease;
         }
 
         .admin-logo {
@@ -664,10 +666,126 @@
             min-width: 300px;
             max-width: 100%;
         }
+
+        /* Responsividade para dispositivos móveis */
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: 1000;
+            }
+
+            .admin-sidebar.active {
+                transform: translateX(0);
+                width: 280px;
+            }
+
+            .admin-main {
+                margin-left: 0;
+                padding: 80px 20px 20px 20px;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .admin-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .admin-main {
+                padding: 70px 15px 15px 15px;
+            }
+
+            .admin-header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+
+            .dashboard-flex-row {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .dashboard-main-column {
+                width: 100%;
+            }
+
+            .dashboard-objects-panel,
+            .dashboard-ranking-panel {
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .grid-2-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Botão toggle mobile */
+        .admin-mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: var(--color-azul-moderno);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .admin-mobile-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        @media (max-width: 1024px) {
+            .admin-mobile-toggle {
+                display: block;
+            }
+        }
+
+        /* Overlay para mobile */
+        .admin-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .admin-sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
     <div class="admin-container">
+        <!-- Botão toggle mobile -->
+        <button class="admin-mobile-toggle" id="admin-mobile-toggle">☰</button>
+
+        <!-- Overlay para mobile -->
+        <div class="admin-sidebar-overlay" id="admin-sidebar-overlay"></div>
+
         <!-- Sidebar -->
         <aside class="admin-sidebar" id="admin-sidebar">
             <div class="admin-logo">🔐 Admin Panel</div>
@@ -958,6 +1076,41 @@
     <script src="js/auth.js"></script>
     <script src="js/core.js"></script>
     <script src="js/storage-manager.js"></script>
+
+    <!-- Script para responsividade mobile -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('admin-mobile-toggle');
+            const sidebar = document.getElementById('admin-sidebar');
+            const overlay = document.getElementById('admin-sidebar-overlay');
+
+            if (toggleBtn && sidebar && overlay) {
+                // Toggle sidebar
+                toggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                });
+
+                // Fechar sidebar ao clicar no overlay
+                overlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+
+                // Fechar sidebar ao clicar em um link do menu
+                const menuLinks = sidebar.querySelectorAll('.admin-menu-link');
+                menuLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth <= 1024) {
+                            sidebar.classList.remove('active');
+                            overlay.classList.remove('active');
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+
     <script src="js/admin-panel.js"></script>
 
     <!-- Toast container -->

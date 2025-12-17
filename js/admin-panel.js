@@ -219,6 +219,7 @@ const AdminPanel = {
             } else {
                 // Buscar objetos recentes manualmente
                 const objects = await this.fetchAllObjects();
+                const nonDemoObjects = objects.filter(o => !o.demo);
                 const recentObjects = objects
                     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                     .slice(0, 5);
@@ -811,7 +812,7 @@ const AdminPanel = {
             const response = await fetch(`${this.API_BASE_URL}/admin/users/${userId}`, {
                 method: 'PATCH',
                 headers: this.getAuthHeaders(),
-                body: JSON.stringify({ updates_set: userData })
+                body: JSON.stringify(userData)
             });
             
             console.log('📡 Resposta da API:', response.status, response.statusText);

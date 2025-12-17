@@ -144,6 +144,31 @@ const AuthManager = {
             name: session.userName,
             email: session.userEmail
         };
+    },
+    
+    // Inicializar usuário demo para testes
+    initDemo() {
+        const users = this.getUsers();
+        
+        // Verificar se usuário demo já existe
+        const demoUser = users.find(u => u.email === 'demo@example.com');
+        
+        if (!demoUser) {
+            // Criar usuário demo
+            const demoUserData = {
+                id: Date.now(),
+                name: 'Usuário Demo',
+                email: 'demo@example.com',
+                password: this.hashPassword('demo123'),
+                role: 'member',
+                created_at: new Date().toISOString()
+            };
+            
+            users.push(demoUserData);
+            this.saveUsers(users);
+            
+            console.log('👤 Usuário demo criado:', demoUserData);
+        }
     }
 };
 

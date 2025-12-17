@@ -23,7 +23,7 @@ body {
 }
 
 .sidebar {
-    width: 280px;
+    /* width: 280px; */
     background: linear-gradient(180deg, #001a3d 0%, var(--color-azul-profundo) 100%);
     border-right: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;

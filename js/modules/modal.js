@@ -22,7 +22,7 @@ GeneratorCore.registerModule('modal', {
             const html = `
                 <label>Hotspot ${index + 1}</label>
                 <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
-                    <input type="text" class="hotspot-text" placeholder="Texto do ponto" value="${(data.text||'').replace(/"/g,'&quot;')}">
+                    <input type="text" class="hotspot-text" placeholder="Texto do hotspot" value="${(data.text||'').replace(/"/g,'&quot;')}">
                     <input type="number" class="hotspot-x" placeholder="X (%)" value="${data.x||50}" min="0" max="100" step="0.01" style="width:80px;">
                     <input type="number" class="hotspot-y" placeholder="Y (%)" value="${data.y||50}" min="0" max="100" step="0.01" style="width:80px;">
                     <button type="button" class="modal-hotspot-remove" title="Remover" style="background:#dc3545;color:#fff;border:none;border-radius:4px;padding:6px 8px;">Remover</button>
@@ -188,7 +188,6 @@ GeneratorCore.registerModule('modal', {
 
                         // Mostrar texto ao passar mouse ou focar
                         const showText = () => {
-                            hotspot.textContent = text || (index + 1).toString();
                             // Tooltip
                             const tooltip = document.createElement('div');
                             tooltip.className = 'preview-tooltip';
@@ -232,7 +231,7 @@ GeneratorCore.registerModule('modal', {
 
                 // Cria novo bloco de hotspot
                 const index = container.querySelectorAll('.modal-hotspot-bloco').length;
-                const bloco = createHotspotBlock(index, { x: x.toFixed(2), y: y.toFixed(2), text: `Ponto ${index + 1}` });
+                const bloco = createHotspotBlock(index, { x: x.toFixed(2), y: y.toFixed(2), text: `Hotspot ${index + 1}` });
                 container.appendChild(bloco);
 
                 // Atualiza inputs
@@ -381,7 +380,7 @@ GeneratorCore.registerModule('modal', {
                     bloco.innerHTML = `
                         <div class="form-group">
                             <label>Texto do Hotspot ${index + 1}</label>
-                            <input type="text" class="hotspot-text" placeholder="Ex: Ponto de interesse" value="${hotspot.text || ''}">
+                            <input type="text" class="hotspot-text" placeholder="Ex: Hotspot de interesse" value="${hotspot.text || ''}">
                         </div>
                         <div class="form-group">
                             <label>Posição X (%)</label>
@@ -722,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const top = (h.y !== undefined && h.y !== null && h.y !== '') ? h.y : 50;
                 const marker = document.createElement('div');
                 marker.className = 'hotspot-marker';
-                marker.setAttribute('aria-label', 'Ponto interativo ' + (idx+1) + ': ' + (h.text || ''));
+                marker.setAttribute('aria-label', 'Hotspot interativo ' + (idx+1) + ': ' + (h.text || ''));
                 marker.setAttribute('tabindex', '0');
                 marker.style.left = left + '%';
                 marker.style.top = top + '%';
@@ -737,7 +736,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const showTooltip = () => {
                     wrapper.querySelectorAll('.hotspot-tooltip').forEach(t => t.style.display = 'none');
                     tooltip.style.display = 'block';
-                    marker.innerText = h.text || (idx+1).toString();
                 };
                 const hideTooltip = () => {
                     tooltip.style.display = 'none';

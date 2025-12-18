@@ -4,28 +4,24 @@
 GeneratorCore.registerModule('modal', {
     // 0. Setup: gerencia UI de Hotspots no painel (editor)
     setup(core) {
-        const addBtn = document.getElementById('modal-add-hotspot');
         const container = document.getElementById('modal-hotspots-container');
 
-        if (!addBtn || !container) return;
+        if (!container) return;
 
         // Função para criar bloco de hotspot
         const createHotspotBlock = (index, data = {}) => {
             const bloco = document.createElement('div');
             bloco.className = 'modal-hotspot-bloco';
-            bloco.style.position = 'relative';
-            bloco.style.padding = '10px';
-            bloco.style.marginBottom = '8px';
-            bloco.style.background = 'rgba(255,255,255,0.03)';
-            bloco.style.borderRadius = '6px';
+            bloco.style.cssText = "position: relative; padding: 15px; border-radius: 6px; margin-bottom: 12px; background-color: rgba(255, 255, 255, 0.03);";
+            // Armazenar coordenadas no dataset
+            bloco.dataset.x = data.x || 50;
+            bloco.dataset.y = data.y || 50;
 
             const html = `
                 <label>Hotspot ${index + 1}</label>
                 <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
                     <input type="text" class="hotspot-text" placeholder="Texto do hotspot" value="${(data.text||'').replace(/"/g,'&quot;')}">
-                    <input type="number" class="hotspot-x" placeholder="X (%)" value="${data.x||50}" min="0" max="100" step="0.01" style="width:80px;">
-                    <input type="number" class="hotspot-y" placeholder="Y (%)" value="${data.y||50}" min="0" max="100" step="0.01" style="width:80px;">
-                    <button type="button" class="modal-hotspot-remove" title="Remover" style="background:#dc3545;color:#fff;border:none;border-radius:4px;padding:6px 8px;">Remover</button>
+                    <button type="button" class="modal-hotspot-remove" title="Remover" style="background:#dc3545;color:#fff;border:none;border-radius:4px;padding:6px 8px;">&times;</button>
                 </div>
             `;
 
@@ -43,14 +39,6 @@ GeneratorCore.registerModule('modal', {
 
             return bloco;
         };
-
-        // Adiciona listener para criar novo hotspot
-        addBtn.addEventListener('click', () => {
-            const index = container.querySelectorAll('.modal-hotspot-bloco').length;
-            const bloco = createHotspotBlock(index);
-            container.appendChild(bloco);
-            updatePreviewHotspots();
-        });
 
         // Inicializa botões de remover se já existir algum bloco
         Array.from(container.querySelectorAll('.modal-hotspot-bloco')).forEach((b,i)=>{
@@ -155,13 +143,11 @@ GeneratorCore.registerModule('modal', {
                 // Adiciona hotspots do container
                 const blocks = container.querySelectorAll('.modal-hotspot-bloco');
                 blocks.forEach((block, index) => {
-                    const xInput = block.querySelector('.hotspot-x');
-                    const yInput = block.querySelector('.hotspot-y');
                     const textInput = block.querySelector('.hotspot-text');
 
-                    if (xInput && yInput && textInput) {
-                        const x = parseFloat(xInput.value) || 0;
-                        const y = parseFloat(yInput.value) || 0;
+                    if (textInput) {
+                        const x = parseFloat(block.dataset.x) || 0;
+                        const y = parseFloat(block.dataset.y) || 0;
                         const text = textInput.value || `Hotspot ${index + 1}`;
 
                         const hotspot = document.createElement('div');
@@ -266,7 +252,6 @@ GeneratorCore.registerModule('modal', {
             corFundo: corFundo,
             corTexto: corTexto,
             corBorda: (corTexto === '#FFFFFF') ? 'rgba(255, 255, 255, 0.2)' : 'rgba(3, 2, 0, 0.2)',
-            btnText: document.getElementById('input-modal-btn-text').value,
             imgUrl: document.getElementById('input-modal-img-url').value,
             imgAlt: document.getElementById('input-modal-img-alt').value,
             caption: document.getElementById('input-modal-caption').value,
@@ -278,8 +263,8 @@ GeneratorCore.registerModule('modal', {
                     const blocks = container.querySelectorAll('.modal-hotspot-bloco');
                     return Array.from(blocks).map(b => ({
                         text: (b.querySelector('.hotspot-text')?.value || '').trim(),
-                        x: (b.querySelector('.hotspot-x')?.value || '').toString(),
-                        y: (b.querySelector('.hotspot-y')?.value || '').toString()
+                        x: (b.dataset.x || '').toString(),
+                        y: (b.dataset.y || '').toString()
                     })).filter(h => h.text || h.x || h.y);
                 } catch (err) {
                     return [];
@@ -375,22 +360,18 @@ GeneratorCore.registerModule('modal', {
                 data.hotspots.forEach((hotspot, index) => {
                     const bloco = document.createElement('div');
                     bloco.className = 'modal-hotspot-bloco';
-                    bloco.style.cssText = "position: relative; padding: 15px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 12px; background-color: #fff;";
+                    bloco.style.cssText = "position: relative; padding: 15px; border-radius: 6px; margin-bottom: 12px; background-color: rgba(255, 255, 255, 0.03);";
                     
                     bloco.innerHTML = `
                         <div class="form-group">
                             <label>Texto do Hotspot ${index + 1}</label>
                             <input type="text" class="hotspot-text" placeholder="Ex: Hotspot de interesse" value="${hotspot.text || ''}">
                         </div>
-                        <div class="form-group">
-                            <label>Posição X (%)</label>
-                            <input type="number" class="hotspot-x" min="0" max="100" placeholder="Ex: 50" value="${hotspot.x || ''}">
-                        </div>
-                        <div class="form-group">
-                            <label>Posição Y (%)</label>
-                            <input type="number" class="hotspot-y" min="0" max="100" placeholder="Ex: 50" value="${hotspot.y || ''}">
-                        </div>
                     `;
+                    
+                    // Definir coordenadas no dataset
+                    bloco.dataset.x = hotspot.x || '';
+                    bloco.dataset.y = hotspot.y || '';
                     
                     container.appendChild(bloco);
                     
@@ -453,7 +434,7 @@ GeneratorCore.registerModule('modal', {
     createTemplate(data) {
         const { 
             uniqueId, audiodescricao, ariaLabel, corBotao, corBotaoTexto, corFundo, corTexto, corBorda,
-            btnText, imgUrl, imgAlt, caption, hotspots = []
+            imgUrl, imgAlt, caption, hotspots = []
         } = data;
 
         // Resolve possíveis links do Google Drive para uma URL direta de imagem
@@ -559,7 +540,7 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem; /* Espaço seguro nas bordas */
+    padding: 1rem; /* Espaço seguro nas bordas - será ajustado dinamicamente */
     box-sizing: border-box;
     overflow-y: auto;
     opacity: 0;
@@ -585,7 +566,7 @@ html, body {
     height: auto;
     display: block;
     object-fit: contain; /* Garante que a imagem caiba sem distorcer */
-    max-height: 75vh; /* Limita a altura da imagem */
+    /* Removido max-height para permitir expansão ao tamanho original */
     background-color: rgba(0,0,0,0.1); /* Fundo sutil para a imagem */
 }
 .modal-caption {
@@ -602,7 +583,7 @@ html, body {
 /* Hotspots overlay */
 .hotspots-wrapper{position:relative}
 .hotspot-marker{position:absolute;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;background:var(--modal-cor-btn);color:var(--modal-cor-btn-texto);display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid rgba(255,255,255,0.9);box-shadow:0 2px 6px rgba(0,0,0,0.3)}
-.hotspot-tooltip{position:absolute;min-width:160px;max-width:300px;background:var(--modal-cor-fundo);color:var(--modal-cor-texto);border:1px solid var(--modal-cor-borda);padding:8px;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,0.35);display:none;z-index:1003;pointer-events:none}
+.hotspot-tooltip{position:absolute;min-width:160px;max-width:300px;background:black;color:white;border:1px solid rgba(255,255,255,0.5);padding:8px;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,0.35);display:none;z-index:1003;pointer-events:none;text-align:center}
 .hotspot-debug{background:rgba(0,0,0,0.05);padding:10px;border-top:1px dashed rgba(255,255,255,0.05);font-family:monospace;font-size:0.85rem;color:var(--modal-cor-texto);max-height:140px;overflow:auto}
 .hotspot-debug-toggle{background:transparent;border:1px solid var(--modal-cor-borda);color:var(--modal-cor-texto);padding:6px 10px;border-radius:6px;cursor:pointer;margin:10px}
 .modal-img-fallback{padding:24px;text-align:center;color:var(--modal-cor-texto);background:linear-gradient(180deg, rgba(0,0,0,0.03), transparent);border-top:1px dashed var(--modal-cor-borda)}
@@ -696,11 +677,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Ajustar tamanho do modal-content para o tamanho da imagem
                 const modalContent = modal.querySelector('.modal-content');
-                if (modalContent) {
-                    modalContent.style.width = imgElement.offsetWidth + 'px';
-                    modalContent.style.height = (imgElement.offsetHeight + 20) + 'px'; // +20 para legenda se houver
+                const modalDialog = modal.closest('.modal-dialog');
+                if (modalContent && modalDialog) {
+                    const imgWidth = imgElement.naturalWidth;
+                    const imgHeight = imgElement.naturalHeight;
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Se a imagem for maior que 80% da viewport, reduzir padding para maximizar espaço
+                    if (imgWidth > viewportWidth * 0.8 || imgHeight > viewportHeight * 0.8) {
+                        modalDialog.style.padding = '0.5rem';
+                    } else {
+                        modalDialog.style.padding = '1rem';
+                    }
+                    
+                    // Permitir que o modal-content se expanda ao tamanho natural da imagem
+                    modalContent.style.width = 'auto';
+                    modalContent.style.height = 'auto';
                     modalContent.style.maxWidth = 'none';
                     modalContent.style.maxHeight = 'none';
+                    
+                    // Garantir que a imagem seja exibida em seu tamanho natural se couber na tela
+                    if (imgWidth <= viewportWidth * 0.9 && imgHeight <= viewportHeight * 0.9) {
+                        imgElement.style.width = imgWidth + 'px';
+                        imgElement.style.height = imgHeight + 'px';
+                        imgElement.style.objectFit = 'none'; // Mostrar em tamanho real
+                    } else {
+                        imgElement.style.width = '100%';
+                        imgElement.style.height = 'auto';
+                        imgElement.style.objectFit = 'contain';
+                    }
                 }
             });
             // Se não houver src inicial, inicie com o primeiro candidato
